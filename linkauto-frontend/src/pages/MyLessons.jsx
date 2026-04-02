@@ -1,86 +1,55 @@
-import React, { useState } from "react";
-import { Clock, Calendar, MapPin, Star } from "lucide-react";
-import RatingModal from "../components/RatingModal";
+import React from "react";
+import { Calendar, Clock, MapPin, ChevronRight } from "lucide-react";
 
-const MyLessons = ({ lessons }) => {
-  const [selectedLesson, setSelectedLesson] = useState(null);
-
-  const handleRatingSubmit = (rating, comment) => {
-    // Aqui no futuro enviamos para o backend (RF06)
-    console.log(
-      `Avaliação para ${selectedLesson.instructorName}: ${rating} estrelas. Comentário: ${comment}`,
-    );
-    alert("Obrigado pela sua avaliação!");
-    setSelectedLesson(null);
-  };
-
+const MyLessons = ({ lessons, onSelectLesson }) => {
   return (
-    <main className="p-4 pb-24">
+    <main className="p-4 pb-24 bg-[#F8F9FC] min-h-screen">
       <header className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Minha Agenda</h2>
+        <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Minhas Aulas</h2>
+        <p className="text-xs text-gray-400 font-medium">Toque em uma aula para ver detalhes e mensagens</p>
       </header>
 
       <div className="space-y-4">
-        {lessons.map((lesson) => (
-          <div
-            key={lesson.id}
-            className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${lesson.status === "completed" ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"}`}
-                >
-                  <Calendar size={20} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-800">
-                    {lesson.instructorName}
-                  </h4>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase">
-                    {lesson.date}
-                  </p>
-                </div>
+        {lessons.length > 0 ? (
+          lessons.map((lesson) => (
+            <div 
+              key={lesson.id} 
+              onClick={() => onSelectLesson(lesson)}
+              className="bg-white p-5 rounded-[32px] border border-gray-100 shadow-sm shadow-blue-900/5 flex items-center gap-4 active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 font-bold text-lg">
+                {lesson.instructorName[0]}
               </div>
-              <span
-                className={`text-[10px] font-black px-2 py-1 rounded-md ${
-                  lesson.status === "completed"
-                    ? "bg-green-100 text-green-600"
-                    : "bg-blue-100 text-blue-600"
-                }`}
-              >
-                {lesson.status === "completed" ? "Realizada" : "Agendada"}
-              </span>
-            </div>
 
-            <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-              <div className="flex items-center gap-1 font-medium">
-                <Clock size={14} className="text-blue-500" /> {lesson.time}
+              <div className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <h4 className="font-bold text-gray-800 text-sm">{lesson.instructorName}</h4>
+                  <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                    lesson.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+                  }`}>
+                    {lesson.status === 'completed' ? 'Realizada' : 'Agendada'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-tight">
+                  <div className="flex items-center gap-1">
+                    <Calendar size={12} className="text-blue-500" /> {lesson.date}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock size={12} className="text-blue-500" /> {lesson.time}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <MapPin size={14} /> {lesson.neighborhood}
-              </div>
-            </div>
 
-            {/* Botao de avaliacao liberado apenas para aulas realizadas (RN05) */}
-            {lesson.status === "completed" && (
-              <button
-                onClick={() => setSelectedLesson(lesson)}
-                className="w-full py-3 bg-yellow-50 text-yellow-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
-              >
-                <Star size={14} className="fill-current" /> Avaliar Experiência
-              </button>
-            )}
+              <ChevronRight size={18} className="text-gray-300" />
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-gray-400 font-medium">Você ainda não tem aulas agendadas.</p>
           </div>
-        ))}
+        )}
       </div>
-
-      <RatingModal
-        isOpen={!!selectedLesson}
-        targetName={selectedLesson?.instructorName}
-        onClose={() => setSelectedLesson(null)}
-        onSubmit={handleRatingSubmit}
-      />
     </main>
   );
 };

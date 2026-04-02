@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import SearchPage from "./pages/SearchPage";
 import InstructorProfile from "./pages/InstructorProfile";
 import MyLessons from "./pages/MyLessons";
+import LessonDetails from "./pages/LessonDetails";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import Login from "./pages/Login";
 import { Search, Clock, LayoutDashboard } from "lucide-react";
@@ -20,6 +21,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("search");
   const [isSearchingPage, setIsSearchingPage] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
+  const [selectedLesson, setSelectedLesson] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [myLessons, setMyLessons] = useState([
     { id: 99, instructorName: "Marcos Silva", date: "30 MAR 2026", time: "14:00", neighborhood: "Centro", status: "completed" }
@@ -36,7 +38,7 @@ function App() {
       id: Date.now(),
       instructorName: instructor.name,
       date: "02 ABR 2026",
-      time: slots[0], // Pega o primeiro horário selecionado
+      time: slots[0],
       neighborhood: instructor.neighborhood,
       status: "scheduled"
     };
@@ -44,19 +46,19 @@ function App() {
     setMyLessons([newLesson, ...myLessons]);
     alert("Solicitação enviada com sucesso!");
     
-    // ORDEM IMPORTANTE: Primeiro limpa o instrutor selecionado, depois muda a aba
     setSelectedInstructor(null);
     setIsSearchingPage(false);
     setActiveTab("lessons");
   };
 
-  if (!isAuthenticated) return <Login onLogin={handleLogin} />;
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-20">
       
-      {/* Header só aparece se não estiver no Perfil ou na Busca */}
-      {!selectedInstructor && !isSearchingPage && (
+      {!selectedInstructor && !isSearchingPage && !selectedLesson && (
         <Header onLogout={() => setIsAuthenticated(false)} />
       )}
 
@@ -71,6 +73,11 @@ function App() {
                 onBack={() => setSelectedInstructor(null)} 
                 onConfirm={handleConfirmBooking}
               />
+            ) : selectedLesson ? (
+              <LessonDetails 
+                lesson={selectedLesson} 
+                onBack={() => setSelectedLesson(null)} 
+              />
             ) : isSearchingPage ? (
               <SearchPage 
                 searchTerm={searchTerm}
@@ -82,31 +89,33 @@ function App() {
             ) : activeTab === "search" ? (
               <Home onStartSearch={() => setIsSearchingPage(true)} />
             ) : (
-              <MyLessons lessons={myLessons} />
+              <MyLessons 
+                lessons={myLessons} 
+                onSelectLesson={setSelectedLesson}
+              />
             )}
           </div>
         )}
       </div>
 
-      {/* Nav Bar */}
-      {!selectedInstructor && !isSearchingPage && (
+      {!selectedInstructor && !isSearchingPage && !selectedLesson && (
         <nav className="fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-around py-4 shadow-lg z-20">
           {userRole === "student" ? (
             <>
               <button onClick={() => setActiveTab("search")} className={`flex flex-col items-center ${activeTab === "search" ? "text-blue-600" : "text-gray-400"}`}>
-                <Search size={22} /><span className="text-[10px] mt-1 font-bold text-center">Início</span>
+                <Search size={22} /><span className="text-[10px] mt-1 font-bold">Início</span>
               </button>
               <button onClick={() => setActiveTab("lessons")} className={`flex flex-col items-center ${activeTab === "lessons" ? "text-blue-600" : "text-gray-400"}`}>
-                <Clock size={22} /><span className="text-[10px] mt-1 font-bold text-center">Aulas</span>
+                <Clock size={22} /><span className="text-[10px] mt-1 font-bold">Aulas</span>
               </button>
             </>
           ) : (
             <>
               <button onClick={() => setActiveTab("dashboard")} className={`flex flex-col items-center ${activeTab === "dashboard" ? "text-blue-600" : "text-gray-400"}`}>
-                <LayoutDashboard size={22} /><span className="text-[10px] mt-1 font-bold text-center">Painel</span>
+                <LayoutDashboard size={22} /><span className="text-[10px] mt-1 font-bold">Painel</span>
               </button>
               <button onClick={() => setActiveTab("lessons")} className={`flex flex-col items-center ${activeTab === "lessons" ? "text-blue-600" : "text-gray-400"}`}>
-                <Clock size={22} /><span className="text-[10px] mt-1 font-bold text-center">Agenda</span>
+                <Clock size={22} /><span className="text-[10px] mt-1 font-bold">Agenda</span>
               </button>
             </>
           )}
