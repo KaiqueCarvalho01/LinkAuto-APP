@@ -23,8 +23,14 @@ function App() {
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
   const [myLessons, setMyLessons] = useState([
     { id: 99, instructorName: "Marcos Silva", date: "30 MAR 2026", time: "14:00", neighborhood: "Centro", status: "completed" }
+  ]);
+
+  const [pendingRequests, setPendingRequests] = useState([
+    { id: 101, studentName: "João Silva", date: "02 ABR", time: "08:00", neighborhood: "Centro", price: 70 },
+    { id: 102, studentName: "Maria Souza", date: "03 ABR", time: "10:00", neighborhood: "Pq. Estado", price: 70 }
   ]);
 
   const handleLogin = (role) => {
@@ -51,6 +57,17 @@ function App() {
     setActiveTab("lessons");
   };
 
+  const handleAcceptLesson = (id) => {
+    const lesson = pendingRequests.find(r => r.id === id);
+    setPendingRequests(pendingRequests.filter(r => r.id !== id));
+    alert(`Aula com ${lesson.studentName} confirmada!`);
+  };
+
+  const handleRejectLesson = (id) => {
+    setPendingRequests(pendingRequests.filter(r => r.id !== id));
+    alert("Solicitação recusada.");
+  };
+
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
@@ -64,7 +81,18 @@ function App() {
 
       <div className="flex-grow">
         {userRole === "instructor" ? (
-          <InstructorDashboard instructorData={{ name: "Ricardo Silva", rating: 4.8 }} />
+          <div className="h-full">
+            {activeTab === "dashboard" ? (
+              <InstructorDashboard 
+                instructorData={{ name: "Ricardo Silva", rating: 4.8 }} 
+                requests={pendingRequests}
+                onAccept={handleAcceptLesson}
+                onReject={handleRejectLesson}
+              />
+            ) : (
+              <MyLessons lessons={[]} onSelectLesson={() => {}} />
+            )}
+          </div>
         ) : (
           <div className="h-full">
             {selectedInstructor ? (
