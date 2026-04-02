@@ -12,7 +12,10 @@ import { Search, Clock, LayoutDashboard } from "lucide-react";
 const MOCK_INSTRUCTORS = [
   { id: 1, name: "Ricardo Silva", neighborhood: "Centro", rating: 4.8, price: 70, photo: "https://i.pravatar.cc/150?u=1" },
   { id: 2, name: "Ana Paula", neighborhood: "Parque do Estado", rating: 4.9, price: 85, photo: "https://i.pravatar.cc/150?u=2" },
-  { id: 3, name: "Marcos Souza", neighborhood: "Mogi Mirim II", rating: 4.7, price: 65, photo: "https://i.pravatar.cc/150?u=3" }
+  { id: 3, name: "Marcos Souza", neighborhood: "Mogi Mirim II", rating: 4.7, price: 65, photo: "https://i.pravatar.cc/150?u=3" },
+  { id: 4, name: "Beatriz Lopes", neighborhood: "Centro", rating: 4.5, price: 60, photo: "https://i.pravatar.cc/150?u=4" },
+  { id: 5, name: "Carlos Eduardo", neighborhood: "Parque do Estado", rating: 4.2, price: 55, photo: "https://i.pravatar.cc/150?u=5" },
+  { id: 6, name: "Fernanda Costa", neighborhood: "Mogi Mirim II", rating: 5.0, price: 90, photo: "https://i.pravatar.cc/150?u=6" }
 ];
 
 function App() {
@@ -29,8 +32,8 @@ function App() {
   ]);
 
   const [pendingRequests, setPendingRequests] = useState([
-    { id: 101, studentName: "João Silva", date: "02 ABR", time: "08:00", neighborhood: "Centro", price: 70 },
-    { id: 102, studentName: "Maria Souza", date: "03 ABR", time: "10:00", neighborhood: "Pq. Estado", price: 70 }
+    { id: 101, studentName: "João Silva", date: "02 ABR", time: "08:00", neighborhood: "Centro" },
+    { id: 102, studentName: "Maria Souza", date: "03 ABR", time: "10:00", neighborhood: "Pq. Estado" }
   ]);
 
   const [instructorLessons, setInstructorLessons] = useState([]);
@@ -48,7 +51,7 @@ function App() {
       date: "02 ABR 2026",
       time: slots[0],
       neighborhood: instructor.neighborhood,
-      status: "scheduled" // Status de agendada/pendente
+      status: "scheduled"
     };
     setMyLessons([newLesson, ...myLessons]);
     alert("Solicitação enviada com sucesso!");
@@ -82,7 +85,6 @@ function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-20">
-      
       {!selectedInstructor && !isSearchingPage && !selectedLesson && (
         <Header onLogout={() => setIsAuthenticated(false)} />
       )}
@@ -128,10 +130,7 @@ function App() {
             ) : activeTab === "search" ? (
               <Home onStartSearch={() => setIsSearchingPage(true)} />
             ) : (
-              <MyLessons 
-                lessons={myLessons} 
-                onSelectLesson={setSelectedLesson}
-              />
+              <MyLessons lessons={myLessons} onSelectLesson={setSelectedLesson} />
             )}
           </div>
         )}

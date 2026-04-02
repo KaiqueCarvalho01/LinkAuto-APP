@@ -1,9 +1,10 @@
 import React from "react";
-import { Check, X, Calendar, DollarSign, Star, Users, Clock } from "lucide-react";
+import { Check, X, Calendar, Award, Star, Users, Clock } from "lucide-react";
 
 const InstructorDashboard = ({ instructorData, requests, onAccept, onReject }) => {
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-20">
+      {/* Header com Métricas de Performance (Sem Dinheiro) */}
       <div className="bg-gradient-to-b from-[#0F172A] to-[#1E293B] pt-10 pb-20 px-6 rounded-b-[40px] relative text-white">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -17,12 +18,12 @@ const InstructorDashboard = ({ instructorData, requests, onAccept, onReject }) =
 
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/5 backdrop-blur-sm p-4 rounded-[24px] border border-white/10">
-            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Ganhos do Mês</p>
-            <p className="text-xl font-black">R$ 1.240</p>
+            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Total de Aulas</p>
+            <p className="text-xl font-black">42</p>
           </div>
           <div className="bg-white/5 backdrop-blur-sm p-4 rounded-[24px] border border-white/10">
-            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Aulas Feitas</p>
-            <p className="text-xl font-black">18</p>
+            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Horas de Aula</p>
+            <p className="text-xl font-black">84h</p>
           </div>
         </div>
       </div>
@@ -47,9 +48,6 @@ const InstructorDashboard = ({ instructorData, requests, onAccept, onReject }) =
                     <div className="flex-grow">
                       <h4 className="font-bold text-gray-800 text-sm">{req.studentName}</h4>
                       <p className="text-[10px] text-gray-400 font-bold uppercase">{req.neighborhood}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-blue-600 font-black text-sm">R$ {req.price}</p>
                     </div>
                   </div>
 
@@ -94,10 +92,10 @@ const InstructorDashboard = ({ instructorData, requests, onAccept, onReject }) =
             <span className="text-[10px] font-black text-gray-400 uppercase">Meus Alunos</span>
           </button>
           <button className="bg-white p-5 rounded-[28px] border border-gray-50 shadow-sm flex flex-col items-center gap-2 active:scale-95 transition-all">
-            <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
-              <DollarSign size={20} />
+            <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+              <Award size={20} />
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase">Extrato</span>
+            <span className="text-[10px] font-black text-gray-400 uppercase">Conquistas</span>
           </button>
         </section>
       </div>
