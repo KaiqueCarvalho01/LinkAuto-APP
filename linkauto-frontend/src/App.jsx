@@ -33,6 +33,8 @@ function App() {
     { id: 102, studentName: "Maria Souza", date: "03 ABR", time: "10:00", neighborhood: "Pq. Estado", price: 70 }
   ]);
 
+  const [instructorLessons, setInstructorLessons] = useState([]);
+
   const handleLogin = (role) => {
     setUserRole(role);
     setIsAuthenticated(true);
@@ -46,21 +48,29 @@ function App() {
       date: "02 ABR 2026",
       time: slots[0],
       neighborhood: instructor.neighborhood,
-      status: "scheduled"
+      status: "scheduled" // Status de agendada/pendente
     };
-
     setMyLessons([newLesson, ...myLessons]);
     alert("Solicitação enviada com sucesso!");
-    
     setSelectedInstructor(null);
     setIsSearchingPage(false);
     setActiveTab("lessons");
   };
 
   const handleAcceptLesson = (id) => {
-    const lesson = pendingRequests.find(r => r.id === id);
+    const request = pendingRequests.find(r => r.id === id);
+    const confirmedLesson = {
+      id: request.id,
+      instructorName: "Você",
+      studentName: request.studentName,
+      date: request.date,
+      time: request.time,
+      neighborhood: request.neighborhood,
+      status: "confirmed"
+    };
+    setInstructorLessons([confirmedLesson, ...instructorLessons]);
     setPendingRequests(pendingRequests.filter(r => r.id !== id));
-    alert(`Aula com ${lesson.studentName} confirmada!`);
+    alert(`Aula com ${request.studentName} confirmada!`);
   };
 
   const handleRejectLesson = (id) => {
@@ -68,9 +78,7 @@ function App() {
     alert("Solicitação recusada.");
   };
 
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
-  }
+  if (!isAuthenticated) return <Login onLogin={handleLogin} />;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-20">
@@ -89,8 +97,14 @@ function App() {
                 onAccept={handleAcceptLesson}
                 onReject={handleRejectLesson}
               />
+            ) : selectedLesson ? (
+              <LessonDetails lesson={selectedLesson} onBack={() => setSelectedLesson(null)} />
             ) : (
-              <MyLessons lessons={[]} onSelectLesson={() => {}} />
+              <MyLessons 
+                lessons={instructorLessons} 
+                isInstructor={true} 
+                onSelectLesson={setSelectedLesson} 
+              />
             )}
           </div>
         ) : (
@@ -102,10 +116,7 @@ function App() {
                 onConfirm={handleConfirmBooking}
               />
             ) : selectedLesson ? (
-              <LessonDetails 
-                lesson={selectedLesson} 
-                onBack={() => setSelectedLesson(null)} 
-              />
+              <LessonDetails lesson={selectedLesson} onBack={() => setSelectedLesson(null)} />
             ) : isSearchingPage ? (
               <SearchPage 
                 searchTerm={searchTerm}
