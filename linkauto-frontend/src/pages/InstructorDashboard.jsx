@@ -1,10 +1,9 @@
 import React from "react";
 import { Check, X, Calendar, Award, Star, Users, Clock } from "lucide-react";
 
-const InstructorDashboard = ({ instructorData, requests, onAccept, onReject }) => {
+const InstructorDashboard = ({ instructorData, requests, onAccept, onReject, onViewStudents }) => {
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-20">
-      {/* Header com Métricas de Performance (Sem Dinheiro) */}
       <div className="bg-gradient-to-b from-[#0F172A] to-[#1E293B] pt-10 pb-20 px-6 rounded-b-[40px] relative text-white">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -85,12 +84,16 @@ const InstructorDashboard = ({ instructorData, requests, onAccept, onReject }) =
         </section>
 
         <section className="grid grid-cols-2 gap-4 pb-10">
-          <button className="bg-white p-5 rounded-[28px] border border-gray-50 shadow-sm flex flex-col items-center gap-2 active:scale-95 transition-all">
+          <button 
+            onClick={onViewStudents}
+            className="bg-white p-5 rounded-[28px] border border-gray-50 shadow-sm flex flex-col items-center gap-2 active:scale-95 transition-all"
+          >
             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
               <Users size={20} />
             </div>
             <span className="text-[10px] font-black text-gray-400 uppercase">Meus Alunos</span>
           </button>
+
           <button className="bg-white p-5 rounded-[28px] border border-gray-50 shadow-sm flex flex-col items-center gap-2 active:scale-95 transition-all">
             <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
               <Award size={20} />

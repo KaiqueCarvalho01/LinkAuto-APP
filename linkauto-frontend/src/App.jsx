@@ -6,8 +6,10 @@ import InstructorProfile from "./pages/InstructorProfile";
 import MyLessons from "./pages/MyLessons";
 import LessonDetails from "./pages/LessonDetails";
 import InstructorDashboard from "./pages/InstructorDashboard";
+import MyStudents from "./pages/MyStudents";
+import Profile from "./pages/Profile";
 import Login from "./pages/Login";
-import { Search, Clock, LayoutDashboard } from "lucide-react";
+import { Search, Clock, LayoutDashboard, User } from "lucide-react";
 
 const MOCK_INSTRUCTORS = [
   { id: 1, name: "Ricardo Silva", neighborhood: "Centro", rating: 4.8, price: 70, photo: "https://i.pravatar.cc/150?u=1" },
@@ -23,6 +25,7 @@ function App() {
   const [userRole, setUserRole] = useState("student"); 
   const [activeTab, setActiveTab] = useState("search");
   const [isSearchingPage, setIsSearchingPage] = useState(false);
+  const [isViewingStudents, setIsViewingStudents] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,11 +40,27 @@ function App() {
   ]);
 
   const [instructorLessons, setInstructorLessons] = useState([]);
+  
+  const [myStudents] = useState([
+    { id: 1, name: "João Silva", totalLessons: 5 },
+    { id: 2, name: "Maria Souza", totalLessons: 3 },
+    { id: 3, name: "Pedro Alvares", totalLessons: 12 }
+  ]);
 
   const handleLogin = (role) => {
     setUserRole(role);
     setIsAuthenticated(true);
     setActiveTab(role === "instructor" ? "dashboard" : "search");
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUserRole("student");
+    setActiveTab("search");
+    setIsSearchingPage(false);
+    setIsViewingStudents(false);
+    setSelectedInstructor(null);
+    setSelectedLesson(null);
   };
 
   const handleConfirmBooking = (instructor, slots) => {
@@ -54,7 +73,7 @@ function App() {
       status: "scheduled"
     };
     setMyLessons([newLesson, ...myLessons]);
-    alert("Solicitação enviada com sucesso!");
+    alert("Solicitação enviada!");
     setSelectedInstructor(null);
     setIsSearchingPage(false);
     setActiveTab("lessons");
@@ -76,57 +95,41 @@ function App() {
     alert(`Aula com ${request.studentName} confirmada!`);
   };
 
-  const handleRejectLesson = (id) => {
-    setPendingRequests(pendingRequests.filter(r => r.id !== id));
-    alert("Solicitação recusada.");
-  };
-
   if (!isAuthenticated) return <Login onLogin={handleLogin} />;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-20">
-      {!selectedInstructor && !isSearchingPage && !selectedLesson && (
-        <Header onLogout={() => setIsAuthenticated(false)} />
+      
+      {!selectedInstructor && !isSearchingPage && !selectedLesson && !isViewingStudents && activeTab !== 'profile' && (
+        <Header onLogout={handleLogout} />
       )}
 
       <div className="flex-grow">
-        {userRole === "instructor" ? (
+        {activeTab === 'profile' ? (
+          <Profile 
+            userData={{ name: userRole === 'instructor' ? 'Ricardo Silva' : 'Aluno LinkAuto', email: 'contato@linkauto.com', role: userRole }} 
+            onLogout={handleLogout} 
+          />
+        ) : userRole === "instructor" ? (
           <div className="h-full">
-            {activeTab === "dashboard" ? (
-              <InstructorDashboard 
-                instructorData={{ name: "Ricardo Silva", rating: 4.8 }} 
-                requests={pendingRequests}
-                onAccept={handleAcceptLesson}
-                onReject={handleRejectLesson}
-              />
+            {isViewingStudents ? (
+              <MyStudents students={myStudents} onBack={() => setIsViewingStudents(false)} onSelectStudent={(s) => alert(`Detalhes de ${s.name}`)} />
+            ) : activeTab === "dashboard" ? (
+              <InstructorDashboard instructorData={{ name: "Ricardo Silva", rating: 4.8 }} requests={pendingRequests} onAccept={handleAcceptLesson} onReject={(id) => setPendingRequests(pendingRequests.filter(r => r.id !== id))} onViewStudents={() => setIsViewingStudents(true)} />
             ) : selectedLesson ? (
               <LessonDetails lesson={selectedLesson} onBack={() => setSelectedLesson(null)} />
             ) : (
-              <MyLessons 
-                lessons={instructorLessons} 
-                isInstructor={true} 
-                onSelectLesson={setSelectedLesson} 
-              />
+              <MyLessons lessons={instructorLessons} isInstructor={true} onSelectLesson={setSelectedLesson} />
             )}
           </div>
         ) : (
           <div className="h-full">
             {selectedInstructor ? (
-              <InstructorProfile 
-                instructor={selectedInstructor} 
-                onBack={() => setSelectedInstructor(null)} 
-                onConfirm={handleConfirmBooking}
-              />
+              <InstructorProfile instructor={selectedInstructor} onBack={() => setSelectedInstructor(null)} onConfirm={handleConfirmBooking} />
             ) : selectedLesson ? (
               <LessonDetails lesson={selectedLesson} onBack={() => setSelectedLesson(null)} />
             ) : isSearchingPage ? (
-              <SearchPage 
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                instructors={MOCK_INSTRUCTORS}
-                onSelectInstructor={(inst) => setSelectedInstructor(inst)}
-                onBack={() => setIsSearchingPage(false)}
-              />
+              <SearchPage searchTerm={searchTerm} setSearchTerm={setSearchTerm} instructors={MOCK_INSTRUCTORS} onSelectInstructor={setSelectedInstructor} onBack={() => setIsSearchingPage(false)} />
             ) : activeTab === "search" ? (
               <Home onStartSearch={() => setIsSearchingPage(true)} />
             ) : (
@@ -136,27 +139,20 @@ function App() {
         )}
       </div>
 
-      {!selectedInstructor && !isSearchingPage && !selectedLesson && (
+      {!selectedInstructor && !isSearchingPage && !selectedLesson && !isViewingStudents && (
         <nav className="fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-around py-4 shadow-lg z-20">
-          {userRole === "student" ? (
-            <>
-              <button onClick={() => setActiveTab("search")} className={`flex flex-col items-center ${activeTab === "search" ? "text-blue-600" : "text-gray-400"}`}>
-                <Search size={22} /><span className="text-[10px] mt-1 font-bold">Início</span>
-              </button>
-              <button onClick={() => setActiveTab("lessons")} className={`flex flex-col items-center ${activeTab === "lessons" ? "text-blue-600" : "text-gray-400"}`}>
-                <Clock size={22} /><span className="text-[10px] mt-1 font-bold">Aulas</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => setActiveTab("dashboard")} className={`flex flex-col items-center ${activeTab === "dashboard" ? "text-blue-600" : "text-gray-400"}`}>
-                <LayoutDashboard size={22} /><span className="text-[10px] mt-1 font-bold">Painel</span>
-              </button>
-              <button onClick={() => setActiveTab("lessons")} className={`flex flex-col items-center ${activeTab === "lessons" ? "text-blue-600" : "text-gray-400"}`}>
-                <Clock size={22} /><span className="text-[10px] mt-1 font-bold">Agenda</span>
-              </button>
-            </>
-          )}
+          <button onClick={() => {setActiveTab(userRole === 'instructor' ? 'dashboard' : 'search'); setIsViewingStudents(false);}} className={`flex flex-col items-center ${activeTab === (userRole === 'instructor' ? 'dashboard' : 'search') ? "text-blue-600" : "text-gray-300"}`}>
+            {userRole === 'instructor' ? <LayoutDashboard size={22} /> : <Search size={22} />}
+            <span className="text-[10px] mt-1 font-bold">{userRole === 'instructor' ? 'Painel' : 'Início'}</span>
+          </button>
+          
+          <button onClick={() => {setActiveTab("lessons"); setIsViewingStudents(false);}} className={`flex flex-col items-center ${activeTab === "lessons" ? "text-blue-600" : "text-gray-300"}`}>
+            <Clock size={22} /><span className="text-[10px] mt-1 font-bold">{userRole === 'instructor' ? 'Agenda' : 'Aulas'}</span>
+          </button>
+
+          <button onClick={() => {setActiveTab("profile"); setIsViewingStudents(false);}} className={`flex flex-col items-center ${activeTab === "profile" ? "text-blue-600" : "text-gray-300"}`}>
+            <User size={22} /><span className="text-[10px] mt-1 font-bold">Perfil</span>
+          </button>
         </nav>
       )}
     </div>
