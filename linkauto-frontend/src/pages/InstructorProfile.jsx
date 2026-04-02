@@ -1,95 +1,98 @@
 import React, { useState } from "react";
-import { ChevronLeft, ShieldCheck } from "lucide-react";
-import ConfirmationModal from "../components/ConfirmationModal"; // Importando o novo modal
+import { ChevronLeft, Star, ShieldCheck, Clock, Check } from "lucide-react";
 
 const InstructorProfile = ({ instructor, onBack, onConfirm }) => {
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o Pop-up
+  const [selectedSlots, setSelectedSlots] = useState([]);
+  const timeSlots = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
-  if (!instructor) return null;
+  const handleSlotClick = (slot) => {
+    if (selectedSlots.includes(slot)) {
+      setSelectedSlots(selectedSlots.filter(s => s !== slot));
+    } else {
+      setSelectedSlots([...selectedSlots, slot].sort());
+    }
+  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white pb-24 font-sans text-gray-900">
-      <header className="p-4 flex items-center gap-4 border-b sticky top-0 bg-white z-10">
-        <button
-          onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <ChevronLeft size={24} />
+    <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-10">
+      {/* Cabeçalho Ajustado - Menos altura */}
+      <div className="bg-gradient-to-b from-[#2563EB] to-[#3B82F6] pt-8 pb-16 px-6 rounded-b-[32px] relative">
+        <button onClick={onBack} className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white mb-2">
+          <ChevronLeft size={20} />
         </button>
-        <h2 className="font-bold text-lg">Perfil do Instrutor</h2>
-      </header>
-
-      <main className="p-6">
-        <div className="flex flex-col items-center mb-8">
-          <img
-            src={instructor.photo}
-            className="w-24 h-24 rounded-3xl shadow-lg mb-4 object-cover border-4 border-blue-50"
-            alt=""
-          />
-          <h3 className="text-2xl font-bold">{instructor.name}</h3>
-          <div className="flex items-center gap-2 mt-1 text-green-600 font-medium text-sm">
-            <ShieldCheck size={18} /> Credenciado LinkAuto
+        
+        <div className="flex flex-col items-center">
+          <div className="relative mb-3">
+            <img 
+              src={instructor.photo} 
+              className="w-24 h-24 rounded-[28px] border-4 border-white shadow-lg object-cover" 
+              alt={instructor.name} 
+            />
+            <div className="absolute -bottom-1 -right-1 bg-green-500 text-white p-1 rounded-lg border-2 border-white shadow-md">
+              <ShieldCheck size={16} />
+            </div>
+          </div>
+          <h2 className="text-white text-xl font-bold">{instructor.name}</h2>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-blue-100 text-[10px] font-black uppercase tracking-widest">{instructor.neighborhood}</span>
+            <span className="text-blue-300">•</span>
+            <div className="flex items-center gap-1 text-yellow-400 font-bold text-xs">
+              <Star size={12} className="fill-current" /> {instructor.rating}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="mb-8">
-          <h4 className="font-bold text-gray-800 mb-4 flex justify-between items-center">
-            Escolha um horário{" "}
-            <span className="text-[10px] text-blue-500 font-bold">
-              AULAS DE 50MIN
+      {/* Card de Preço Ajustado - Agora com margem lateral correta */}
+      <div className="px-5 -mt-8">
+        <div className="bg-white rounded-[24px] p-5 shadow-xl shadow-blue-900/5 flex justify-between items-center mb-6">
+          <div className="flex flex-col">
+            <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-0.5">Preço por aula</p>
+            <p className="text-xl font-black text-gray-800 tracking-tight">R$ {instructor.price},00</p>
+          </div>
+          <div className="flex flex-col items-end">
+            <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Status</p>
+            <span className="bg-green-50 text-green-600 text-[9px] font-black px-2.5 py-1 rounded-lg border border-green-100">
+              VALIDADO
             </span>
-          </h4>
-          <div className="grid grid-cols-3 gap-2">
-            {["08:00", "08:50", "09:40", "14:00", "14:50", "15:40"].map(
-              (slot) => (
-                <button
-                  key={slot}
-                  onClick={() => setSelectedTime(slot)}
-                  className={`py-3 border rounded-xl text-sm font-bold transition-all ${
-                    selectedTime === slot
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                      : "bg-white text-gray-700 border-gray-200"
-                  }`}
-                >
-                  {slot}
-                </button>
-              ),
-            )}
           </div>
         </div>
-      </main>
 
-      <footer className="fixed bottom-0 w-full p-4 bg-white border-t flex items-center justify-between shadow-2xl">
-        <div>
-          <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">
-            Total
-          </p>
-          <p className="text-xl font-black text-blue-600">
-            R$ {instructor.price},00
-          </p>
+        {/* Seção de Horários */}
+        <section className="mb-6 px-1">
+          <h3 className="font-bold text-gray-800 text-base mb-4">Escolha os horários</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {timeSlots.map((slot) => (
+              <button
+                key={slot}
+                onClick={() => handleSlotClick(slot)}
+                className={`py-3.5 rounded-2xl font-bold text-xs transition-all border ${
+                  selectedSlots.includes(slot)
+                    ? "bg-blue-600 border-blue-600 text-white shadow-md"
+                    : "bg-white border-gray-100 text-gray-500 shadow-sm"
+                }`}
+              >
+                {slot}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Botão de Confirmação */}
+        <div className="px-1 space-y-4">
+          <button
+            disabled={selectedSlots.length === 0}
+            onClick={() => onConfirm(instructor, selectedSlots)}
+            className={`w-full py-4 rounded-[20px] font-bold text-base shadow-lg transition-all flex items-center justify-center gap-2 ${
+              selectedSlots.length > 0
+                ? "bg-[#0F172A] text-white active:scale-95" 
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Confirmar Agendamento {selectedSlots.length > 0 && <Check size={18} />}
+          </button>
         </div>
-        <button
-          disabled={!selectedTime}
-          onClick={() => setIsModalOpen(true)} // Em vez de confirmar direto, abre o modal
-          className={`font-bold px-8 py-4 rounded-2xl shadow-lg transition-all ${
-            selectedTime
-              ? "bg-blue-600 text-white active:scale-95"
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
-          }`}
-        >
-          {selectedTime ? "Agendar" : "Escolha a hora"}
-        </button>
-      </footer>
-
-      {/* Renderizando o Modal de Confirmação */}
-      <ConfirmationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={() => onConfirm(selectedTime)} // Aqui sim dispara a função final do App.jsx
-        instructorName={instructor.name}
-        time={selectedTime}
-      />
+      </div>
     </div>
   );
 };
