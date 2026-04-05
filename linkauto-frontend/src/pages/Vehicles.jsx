@@ -1,11 +1,17 @@
 import React from "react";
 import { Car, ChevronLeft, Plus, Trash2, ShieldCheck } from "lucide-react";
 
-const Vehicles = ({ onBack }) => {
-  const myVehicles = [
-    { id: 1, model: "Chevrolet Onix", plate: "BRA2E19", color: "Branco", type: "Manual", status: "Ativo" },
-    { id: 2, model: "Hyundai HB20", plate: "KJK5F22", color: "Prata", type: "Automático", status: "Em verificação" }
+const Vehicles = ({ onBack, userRole }) => {
+  const studentVehicles = [
+    { id: 1, model: "Chevrolet Onix", plate: "BRA2E19", color: "Branco", type: "Manual", status: "Ativo" }
   ];
+
+  const instructorVehicles = [
+    { id: 1, model: "Hyundai HB20", plate: "KJK5F22", color: "Prata", type: "Manual", status: "Ativo" },
+    { id: 2, model: "Fiat Argo", plate: "LPV8G31", color: "Preto", type: "Manual", status: "Ativo" }
+  ];
+
+  const myVehicles = userRole === 'instructor' ? instructorVehicles : studentVehicles;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-24">
@@ -28,7 +34,11 @@ const Vehicles = ({ onBack }) => {
           </div>
           <div>
             <p className="text-blue-100 text-xs font-bold uppercase tracking-wider">Segurança LinkAuto</p>
-            <h3 className="text-sm font-medium leading-tight">Apenas veículos verificados podem ser utilizados em aulas.</h3>
+            <h3 className="text-sm font-medium leading-tight">
+              {userRole === 'instructor' 
+                ? "Mantenha seus veículos atualizados para que seus alunos possam identificá-los."
+                : "Apenas veículos verificados podem ser utilizados em aulas particulares."}
+            </h3>
           </div>
         </div>
 

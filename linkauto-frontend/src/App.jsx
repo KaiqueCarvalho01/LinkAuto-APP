@@ -110,7 +110,7 @@ function App() {
       <div className="flex-grow">
         {activeTab === 'profile' ? (
           isViewingVehicles ? (
-            <Vehicles onBack={() => setIsViewingVehicles(false)} />
+            <Vehicles onBack={() => setIsViewingVehicles(false)} userRole={userRole} />
           ) : (
             <Profile 
               userData={{ name: userRole === 'instructor' ? 'Ricardo Silva' : 'Aluno LinkAuto', email: 'contato@linkauto.com', role: userRole }} 
