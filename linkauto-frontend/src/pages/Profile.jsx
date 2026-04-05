@@ -3,7 +3,7 @@ import { User, Mail, Shield, LogOut, ChevronRight, Bell, CreditCard, Car } from 
 
 const Profile = ({ userData, onLogout, onNavigateToVehicles }) => {
   const menuItems = [
-    { icon: <Car size={20} />, label: "Meus Veículos", color: "text-blue-500", action: onNavigateToVehicles },
+    ...(userData.role === 'instructor' ? [{ icon: <Car size={20} />, label: "Meus Veículos", color: "text-blue-500", action: onNavigateToVehicles }] : []),
     { icon: <Bell size={20} />, label: "Notificações", color: "text-orange-500" },
     { icon: <Shield size={20} />, label: "Segurança e Senha", color: "text-green-500" },
     { icon: <CreditCard size={20} />, label: "Planos e Assinaturas", color: "text-purple-500" },
