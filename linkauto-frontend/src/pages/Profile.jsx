@@ -1,8 +1,9 @@
 import React from "react";
-import { User, Mail, Shield, LogOut, ChevronRight, Bell, CreditCard } from "lucide-react";
+import { User, Mail, Shield, LogOut, ChevronRight, Bell, CreditCard, Car } from "lucide-react";
 
-const Profile = ({ userData, onLogout }) => {
+const Profile = ({ userData, onLogout, onNavigateToVehicles }) => {
   const menuItems = [
+    ...(userData.role === 'student' ? [{ icon: <Car size={20} />, label: "Meus Veículos", color: "text-blue-500", action: onNavigateToVehicles }] : []),
     { icon: <Bell size={20} />, label: "Notificações", color: "text-orange-500" },
     { icon: <Shield size={20} />, label: "Segurança e Senha", color: "text-green-500" },
     { icon: <CreditCard size={20} />, label: "Planos e Assinaturas", color: "text-purple-500" },
@@ -30,6 +31,7 @@ const Profile = ({ userData, onLogout }) => {
           {menuItems.map((item, index) => (
             <button 
               key={index}
+              onClick={item.action}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-all rounded-2xl group"
             >
               <div className="flex items-center gap-4">
@@ -42,6 +44,7 @@ const Profile = ({ userData, onLogout }) => {
             </button>
           ))}
         </div>
+
 
         {/* Botão Logout */}
         <button 

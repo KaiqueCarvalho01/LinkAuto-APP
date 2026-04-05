@@ -8,6 +8,7 @@ import LessonDetails from "./pages/LessonDetails";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import MyStudents from "./pages/MyStudents";
 import Profile from "./pages/Profile";
+import Vehicles from "./pages/Vehicles";
 import Login from "./pages/Login";
 import { Search, Clock, LayoutDashboard, User } from "lucide-react";
 
@@ -26,6 +27,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("search");
   const [isSearchingPage, setIsSearchingPage] = useState(false);
   const [isViewingStudents, setIsViewingStudents] = useState(false);
+  const [isViewingVehicles, setIsViewingVehicles] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,6 +61,7 @@ function App() {
     setActiveTab("search");
     setIsSearchingPage(false);
     setIsViewingStudents(false);
+    setIsViewingVehicles(false);
     setSelectedInstructor(null);
     setSelectedLesson(null);
   };
@@ -100,16 +103,21 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FC] font-sans pb-20">
       
-      {!selectedInstructor && !isSearchingPage && !selectedLesson && !isViewingStudents && activeTab !== 'profile' && (
+      {!selectedInstructor && !isSearchingPage && !selectedLesson && !isViewingStudents && !isViewingVehicles && activeTab !== 'profile' && (
         <Header onLogout={handleLogout} />
       )}
 
       <div className="flex-grow">
         {activeTab === 'profile' ? (
-          <Profile 
-            userData={{ name: userRole === 'instructor' ? 'Ricardo Silva' : 'Aluno LinkAuto', email: 'contato@linkauto.com', role: userRole }} 
-            onLogout={handleLogout} 
-          />
+          isViewingVehicles ? (
+            <Vehicles onBack={() => setIsViewingVehicles(false)} />
+          ) : (
+            <Profile 
+              userData={{ name: userRole === 'instructor' ? 'Ricardo Silva' : 'Aluno LinkAuto', email: 'contato@linkauto.com', role: userRole }} 
+              onLogout={handleLogout} 
+              onNavigateToVehicles={() => setIsViewingVehicles(true)}
+            />
+          )
         ) : userRole === "instructor" ? (
           <div className="h-full">
             {isViewingStudents ? (
