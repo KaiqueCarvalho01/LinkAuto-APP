@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "LinkAuto — Specification (Dominios de Usuarios, Agenda, Agendamento, Mensagens, Avaliacoes e Notificacoes)"
 
+## Clarifications
+
+### Session 2026-04-16
+
+- Q: Quando um agendamento `CONFIRMADA` for cancelado com 24h ou menos de antecedencia, qual deve ser o comportamento oficial da V1? → A: Permitir cancelamento e aplicar penalidade automatica ao aluno.
+- Q: Para a transicao `CONFIRMADA -> REALIZADA`, qual politica oficial da V1 devemos fixar? → A: Automatica por job apos `ends_at` da ultima slot com buffer de 2h, com possibilidade de override pelo Admin.
+- Q: Qual penalidade automatica deve ser aplicada ao aluno quando ele cancela uma booking `CONFIRMADA` com `<=24h` de antecedencia? → A: Bloqueio de novas reservas por 7 dias corridos.
+- Q: Quando duas solicitacoes concorrentes tentam reservar os mesmos slots `DISPONIVEL`, qual politica oficial da V1? → A: First-write-wins com validacao atomica de slots no backend; a outra requisicao falha com erro de conflito.
+- Q: Para IDs dos dominios desta feature, qual regra oficial da V1? → A: Todos os IDs de entidades de dominio novas devem ser uuidv7 por padrao.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Manage Multi-Role Accounts and Profiles (Priority: P1)
@@ -37,22 +47,26 @@ As a student, I can create bookings only when at least two consecutive one-hour 
 2. **Given** non-consecutive or insufficient slots, **When** a student attempts to book, **Then** booking creation is blocked with a clear validation error.
 3. **Given** a pending booking older than 24 hours without instructor decision, **When** timeout processing runs, **Then** the booking transitions to canceled by system and both parties are notified.
 4. **Given** a confirmed booking, **When** cancellation occurs with more than 24 hours before start time, **Then** cancellation is allowed without penalty status.
+5. **Given** a confirmed booking, **When** a student cancels with 24 hours or less before start time, **Then** cancellation is allowed and an automatic student penalty is applied.
+6. **Given** a confirmed booking whose last slot has ended, **When** 2 hours have elapsed and completion job runs, **Then** booking transitions automatically to `REALIZADA` unless admin override sets a different terminal state.
+7. **Given** a student account penalized by late cancellation, **When** the student attempts a new booking during penalty window, **Then** booking creation is blocked until 7 full days have elapsed.
+8. **Given** two concurrent booking requests for the same available slots, **When** both are submitted nearly simultaneously, **Then** only the first committed request succeeds and the second fails with conflict.
 
 ---
 
 ### User Story 3 - Exchange Messages, Reviews, and Email Notifications (Priority: P2)
 
-As a student or instructor, I can exchange asynchronous messages per booking, receive event-driven email updates, and submit mutual reviews only after lesson completion.
+As a student or instructor, I can exchange asynchronous messages per booking, receive event-driven email updates, and submit mutual reviews only after booking status `REALIZADA`.
 
 **Why this priority**: Communication, trust, and reputation complete the service loop after booking.
 
-**Independent Test**: Can be fully tested by posting booking-thread messages, triggering each listed email event, and attempting review submission before and after completion state.
+**Independent Test**: Can be fully tested by posting booking-thread messages, triggering each listed email event, and attempting review submission before and after status `REALIZADA`.
 
 **Acceptance Scenarios**:
 
 1. **Given** an active booking thread, **When** either party posts a message, **Then** the message is appended chronologically to that booking thread and notification is sent.
-2. **Given** a booking not marked as completed, **When** a review is submitted, **Then** the review is rejected.
-3. **Given** a booking marked as completed, **When** each side submits one review for the other, **Then** each review is accepted once and duplicate reviewer-reviewed submissions are blocked.
+2. **Given** a booking not in status `REALIZADA`, **When** a review is submitted, **Then** the review is rejected.
+3. **Given** a booking in status `REALIZADA`, **When** each side submits one review for the other, **Then** each review is accepted once and duplicate reviewer-reviewed submissions are blocked.
 
 ---
 
@@ -61,8 +75,11 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - User has multiple roles but only one profile payload is provided during update.
 - Instructor coordinates or action radius are missing while instructor profile is set to active.
 - Two selected slots cross midnight; they are consecutive by time but not on the same day.
-- Booking cancellation happens exactly at the 24-hour boundary.
+- Booking cancellation happens exactly at the 24-hour boundary (must be treated as penalty case).
 - Instructor confirms after timeout cancellation has already occurred.
+- Completion job runs late or retries after transient failure.
+- Penalty window expiry occurs mid-day and booking attempts happen exactly at expiry timestamp.
+- Two booking transactions race for the same slots and one must fail deterministically.
 - Duplicate slot IDs are included in a booking request.
 - A second review attempt is made for the same reviewer-reviewed pair in one booking.
 - Instructor documents are approved or rejected after files were already removed from storage.
@@ -83,18 +100,24 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - **FR-010**: System MUST enforce slot duration of exactly one hour.
 - **FR-011**: System MUST allow booking creation only with at least two consecutive slots for the same instructor on the same day.
 - **FR-012**: System MUST validate booking minimum-slot rules in both client and server flows.
-- **FR-013**: System MUST maintain booking lifecycle states: pending, confirmed, completed, canceled.
+- **FR-013**: System MUST maintain booking lifecycle states: `PENDENTE`, `CONFIRMADA`, `REALIZADA`, `CANCELADA`.
 - **FR-014**: System MUST enforce booking transitions only through approved state-machine paths.
 - **FR-015**: System MUST auto-cancel pending bookings not decided within 24 hours and mark cancellation source as system.
 - **FR-016**: System MUST record cancellation metadata, including actor and optional reason.
-- **FR-017**: System MUST maintain one asynchronous message thread per booking with chronological entries.
-- **FR-018**: System MUST allow review creation only when booking status is completed.
-- **FR-019**: System MUST enforce one review per reviewer-reviewed pair per booking.
-- **FR-020**: System MUST trigger email notifications for all defined events in registration, validation, booking, messaging, and review flows.
-- **FR-021**: System MUST expose API endpoints under a versioned base path and require bearer authentication for protected operations.
-- **FR-022**: System MUST return standardized success and error envelopes and support page/page_size pagination defaults.
-- **FR-023**: System MUST represent dates and times in ISO 8601 UTC format across API responses.
-- **FR-024**: System SHOULD use chronologically sortable globally unique identifiers across domain entities for consistency and traceability.
+- **FR-017**: System MUST allow student cancellation with 24 hours or less before start time and MUST apply automatic penalty status to the student account.
+- **FR-018**: System MUST maintain one asynchronous message thread per booking with chronological entries.
+- **FR-019**: System MUST allow review creation only when booking status is `REALIZADA`.
+- **FR-020**: System MUST enforce one review per reviewer-reviewed pair per booking.
+- **FR-021**: System MUST trigger email notifications for all defined events in registration, validation, booking, messaging, and review flows.
+- **FR-022**: System MUST expose API endpoints under a versioned base path and require bearer authentication for protected operations.
+- **FR-023**: System MUST return standardized success and error envelopes and support page/page_size pagination defaults.
+- **FR-024**: System MUST represent dates and times in ISO 8601 UTC format across API responses.
+- **FR-025**: System MUST use uuidv7 as default ID format for all new domain entities in this feature.
+- **FR-026**: System MUST transition confirmed bookings to `REALIZADA` automatically using a scheduled job at least 2 hours after the end time of the last booked slot, and MUST allow admin override for correction.
+- **FR-027**: System MUST enforce a fixed 7-day booking block for students who cancel confirmed bookings with 24 hours or less before start time.
+- **FR-028**: System MUST enforce atomic slot reservation with first-write-wins behavior for concurrent booking attempts and MUST return a conflict error for losing requests.
+
+_Note_: Penalty-free cancellation remains valid only when cancellation occurs with more than 24 hours before start time.
 
 ### Constitutional Constraints _(mandatory)_
 
@@ -133,9 +156,10 @@ If any out-of-scope item becomes required, the spec MUST request a constitution 
 - **SC-001**: 100% of booking creation attempts with fewer than two consecutive slots are rejected with explicit validation feedback.
 - **SC-002**: 100% of instructors not approved by admin remain excluded from public search results.
 - **SC-003**: 99% of booking state transition attempts follow allowed lifecycle paths, with invalid transitions blocked.
-- **SC-004**: 100% of review submissions before lesson completion are rejected.
+- **SC-004**: 100% of review submissions when booking status is not `REALIZADA` are rejected.
 - **SC-005**: At least 95% of valid booking flows (search-to-pending) are completed by users in under 3 minutes.
 - **SC-006**: 100% of configured notification event types are emitted to intended recipients.
+- **SC-007**: 100% of concurrent reservation tests for identical slots result in exactly one successful booking and one conflict response.
 
 ## Assumptions
 
@@ -143,4 +167,4 @@ If any out-of-scope item becomes required, the spec MUST request a constitution 
 - Existing platform authentication and authorization services are available for role-based access checks.
 - Geolocation can be provided by user device or manually when needed.
 - Payments continue to occur outside the platform in V1.
-- Booking completion marking is handled by admin workflow or scheduled automation after lesson time window.
+- Booking transition to `REALIZADA` uses scheduled automation after lesson end plus 2-hour buffer, with admin override when needed.
