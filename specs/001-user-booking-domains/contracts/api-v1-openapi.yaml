@@ -1,0 +1,553 @@
+openapi: 3.1.0
+info:
+    title: LinkAuto API v1 Contract
+    version: 1.0.0
+    description: MVP contract for users, admin validation, slots, booking, messages, and reviews.
+servers:
+    - url: /api/v1
+security:
+    - bearerAuth: []
+paths:
+    /auth/register:
+        post:
+            summary: Register student or instructor user
+            security: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/RegisterRequest"
+            responses:
+                "201":
+                    $ref: "#/components/responses/SuccessUserEnvelope"
+                "400":
+                    $ref: "#/components/responses/ErrorEnvelope"
+    /auth/login:
+        post:
+            summary: Authenticate user and return access plus refresh tokens
+            security: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/LoginRequest"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessAuthEnvelope"
+                "401":
+                    $ref: "#/components/responses/ErrorEnvelope"
+    /auth/refresh:
+        post:
+            summary: Refresh access token
+            security: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/RefreshRequest"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessAuthEnvelope"
+    /auth/password-reset:
+        post:
+            summary: Trigger password reset email flow
+            security: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [email]
+                            properties:
+                                email:
+                                    type: string
+                                    format: email
+            responses:
+                "202":
+                    $ref: "#/components/responses/SuccessGenericEnvelope"
+    /users/me:
+        get:
+            summary: Get current user profile set
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessUserEnvelope"
+        patch:
+            summary: Update current user profile fields by role
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UserMePatchRequest"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessUserEnvelope"
+    /admin/instructors:
+        get:
+            summary: List instructors by DETRAN status
+            parameters:
+                - in: query
+                  name: status
+                  required: false
+                  schema:
+                      type: string
+                      enum: [PENDENTE, APROVADO, REJEITADO]
+                - $ref: "#/components/parameters/Page"
+                - $ref: "#/components/parameters/PageSize"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessInstructorListEnvelope"
+    /admin/instructors/{id}/approve:
+        patch:
+            summary: Approve instructor documents and visibility
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessInstructorEnvelope"
+    /admin/instructors/{id}/reject:
+        patch:
+            summary: Reject instructor documents
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                reason:
+                                    type: string
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessInstructorEnvelope"
+    /instructors/{id}/slots:
+        post:
+            summary: Create instructor availability slots
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SlotCreateRequest"
+            responses:
+                "201":
+                    $ref: "#/components/responses/SuccessSlotEnvelope"
+                "409":
+                    $ref: "#/components/responses/ErrorEnvelope"
+        get:
+            summary: Get instructor slots
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessSlotListEnvelope"
+    /instructors/{id}/slots/{slotId}:
+        delete:
+            summary: Delete one instructor slot
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+                - in: path
+                  name: slotId
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            responses:
+                "204":
+                    description: Deleted
+    /instructors/search:
+        get:
+            summary: Search approved instructors by location and filters
+            parameters:
+                - in: query
+                  name: lat
+                  required: true
+                  schema:
+                      type: number
+                - in: query
+                  name: lon
+                  required: true
+                  schema:
+                      type: number
+                - in: query
+                  name: radius
+                  required: false
+                  schema:
+                      type: integer
+                      default: 10
+                - in: query
+                  name: specialties
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: min_rating
+                  required: false
+                  schema:
+                      type: number
+                - in: query
+                  name: max_price
+                  required: false
+                  schema:
+                      type: number
+                - $ref: "#/components/parameters/Page"
+                - $ref: "#/components/parameters/PageSize"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessInstructorListEnvelope"
+    /instructors/{id}/reviews:
+        get:
+            summary: List reviews for instructor profile
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+                - $ref: "#/components/parameters/Page"
+                - $ref: "#/components/parameters/PageSize"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessReviewListEnvelope"
+    /bookings:
+        post:
+            summary: Create booking using two or more consecutive slots
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/BookingCreateRequest"
+            responses:
+                "201":
+                    $ref: "#/components/responses/SuccessBookingEnvelope"
+                "409":
+                    $ref: "#/components/responses/ErrorEnvelope"
+        get:
+            summary: List bookings for current user
+            parameters:
+                - in: query
+                  name: status
+                  required: false
+                  schema:
+                      type: string
+                      enum: [PENDENTE, CONFIRMADA, REALIZADA, CANCELADA]
+                - $ref: "#/components/parameters/Page"
+                - $ref: "#/components/parameters/PageSize"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessBookingListEnvelope"
+    /bookings/{id}:
+        get:
+            summary: Get booking details
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessBookingEnvelope"
+    /bookings/{id}/confirm:
+        patch:
+            summary: Instructor confirms pending booking
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessBookingEnvelope"
+    /bookings/{id}/cancel:
+        patch:
+            summary: Cancel booking by student, instructor, or system workflow
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                reason:
+                                    type: string
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessBookingEnvelope"
+    /bookings/{id}/messages:
+        post:
+            summary: Add asynchronous message to booking thread
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [content]
+                            properties:
+                                content:
+                                    type: string
+            responses:
+                "201":
+                    $ref: "#/components/responses/SuccessMessageEnvelope"
+        get:
+            summary: List booking thread messages
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+                - $ref: "#/components/parameters/Page"
+                - $ref: "#/components/parameters/PageSize"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessMessageListEnvelope"
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+    parameters:
+        PathId:
+            in: path
+            name: id
+            required: true
+            schema:
+                type: string
+                format: uuid
+        Page:
+            in: query
+            name: page
+            required: false
+            schema:
+                type: integer
+                default: 1
+                minimum: 1
+        PageSize:
+            in: query
+            name: page_size
+            required: false
+            schema:
+                type: integer
+                default: 20
+                minimum: 1
+                maximum: 100
+    responses:
+        SuccessGenericEnvelope:
+            description: Standard success envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeGeneric"
+        SuccessAuthEnvelope:
+            description: Standard auth response envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeAuth"
+        SuccessUserEnvelope:
+            description: Standard user response envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeUser"
+        SuccessInstructorEnvelope:
+            description: Standard instructor response envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeInstructor"
+        SuccessInstructorListEnvelope:
+            description: Standard instructor list envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeInstructorList"
+        SuccessSlotEnvelope:
+            description: Standard slot response envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeSlot"
+        SuccessSlotListEnvelope:
+            description: Standard slot list envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeSlotList"
+        SuccessBookingEnvelope:
+            description: Standard booking response envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeBooking"
+        SuccessBookingListEnvelope:
+            description: Standard booking list envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeBookingList"
+        SuccessMessageEnvelope:
+            description: Standard message response envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeMessage"
+        SuccessMessageListEnvelope:
+            description: Standard message list envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeMessageList"
+        SuccessReviewListEnvelope:
+            description: Standard review list envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeReviewList"
+        ErrorEnvelope:
+            description: Standard error envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeError"
+    schemas:
+        RegisterRequest:
+            type: object
+            required: [email, password, roles]
+            properties:
+                email:
+                    type: string
+                    format: email
+                password:
+                    type: string
+                    minLength: 8
+                roles:
+                    type: array
+                    items:
+                        type: string
+                        enum: [ALUNO, INSTRUTOR, ADMIN]
+        LoginRequest:
+            type: object
+            required: [email, password]
+            properties:
+                email:
+                    type: string
+                    format: email
+                password:
+                    type: string
+        RefreshRequest:
+            type: object
+            required: [refresh_token]
+            properties:
+                refresh_token:
+                    type: string
+        UserMePatchRequest:
+            type: object
+            additionalProperties: true
+        SlotCreateRequest:
+            type: object
+            required: [starts_at, ends_at]
+            properties:
+                starts_at:
+                    type: string
+                    format: date-time
+                ends_at:
+                    type: string
+                    format: date-time
+        BookingCreateRequest:
+            type: object
+            required: [instructor_id, slot_ids, location_description]
+            properties:
+                instructor_id:
+                    type: string
+                    format: uuid
+                slot_ids:
+                    type: array
+                    minItems: 2
+                    items:
+                        type: string
+                        format: uuid
+                location_description:
+                    type: string
+                latitude:
+                    type: number
+                longitude:
+                    type: number
+        EnvelopeGeneric:
+            type: object
+            required: [data, error, meta]
+            properties:
+                data:
+                    type: object
+                    additionalProperties: true
+                error:
+                    type: "null"
+                meta:
+                    type: object
+                    additionalProperties: true
+        EnvelopeAuth:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          type: object
+                          required: [access_token, refresh_token]
+                          properties:
+                              access_token:
+                                  type: string
+                              refresh_token:
+                                  type: string
+        EnvelopeUser:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          type: object
+                          additionalProperties: true
+        EnvelopeInstructor:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeInstructorList:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeSlot:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeSlotList:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeBooking:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeBookingList:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeMessage:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeMessageList:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeReviewList:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+        EnvelopeError:
+            type: object
+            required: [data, error]
+            properties:
+                data:
+                    type: "null"
+                error:
+                    type: object
+                    required: [code, message]
+                    properties:
+                        code:
+                            type: string
+                        message:
+                            type: string
+                meta:
+                    type: object
+                    additionalProperties: true
