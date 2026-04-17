@@ -69,7 +69,7 @@ Os diagramas serao adicionados posteriormente para suportar implementacao e onbo
 | Artefato | Status | Diagrama |
 | --- | --- | --- |
 | Diagrama de Arquitetura | Concluído | ![Diagrama de Arquitetura](docs/diagrams/architecture-overview.svg) |
-| Diagrama de Casos de Uso | Concluído |![Diagrama de Casos de Uso](docs/diagrams/use-cases-v1.svg) |
+| Diagrama de Casos de Uso | Concluído | ![Diagrama de Casos de Uso](docs/diagrams/use-cases-v1.svg) |
 | Diagrama de Classes | Concluído | ![Diagrama de Classes](docs/diagrams/uml-class-diagram-v1.svg) |
 | Diagrama de Sequencia (Booking) | Concluído | ![Diagrama de Sequencia](docs/diagrams/booking-sequence.svg) |
 
