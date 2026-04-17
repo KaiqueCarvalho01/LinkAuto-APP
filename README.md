@@ -1,50 +1,72 @@
-# 🚗 LinkAuto - Conectando Alunos e Instrutores de Trânsito
+# LinkAuto - Conectando Alunos e Instrutores de Transito
 
-O **LinkAuto** é uma plataforma desenvolvida para facilitar o agendamento de aulas particulares de direção. O foco do projeto é permitir que alunos encontrem instrutores credenciados de forma rápida, filtrem por proximidade e gerenciem seus agendamentos em tempo real.
+O **LinkAuto** e uma plataforma web mobile-first para facilitar o agendamento
+de aulas particulares de direcao entre alunos e instrutores autonomos
+credenciados pelo DETRAN.
 
-Este projeto foi desenvolvido como parte de um **Trabalho de Conclusão de Curso (TCC)**.
+Este projeto foi desenvolvido como parte de um **Trabalho de Conclusao de Curso
+(TCC)**.
 
-## 🌟 Funcionalidades Principais
+## Funcionalidades Principais
 
-### Para o Aluno:
-- **Busca Avançada:** Pesquisa de instrutores por nome ou bairro.
-- **Filtros Personalizados:** Ordenação por preço, avaliação e proximidade.
-- **Perfil do Instrutor:** Visualização de credenciais validadas e preços.
-- **Agendamento Direto:** Escolha de horários sem travas de duração mínima.
-- **Chat Integrado:** Comunicação direta para combinar pontos de encontro.
+### Para o Aluno
 
-### Para o Instrutor:
-- **Dashboard de Ganhos:** Resumo mensal de faturamento e aulas realizadas.
-- **Gestão de Solicitações:** Aceite ou recusa de novos agendamentos em tempo real.
-- **Agenda Organizada:** Lista de aulas confirmadas com detalhes do aluno.
+- **Busca Avancada:** pesquisa de instrutores por nome ou bairro.
+- **Filtros Personalizados:** ordenacao por preco, avaliacao e proximidade.
+- **Perfil do Instrutor:** visualizacao de credenciais validadas,
+  especialidades e reputacao.
+- **Agendamento Direto:** reserva em slots de 1h com duracao minima de 2h.
+- **Mensagens de Agendamento:** comunicacao assincrona no modelo forum
+  (sem chat em tempo real na V1).
 
-## 🛠️ Tecnologias Utilizadas
+### Para o Instrutor
 
-- **React.js** (Frontend)
-- **Tailwind CSS** (Estilização Premium e Mobile-first)
-- **Lucide React** (Pacote de Ícones)
-- **Vite** (Build Tool)
+- **Dashboard Operacional:** resumo de aulas realizadas, pendentes e
+  desempenho.
+- **Gestao de Solicitacoes:** aceite ou recusa de novos agendamentos com
+  notificacao por e-mail.
+- **Agenda Organizada:** lista de aulas confirmadas com detalhes do aluno.
 
-## 🚀 Como Rodar o Projeto
+### Guardrails da V1
 
-Siga os passos abaixo para configurar o ambiente local:
+- Sem intermediacao financeira: a plataforma nao processa pagamentos e nao
+  exibe valores transacionados.
+- Sem chat em tempo real: mensagens sao assincronas por agendamento.
+- Avaliacao mutua liberada somente apos aula com status `REALIZADA`.
+- Instrutor aparece na busca somente apos validacao do Admin.
 
-### 1. Clonar o repositório
+## Tecnologias Utilizadas
+
+- **Frontend:** React + Vite + Tailwind CSS 4 + ShadCN-ui + Leaflet
+- **Backend:** Python + FastAPI + SQLAlchemy
+- **Banco (dev):** SQLite3
+- **Banco (prod):** PostgreSQL + PostGIS
+- **Storage:** AWS S3 (documentos de credenciamento)
+- **Email:** AWS SES
+- **Auth:** JWT (access token curto) + refresh token
+
+## Como Rodar o Projeto
+
+Siga os passos abaixo para configurar o ambiente local.
+
+### 1. Clonar o repositorio
+
 ```bash
-git clone [https://github.com/seu-usuario/linkauto.git](https://github.com/seu-usuario/linkauto.git)
-cd linkauto 
+git clone https://github.com/seu-usuario/linkauto.git
+cd linkauto
 ```
 
-### 2. Instalar as dependências
+### 2. Instalar as dependencias
+
 Certifique-se de ter o Node.js instalado.
+
 ```bash
+cd linkauto-frontend
 npm install
 ```
 
-### 3. Rodar a aplicação
+### 3. Rodar a aplicacao
+
 ```bash
 npm run dev
 ```
-
-
-
