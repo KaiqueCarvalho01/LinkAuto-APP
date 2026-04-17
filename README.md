@@ -1,6 +1,4 @@
-# LinkAuto
-
-![LinkAuto icon](linkauto-frontend/public/favicon.svg)
+![LinkAuto Banner](/docs/images/LinkAuto-banner.webp)
 
 Plataforma mobile-first para conectar alunos e instrutores de transito autonomos.
 Mobile-first platform to connect students and autonomous driving instructors.
@@ -68,12 +66,12 @@ Fora do escopo V1:
 
 Os diagramas serao adicionados posteriormente para suportar implementacao e onboarding.
 
-| Artefato | Status | Sugestao de caminho |
+| Artefato | Status | Diagrama |
 | --- | --- | --- |
-| Diagrama de Arquitetura | Planejado | docs/diagrams/architecture-overview.drawio.svg |
-| Diagrama de Casos de Uso | Planejado | docs/diagrams/use-cases-v1.drawio.svg |
-| Diagrama de Dominio (Entidades) | Planejado | docs/diagrams/domain-model-v1.drawio.svg |
-| Diagrama de Sequencia (Booking) | Planejado | docs/diagrams/booking-sequence-v1.drawio.svg |
+| Diagrama de Arquitetura | Concluído | ![Diagrama de Arquitetura](docs/diagrams/architecture-overview.svg) |
+| Diagrama de Casos de Uso | Concluído |![Diagrama de Casos de Uso](docs/diagrams/use-cases-v1.svg) |
+| Diagrama de Classes | Concluído | ![Diagrama de Classes](docs/diagrams/uml-class-diagram-v1.svg) |
+| Diagrama de Sequencia (Booking) | Concluído | ![Diagrama de Sequencia](docs/diagrams/booking-sequence.svg) |
 
 > [!TIP]
 > Quando os diagramas forem adicionados, mantenha-os alinhados com spec, plan, tasks e contrato para evitar divergencia de documentacao.
@@ -209,10 +207,10 @@ Diagrams will be added later to support implementation and onboarding.
 
 | Artifact | Status | Suggested path |
 | --- | --- | --- |
-| Architecture Diagram | Planned | docs/diagrams/architecture-overview.drawio.svg |
-| Use Case Diagram | Planned | docs/diagrams/use-cases-v1.drawio.svg |
-| Domain Model Diagram | Planned | docs/diagrams/domain-model-v1.drawio.svg |
-| Booking Sequence Diagram | Planned | docs/diagrams/booking-sequence-v1.drawio.svg |
+| Architecture Diagram | Done | ![Architecture Diagram](docs/diagrams/architecture-overview.svg) |
+| Use Case Diagram | Done | ![Use Case Diagram](docs/diagrams/use-cases-v1.svg) |
+| UML Class Diagram | Done | ![UML Class Diagram](docs/diagrams/uml-class-diagram-v1.svg) |
+| Booking Sequence Diagram | Done | ![Booking Sequence Diagram](docs/diagrams/booking-sequence.svg) |
 
 > [!TIP]
 > Keep all diagrams synchronized with spec, plan, tasks, and contract to avoid documentation drift.
