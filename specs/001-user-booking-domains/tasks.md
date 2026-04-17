@@ -19,12 +19,12 @@
 
 **Purpose**: Initialize monorepo runtime and project scaffolding for backend/frontend.
 
-- [ ] T001 Create backend app skeleton modules in linkauto-backend/app/\_\_init\_\_.py, linkauto-backend/app/api/\_\_init\_\_.py, linkauto-backend/app/models/\_\_init\_\_.py, linkauto-backend/app/services/\_\_init\_\_.py, and linkauto-backend/app/schemas/\_\_init\_\_.py
-- [ ] T002 Initialize backend project config and dependencies in linkauto-backend/pyproject.toml and linkauto-backend/app/core/config.py
-- [ ] T003 [P] Create frontend API base client and env binding in linkauto-frontend/src/services/httpClient.js and linkauto-frontend/src/services/config.js
-- [ ] T004 [P] Create environment and local runtime bootstrap in infra/docker-compose.yml, linkauto-backend/.env.example, and linkauto-frontend/.env.example
-- [ ] T005 Create migration bootstrap and base metadata wiring in linkauto-backend/alembic/env.py and linkauto-backend/alembic/versions/0001_foundation.py
-- [ ] T006 Create implementation compliance evidence file in specs/001-user-booking-domains/compliance.md
+- [X] T001 Create backend app skeleton modules in linkauto-backend/app/\_\_init\_\_.py, linkauto-backend/app/api/\_\_init\_\_.py, linkauto-backend/app/models/\_\_init\_\_.py, linkauto-backend/app/services/\_\_init\_\_.py, and linkauto-backend/app/schemas/\_\_init\_\_.py
+- [X] T002 Initialize backend project config and dependencies in linkauto-backend/pyproject.toml and linkauto-backend/app/core/config.py
+- [X] T003 [P] Create frontend API base client and env binding in linkauto-frontend/src/services/httpClient.js and linkauto-frontend/src/services/config.js
+- [X] T004 [P] Create environment and local runtime bootstrap in infra/docker-compose.yml, linkauto-backend/.env.example, and linkauto-frontend/.env.example
+- [X] T005 Create migration bootstrap and base metadata wiring in linkauto-backend/alembic/env.py and linkauto-backend/alembic/versions/0001_foundation.py
+- [X] T006 Create implementation compliance evidence file in specs/001-user-booking-domains/compliance.md
 
 **Checkpoint**: Setup stable, local stack starts, and foundational coding can begin.
 
