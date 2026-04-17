@@ -22,7 +22,7 @@ com reforco de UX no frontend.
 **Target Platform**: Linux via Docker Compose para dev; web mobile-first para navegadores modernos  
 **Project Type**: Web application monorepo (`linkauto-backend` + `linkauto-frontend`)  
 **Performance Goals**: Busca geolocalizada <500ms em condicoes de prod; resposta de APIs criticas <300ms p95 em ambiente de demo  
-**Constraints**: Sem pagamentos, sem WebSocket, minimo 2h por booking, cancelamento sem penalidade apenas >24h, review apenas apos `REALIZADA`, ids uuidv7 em novas entidades  
+**Constraints**: Sem pagamentos, sem WebSocket, minimo 2h por booking, cancelamento sem penalidade apenas >24h, review apenas apos `REALIZADA`, ids uuidv7 em novas entidades, refresh token via cookie `HttpOnly`/`Secure`/`SameSite`, upload de credenciais com limite de 10MB e MIME whitelist  
 **Scale/Scope**: MVP demo de sala com dezenas de usuarios e centenas de registros de slots/bookings seeded
 
 ## Constitution Check
@@ -100,6 +100,9 @@ API, banco dev SQLite e Adminer.
 3. Definir estrategia de geobusca: fallback por distancia em dev (SQLite) e PostGIS em prod.
 4. Consolidar politica de ids uuidv7 para novas entidades.
 5. Definir regras operacionais para automacoes (timeout 24h, realizacao +2h, penalidade 7 dias).
+6. Fixar politica de refresh token via cookie `HttpOnly`/`Secure`/`SameSite` sem envio no body de refresh.
+7. Fixar estrategia de enforce RN03 em servico e banco (constraint + tratamento de `IntegrityError` -> 409).
+8. Fixar limites de upload de credenciais (10MB por arquivo + whitelist MIME).
 
 Output: `research.md`
 
@@ -108,9 +111,10 @@ Output: `research.md`
 1. Modelar entidades e relacoes completas dos dominios de usuario, agenda, booking,
    mensagens, reviews e notificacoes.
 2. Especificar constraints de negocio como invariantes de dados e transicoes de estado.
-3. Definir contrato API v1 em OpenAPI com envelope padrao, erros e paginacao.
+3. Definir contrato API v1 em OpenAPI com envelope padrao, erros e paginacao, incluindo POST `/bookings/{id}/reviews` e PATCH `/admin/bookings/{id}/override-status`.
 4. Escrever quickstart da demo com fluxo end-to-end Instrutor -> Admin -> Aluno -> Chat.
-5. Atualizar contexto do agente para refletir stack e decisoes da feature.
+5. Especificar contrato de auth com refresh por cookie e padrao UTC ISO 8601 para datetime.
+6. Atualizar contexto do agente para refletir stack e decisoes da feature.
 
 Outputs: `data-model.md`, `contracts/api-v1-openapi.yaml`, `quickstart.md`
 
@@ -125,8 +129,8 @@ Outputs: `data-model.md`, `contracts/api-v1-openapi.yaml`, `quickstart.md`
 ### Fase 1 - Autenticacao e Perfis
 
 - Models: `User`, `StudentProfile`, `InstructorProfile`.
-- Endpoints auth/me e fluxo de reset por SES.
-- Upload de documentos do instrutor para S3 com status pendente.
+- Endpoints auth/me com refresh token em cookie `HttpOnly`/`Secure`/`SameSite` e fluxo de reset por SES.
+- Upload de documentos do instrutor para S3 com status pendente, limite de 10MB por arquivo e MIME whitelist.
 
 ### Fase 2 - Painel Admin
 
@@ -142,6 +146,8 @@ Outputs: `data-model.md`, `contracts/api-v1-openapi.yaml`, `quickstart.md`
 
 - Modelo `Booking` + state machine.
 - Validacoes RN02/RN03/RN04 e timeout automatico em 24h.
+- Enforce RN03 tambem no banco com constraint de unicidade e tratamento `IntegrityError` para erro de conflito.
+- Endpoint administrativo de override de status para correcao operacional de booking.
 
 ### Fase 5 - Chat da Reserva e Avaliacoes
 

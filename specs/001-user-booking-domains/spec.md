@@ -14,6 +14,8 @@
 - Q: Qual penalidade automatica deve ser aplicada ao aluno quando ele cancela uma booking `CONFIRMADA` com `<=24h` de antecedencia? → A: Bloqueio de novas reservas por 7 dias corridos.
 - Q: Quando duas solicitacoes concorrentes tentam reservar os mesmos slots `DISPONIVEL`, qual politica oficial da V1? → A: First-write-wins com validacao atomica de slots no backend; a outra requisicao falha com erro de conflito.
 - Q: Para IDs dos dominios desta feature, qual regra oficial da V1? → A: Todos os IDs de entidades de dominio novas devem ser uuidv7 por padrao.
+- Q: Qual politica oficial para refresh token na V1? → A: Refresh token armazenado em cookie httpOnly, Secure e SameSite no frontend web.
+- Q: Quais limites obrigatorios para upload de documentos de credenciamento na V1? → A: Limite de 10MB por arquivo com whitelist de MIME (`application/pdf`, `image/jpeg`, `image/png`).
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -83,6 +85,8 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - Duplicate slot IDs are included in a booking request.
 - A second review attempt is made for the same reviewer-reviewed pair in one booking.
 - Instructor documents are approved or rejected after files were already removed from storage.
+- Refresh token is missing/expired in cookie while access token is invalid.
+- Credential upload is attempted above 10MB or with unsupported MIME type.
 
 ## Requirements _(mandatory)_
 
@@ -116,6 +120,9 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - **FR-026**: System MUST transition confirmed bookings to `REALIZADA` automatically using a scheduled job at least 2 hours after the end time of the last booked slot, and MUST allow admin override for correction.
 - **FR-027**: System MUST enforce a fixed 7-day booking block for students who cancel confirmed bookings with 24 hours or less before start time.
 - **FR-028**: System MUST enforce atomic slot reservation with first-write-wins behavior for concurrent booking attempts and MUST return a conflict error for losing requests.
+- **FR-029**: System MUST enforce RN03 with no overlapping slots for the same instructor and MUST enforce uniqueness at persistence layer with conflict response semantics.
+- **FR-030**: System MUST reject credential uploads larger than 10MB per file and MUST accept only MIME types `application/pdf`, `image/jpeg`, and `image/png`.
+- **FR-031**: System MUST issue and consume refresh tokens through cookie transport with `HttpOnly`, `Secure`, and `SameSite` policy.
 
 _Note_: Penalty-free cancellation remains valid only when cancellation occurs with more than 24 hours before start time.
 
@@ -160,6 +167,8 @@ If any out-of-scope item becomes required, the spec MUST request a constitution 
 - **SC-005**: At least 95% of valid booking flows (search-to-pending) are completed by users in under 3 minutes.
 - **SC-006**: 100% of configured notification event types are emitted to intended recipients.
 - **SC-007**: 100% of concurrent reservation tests for identical slots result in exactly one successful booking and one conflict response.
+- **SC-008**: 100% of API datetime fields in booking/slot/message flows are returned in ISO 8601 UTC format.
+- **SC-009**: 100% of credential upload attempts with file size >10MB or unsupported MIME type are rejected with explicit validation errors.
 
 ## Assumptions
 

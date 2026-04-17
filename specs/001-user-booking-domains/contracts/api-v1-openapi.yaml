@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
     title: LinkAuto API v1 Contract
     version: 1.0.0
-    description: MVP contract for users, admin validation, slots, booking, messages, and reviews.
+    description: MVP contract for users, admin validation, slots, booking, messages, and reviews. All datetime values must follow RFC3339 UTC and end with Z.
 servers:
     - url: /api/v1
 security:
@@ -25,7 +25,7 @@ paths:
                     $ref: "#/components/responses/ErrorEnvelope"
     /auth/login:
         post:
-            summary: Authenticate user and return access plus refresh tokens
+            summary: Authenticate user and return access token (refresh token is set via HttpOnly cookie)
             security: []
             requestBody:
                 required: true
@@ -35,22 +35,25 @@ paths:
                             $ref: "#/components/schemas/LoginRequest"
             responses:
                 "200":
+                    headers:
+                        Set-Cookie:
+                            description: Sets refresh_token cookie with HttpOnly, Secure, and SameSite attributes.
+                            schema:
+                                type: string
                     $ref: "#/components/responses/SuccessAuthEnvelope"
                 "401":
                     $ref: "#/components/responses/ErrorEnvelope"
     /auth/refresh:
         post:
-            summary: Refresh access token
+            summary: Refresh access token using refresh token cookie
             security: []
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/RefreshRequest"
+            parameters:
+                - $ref: "#/components/parameters/RefreshTokenCookie"
             responses:
                 "200":
                     $ref: "#/components/responses/SuccessAuthEnvelope"
+                "401":
+                    $ref: "#/components/responses/ErrorEnvelope"
     /auth/password-reset:
         post:
             summary: Trigger password reset email flow
@@ -126,6 +129,74 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SuccessInstructorEnvelope"
+    /instructors/{id}/documents:
+        post:
+            summary: Upload instructor credential documents
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            required: [detran_credential, criminal_record]
+                            properties:
+                                detran_credential:
+                                    oneOf:
+                                        - type: string
+                                          format: binary
+                                          contentMediaType: application/pdf
+                                          maxLength: 10485760
+                                        - type: string
+                                          format: binary
+                                          contentMediaType: image/jpeg
+                                          maxLength: 10485760
+                                        - type: string
+                                          format: binary
+                                          contentMediaType: image/png
+                                          maxLength: 10485760
+                                    description: "Allowed MIME whitelist enforced: application/pdf, image/jpeg, image/png. Max 10MB."
+                                criminal_record:
+                                    oneOf:
+                                        - type: string
+                                          format: binary
+                                          contentMediaType: application/pdf
+                                          maxLength: 10485760
+                                        - type: string
+                                          format: binary
+                                          contentMediaType: image/jpeg
+                                          maxLength: 10485760
+                                        - type: string
+                                          format: binary
+                                          contentMediaType: image/png
+                                          maxLength: 10485760
+                                    description: "Allowed MIME whitelist enforced: application/pdf, image/jpeg, image/png. Max 10MB."
+            responses:
+                "201":
+                    $ref: "#/components/responses/SuccessInstructorEnvelope"
+                "400":
+                    $ref: "#/components/responses/ErrorEnvelope"
+                "413":
+                    $ref: "#/components/responses/ErrorEnvelope"
+    /admin/bookings/{id}/override-status:
+        patch:
+            summary: Admin override booking terminal status for operational correction
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/BookingAdminOverrideRequest"
+            responses:
+                "200":
+                    $ref: "#/components/responses/SuccessBookingEnvelope"
+                "403":
+                    $ref: "#/components/responses/ErrorEnvelope"
+                "409":
+                    $ref: "#/components/responses/ErrorEnvelope"
     /instructors/{id}/slots:
         post:
             summary: Create instructor availability slots
@@ -257,6 +328,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SuccessBookingEnvelope"
+                "409":
+                    $ref: "#/components/responses/ErrorEnvelope"
     /bookings/{id}/cancel:
         patch:
             summary: Cancel booking by student, instructor, or system workflow
@@ -274,6 +347,24 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SuccessBookingEnvelope"
+                "409":
+                    $ref: "#/components/responses/ErrorEnvelope"
+    /bookings/{id}/reviews:
+        post:
+            summary: Create review for completed booking
+            parameters:
+                - $ref: "#/components/parameters/PathId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ReviewCreateRequest"
+            responses:
+                "201":
+                    $ref: "#/components/responses/SuccessReviewEnvelope"
+                "409":
+                    $ref: "#/components/responses/ErrorEnvelope"
     /bookings/{id}/messages:
         post:
             summary: Add asynchronous message to booking thread
@@ -315,6 +406,13 @@ components:
             schema:
                 type: string
                 format: uuid
+        RefreshTokenCookie:
+            in: cookie
+            name: refresh_token
+            required: true
+            schema:
+                type: string
+            description: HttpOnly refresh token cookie.
         Page:
             in: query
             name: page
@@ -399,6 +497,12 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/EnvelopeMessageList"
+        SuccessReviewEnvelope:
+            description: Standard review response envelope
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/EnvelopeReview"
         SuccessReviewListEnvelope:
             description: Standard review list envelope
             content:
@@ -436,12 +540,21 @@ components:
                     format: email
                 password:
                     type: string
-        RefreshRequest:
+        UtcDateTime:
+            type: string
+            format: date-time
+            pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?Z$"
+            description: RFC3339 timestamp in UTC only (must end with Z).
+        BookingAdminOverrideRequest:
             type: object
-            required: [refresh_token]
+            required: [status, reason]
             properties:
-                refresh_token:
+                status:
                     type: string
+                    enum: [REALIZADA, CANCELADA]
+                reason:
+                    type: string
+                    minLength: 3
         UserMePatchRequest:
             type: object
             additionalProperties: true
@@ -450,11 +563,9 @@ components:
             required: [starts_at, ends_at]
             properties:
                 starts_at:
-                    type: string
-                    format: date-time
+                    $ref: "#/components/schemas/UtcDateTime"
                 ends_at:
-                    type: string
-                    format: date-time
+                    $ref: "#/components/schemas/UtcDateTime"
         BookingCreateRequest:
             type: object
             required: [instructor_id, slot_ids, location_description]
@@ -474,6 +585,74 @@ components:
                     type: number
                 longitude:
                     type: number
+        ReviewCreateRequest:
+            type: object
+            required: [rating]
+            properties:
+                rating:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                comment:
+                    type: string
+                    maxLength: 1000
+        SlotResource:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                instructor_id:
+                    type: string
+                    format: uuid
+                starts_at:
+                    $ref: "#/components/schemas/UtcDateTime"
+                ends_at:
+                    $ref: "#/components/schemas/UtcDateTime"
+                status:
+                    type: string
+                    enum: [DISPONIVEL, RESERVADO, BLOQUEADO]
+        BookingResource:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                student_id:
+                    type: string
+                    format: uuid
+                instructor_id:
+                    type: string
+                    format: uuid
+                status:
+                    type: string
+                    enum: [PENDENTE, CONFIRMADA, REALIZADA, CANCELADA]
+                created_at:
+                    $ref: "#/components/schemas/UtcDateTime"
+                confirmed_at:
+                    oneOf:
+                        - $ref: "#/components/schemas/UtcDateTime"
+                        - type: "null"
+                cancelled_at:
+                    oneOf:
+                        - $ref: "#/components/schemas/UtcDateTime"
+                        - type: "null"
+        MessageResource:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                booking_id:
+                    type: string
+                    format: uuid
+                sender_id:
+                    type: string
+                    format: uuid
+                content:
+                    type: string
+                created_at:
+                    $ref: "#/components/schemas/UtcDateTime"
         EnvelopeGeneric:
             type: object
             required: [data, error, meta]
@@ -493,12 +672,15 @@ components:
                   properties:
                       data:
                           type: object
-                          required: [access_token, refresh_token]
+                          required: [access_token]
                           properties:
                               access_token:
                                   type: string
-                              refresh_token:
+                              token_type:
                                   type: string
+                                  default: bearer
+                              expires_in:
+                                  type: integer
         EnvelopeUser:
             allOf:
                 - $ref: "#/components/schemas/EnvelopeGeneric"
@@ -516,19 +698,52 @@ components:
         EnvelopeSlot:
             allOf:
                 - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          $ref: "#/components/schemas/SlotResource"
         EnvelopeSlotList:
             allOf:
                 - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/SlotResource"
         EnvelopeBooking:
             allOf:
                 - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          $ref: "#/components/schemas/BookingResource"
         EnvelopeBookingList:
             allOf:
                 - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/BookingResource"
         EnvelopeMessage:
             allOf:
                 - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          $ref: "#/components/schemas/MessageResource"
         EnvelopeMessageList:
+            allOf:
+                - $ref: "#/components/schemas/EnvelopeGeneric"
+                - type: object
+                  properties:
+                      data:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/MessageResource"
+        EnvelopeReview:
             allOf:
                 - $ref: "#/components/schemas/EnvelopeGeneric"
         EnvelopeReviewList:
