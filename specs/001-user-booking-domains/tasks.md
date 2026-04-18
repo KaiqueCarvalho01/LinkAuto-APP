@@ -36,17 +36,17 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete and stable.
 
-- [ ] T007 Create shared ORM base with uuidv7 and audit timestamps in linkauto-backend/app/models/base.py
-- [ ] T008 [P] Implement standard API envelope, pagination, and error schema in linkauto-backend/app/schemas/common.py
-- [ ] T009 [P] Implement bcrypt password hashing and JWT access/refresh primitives in linkauto-backend/app/core/security.py
-- [ ] T010 [P] Implement authentication and RBAC dependencies in linkauto-backend/app/api/deps/authn.py and linkauto-backend/app/api/deps/authz.py
-- [ ] T011 Implement notification abstraction (SES adapter plus event dispatcher) in linkauto-backend/app/services/notification_service.py
-- [ ] T012 Implement Booking domain core state machine and transition guards in linkauto-backend/app/domain/booking.py
-- [ ] T013 Implement atomic slot reservation and first-write-wins locking service in linkauto-backend/app/services/booking_lock_service.py
-- [ ] T014 Implement booking automation scheduler shell for 24h timeout and +2h completion in linkauto-backend/app/services/booking_scheduler.py
-- [ ] T015 Implement foundational API router registration and versioned base path in linkauto-backend/app/api/v1/\_\_init\_\_.py and linkauto-backend/app/main.py
-- [ ] T016 Add foundational contract validation for envelope/auth/conflict semantics in linkauto-backend/tests/contract/test_foundation_contract.py
-- [ ] T017 Add foundational integration validation for Booking state transitions in linkauto-backend/tests/integration/test_booking_state_machine.py
+- [X] T007 Create shared ORM base with uuidv7 and audit timestamps in linkauto-backend/app/models/base.py
+- [X] T008 [P] Implement standard API envelope, pagination, and error schema in linkauto-backend/app/schemas/common.py
+- [X] T009 [P] Implement bcrypt password hashing and JWT access/refresh primitives in linkauto-backend/app/core/security.py
+- [X] T010 [P] Implement authentication and RBAC dependencies in linkauto-backend/app/api/deps/authn.py and linkauto-backend/app/api/deps/authz.py
+- [X] T011 Implement notification abstraction (SES adapter plus event dispatcher) in linkauto-backend/app/services/notification_service.py
+- [X] T012 Implement Booking domain core state machine and transition guards in linkauto-backend/app/domain/booking.py
+- [X] T013 Implement atomic slot reservation and first-write-wins locking service in linkauto-backend/app/services/booking_lock_service.py
+- [X] T014 Implement booking automation scheduler shell for 24h timeout and +2h completion in linkauto-backend/app/services/booking_scheduler.py
+- [X] T015 Implement foundational API router registration and versioned base path in linkauto-backend/app/api/v1/\_\_init\_\_.py and linkauto-backend/app/main.py
+- [X] T016 Add foundational contract validation for envelope/auth/conflict semantics in linkauto-backend/tests/contract/test_foundation_contract.py
+- [X] T017 Add foundational integration validation for Booking state transitions in linkauto-backend/tests/integration/test_booking_state_machine.py
 
 **Checkpoint**: Foundation stable; Booking core invariants are enforced before story work.
 
