@@ -10,7 +10,7 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 |------|--------|------------|
 | Phase 1 - Setup | Concluída | T001-T006 finalizadas |
 | Phase 2 - Foundational | Concluída | T007-T017 finalizadas e validadas |
-| Phase 3 - US1 | Pendente | Bloqueada por dependência |
+| Phase 3 - US1 | Concluída | T018-T029 + T056/T057 finalizadas |
 | Phase 4 - US2 | Pendente | Bloqueada por dependência |
 | Phase 5 - US3 | Pendente | Bloqueada por dependência |
 | Phase 6 - Polish | Pendente | Bloqueada por dependência |
@@ -40,3 +40,30 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 - Adicionados testes fundacionais de contrato e integração:
   - `tests/contract/test_foundation_contract.py`
   - `tests/integration/test_booking_state_machine.py`
+
+### Iteração 3
+
+- US1 backend implementado com testes:
+  - `tests/contract/test_us1_auth_profile_contract.py`
+  - `tests/integration/test_us1_profiles_visibility.py`
+  - `tests/integration/test_us1_document_upload_validation.py`
+- Modelos de domínio US1 adicionados:
+  - `app/models/user.py`
+  - `app/models/instructor_document.py`
+- Serviços US1 adicionados:
+  - `app/services/auth_service.py`
+  - `app/services/profile_service.py`
+  - `app/services/admin_validation_service.py`
+  - `app/services/document_cleanup_service.py`
+  - `app/services/instructor_document_service.py`
+  - `app/services/us1_store.py`
+- Endpoints US1 adicionados/organizados:
+  - `app/api/v1/auth.py`
+  - `app/api/v1/users.py`
+  - `app/api/v1/admin_instructors.py`
+  - `app/api/v1/instructor_documents.py`
+- Frontend US1 conectado à API:
+  - login com backend (`src/pages/Login.jsx`)
+  - perfil com sessão (`src/pages/Profile.jsx`)
+  - painel admin para validação (`src/pages/InstructorDashboard.jsx`)
+  - session store e guards por papel (`src/state/sessionStore.js`, `src/app/router.jsx`)
