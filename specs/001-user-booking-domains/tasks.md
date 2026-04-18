@@ -19,12 +19,12 @@
 
 **Purpose**: Initialize monorepo runtime and project scaffolding for backend/frontend.
 
-- [ ] T001 Create backend app skeleton modules in linkauto-backend/app/\_\_init\_\_.py, linkauto-backend/app/api/\_\_init\_\_.py, linkauto-backend/app/models/\_\_init\_\_.py, linkauto-backend/app/services/\_\_init\_\_.py, and linkauto-backend/app/schemas/\_\_init\_\_.py
-- [ ] T002 Initialize backend project config and dependencies in linkauto-backend/pyproject.toml and linkauto-backend/app/core/config.py
-- [ ] T003 [P] Create frontend API base client and env binding in linkauto-frontend/src/services/httpClient.js and linkauto-frontend/src/services/config.js
-- [ ] T004 [P] Create environment and local runtime bootstrap in infra/docker-compose.yml, linkauto-backend/.env.example, and linkauto-frontend/.env.example
-- [ ] T005 Create migration bootstrap and base metadata wiring in linkauto-backend/alembic/env.py and linkauto-backend/alembic/versions/0001_foundation.py
-- [ ] T006 Create implementation compliance evidence file in specs/001-user-booking-domains/compliance.md
+- [X] T001 Create backend app skeleton modules in linkauto-backend/app/\_\_init\_\_.py, linkauto-backend/app/api/\_\_init\_\_.py, linkauto-backend/app/models/\_\_init\_\_.py, linkauto-backend/app/services/\_\_init\_\_.py, and linkauto-backend/app/schemas/\_\_init\_\_.py
+- [X] T002 Initialize backend project config and dependencies in linkauto-backend/pyproject.toml and linkauto-backend/app/core/config.py
+- [X] T003 [P] Create frontend API base client and env binding in linkauto-frontend/src/services/httpClient.js and linkauto-frontend/src/services/config.js
+- [X] T004 [P] Create environment and local runtime bootstrap in infra/docker-compose.yml, linkauto-backend/.env.example, and linkauto-frontend/.env.example
+- [X] T005 Create migration bootstrap and base metadata wiring in linkauto-backend/alembic/env.py and linkauto-backend/alembic/versions/0001_foundation.py
+- [X] T006 Create implementation compliance evidence file in specs/001-user-booking-domains/compliance.md
 
 **Checkpoint**: Setup stable, local stack starts, and foundational coding can begin.
 
@@ -36,17 +36,17 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete and stable.
 
-- [ ] T007 Create shared ORM base with uuidv7 and audit timestamps in linkauto-backend/app/models/base.py
-- [ ] T008 [P] Implement standard API envelope, pagination, and error schema in linkauto-backend/app/schemas/common.py
-- [ ] T009 [P] Implement bcrypt password hashing and JWT access/refresh primitives in linkauto-backend/app/core/security.py
-- [ ] T010 [P] Implement authentication and RBAC dependencies in linkauto-backend/app/api/deps/authn.py and linkauto-backend/app/api/deps/authz.py
-- [ ] T011 Implement notification abstraction (SES adapter plus event dispatcher) in linkauto-backend/app/services/notification_service.py
-- [ ] T012 Implement Booking domain core state machine and transition guards in linkauto-backend/app/domain/booking.py
-- [ ] T013 Implement atomic slot reservation and first-write-wins locking service in linkauto-backend/app/services/booking_lock_service.py
-- [ ] T014 Implement booking automation scheduler shell for 24h timeout and +2h completion in linkauto-backend/app/services/booking_scheduler.py
-- [ ] T015 Implement foundational API router registration and versioned base path in linkauto-backend/app/api/v1/\_\_init\_\_.py and linkauto-backend/app/main.py
-- [ ] T016 Add foundational contract validation for envelope/auth/conflict semantics in linkauto-backend/tests/contract/test_foundation_contract.py
-- [ ] T017 Add foundational integration validation for Booking state transitions in linkauto-backend/tests/integration/test_booking_state_machine.py
+- [X] T007 Create shared ORM base with uuidv7 and audit timestamps in linkauto-backend/app/models/base.py
+- [X] T008 [P] Implement standard API envelope, pagination, and error schema in linkauto-backend/app/schemas/common.py
+- [X] T009 [P] Implement bcrypt password hashing and JWT access/refresh primitives in linkauto-backend/app/core/security.py
+- [X] T010 [P] Implement authentication and RBAC dependencies in linkauto-backend/app/api/deps/authn.py and linkauto-backend/app/api/deps/authz.py
+- [X] T011 Implement notification abstraction (SES adapter plus event dispatcher) in linkauto-backend/app/services/notification_service.py
+- [X] T012 Implement Booking domain core state machine and transition guards in linkauto-backend/app/domain/booking.py
+- [X] T013 Implement atomic slot reservation and first-write-wins locking service in linkauto-backend/app/services/booking_lock_service.py
+- [X] T014 Implement booking automation scheduler shell for 24h timeout and +2h completion in linkauto-backend/app/services/booking_scheduler.py
+- [X] T015 Implement foundational API router registration and versioned base path in linkauto-backend/app/api/v1/\_\_init\_\_.py and linkauto-backend/app/main.py
+- [X] T016 Add foundational contract validation for envelope/auth/conflict semantics in linkauto-backend/tests/contract/test_foundation_contract.py
+- [X] T017 Add foundational integration validation for Booking state transitions in linkauto-backend/tests/integration/test_booking_state_machine.py
 
 **Checkpoint**: Foundation stable; Booking core invariants are enforced before story work.
 
@@ -60,23 +60,23 @@
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] Add contract tests for /auth/* (including refresh token cookie contract) and /users/me in linkauto-backend/tests/contract/test_us1_auth_profile_contract.py
-- [ ] T019 [P] [US1] Add integration tests for multi-role profile behavior and hidden instructors in linkauto-backend/tests/integration/test_us1_profiles_visibility.py
-- [ ] T056 [P] [US1] Add integration tests for credential upload size and MIME whitelist validations in linkauto-backend/tests/integration/test_us1_document_upload_validation.py
+- [X] T018 [P] [US1] Add contract tests for /auth/* (including refresh token cookie contract) and /users/me in linkauto-backend/tests/contract/test_us1_auth_profile_contract.py
+- [X] T019 [P] [US1] Add integration tests for multi-role profile behavior and hidden instructors in linkauto-backend/tests/integration/test_us1_profiles_visibility.py
+- [X] T056 [P] [US1] Add integration tests for credential upload size and MIME whitelist validations in linkauto-backend/tests/integration/test_us1_document_upload_validation.py
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] Create User, StudentProfile, and InstructorProfile models in linkauto-backend/app/models/user.py
-- [ ] T021 [P] [US1] Create InstructorDocument model and repository helpers in linkauto-backend/app/models/instructor_document.py
-- [ ] T022 [US1] Implement auth service (register/login/refresh/password reset trigger) with refresh token cookie `HttpOnly`/`Secure`/`SameSite` in linkauto-backend/app/services/auth_service.py
-- [ ] T023 [US1] Implement role-aware profile service for /users/me in linkauto-backend/app/services/profile_service.py
-- [ ] T024 [US1] Implement auth and users API endpoints in linkauto-backend/app/api/v1/auth.py and linkauto-backend/app/api/v1/users.py
-- [ ] T025 [US1] Implement admin instructor validation workflow (approve/reject plus SES) in linkauto-backend/app/services/admin_validation_service.py
-- [ ] T026 [US1] Implement S3 credential document purge after validation in linkauto-backend/app/services/document_cleanup_service.py
-- [ ] T057 [US1] Implement backend validation for credential upload limit (10MB/file) and MIME whitelist in linkauto-backend/app/services/instructor_document_service.py
-- [ ] T027 [US1] Implement admin instructor endpoints in linkauto-backend/app/api/v1/admin_instructors.py
-- [ ] T028 [US1] Implement frontend login/profile/admin dashboard wiring in linkauto-frontend/src/pages/Login.jsx, linkauto-frontend/src/pages/Profile.jsx, and linkauto-frontend/src/pages/InstructorDashboard.jsx
-- [ ] T029 [US1] Implement frontend session and route guards by role in linkauto-frontend/src/state/sessionStore.js and linkauto-frontend/src/app/router.jsx
+- [X] T020 [P] [US1] Create User, StudentProfile, and InstructorProfile models in linkauto-backend/app/models/user.py
+- [X] T021 [P] [US1] Create InstructorDocument model and repository helpers in linkauto-backend/app/models/instructor_document.py
+- [X] T022 [US1] Implement auth service (register/login/refresh/password reset trigger) with refresh token cookie `HttpOnly`/`Secure`/`SameSite` in linkauto-backend/app/services/auth_service.py
+- [X] T023 [US1] Implement role-aware profile service for /users/me in linkauto-backend/app/services/profile_service.py
+- [X] T024 [US1] Implement auth and users API endpoints in linkauto-backend/app/api/v1/auth.py and linkauto-backend/app/api/v1/users.py
+- [X] T025 [US1] Implement admin instructor validation workflow (approve/reject plus SES) in linkauto-backend/app/services/admin_validation_service.py
+- [X] T026 [US1] Implement S3 credential document purge after validation in linkauto-backend/app/services/document_cleanup_service.py
+- [X] T057 [US1] Implement backend validation for credential upload limit (10MB/file) and MIME whitelist in linkauto-backend/app/services/instructor_document_service.py
+- [X] T027 [US1] Implement admin instructor endpoints in linkauto-backend/app/api/v1/admin_instructors.py
+- [X] T028 [US1] Implement frontend login/profile/admin dashboard wiring in linkauto-frontend/src/pages/Login.jsx, linkauto-frontend/src/pages/Profile.jsx, and linkauto-frontend/src/pages/InstructorDashboard.jsx
+- [X] T029 [US1] Implement frontend session and route guards by role in linkauto-frontend/src/state/sessionStore.js and linkauto-frontend/src/app/router.jsx
 
 **Checkpoint**: US1 stable and independently testable.
 

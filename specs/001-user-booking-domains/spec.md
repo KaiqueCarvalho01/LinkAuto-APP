@@ -16,6 +16,11 @@
 - Q: Para IDs dos dominios desta feature, qual regra oficial da V1? → A: Todos os IDs de entidades de dominio novas devem ser uuidv7 por padrao.
 - Q: Qual politica oficial para refresh token na V1? → A: Refresh token armazenado em cookie httpOnly, Secure e SameSite no frontend web.
 - Q: Quais limites obrigatorios para upload de documentos de credenciamento na V1? → A: Limite de 10MB por arquivo com whitelist de MIME (`application/pdf`, `image/jpeg`, `image/png`).
+- Q: Qual politica oficial para matriz de transicao de estados de booking na V1? → A: Matriz estrita com override admin auditavel para correcao de estado terminal (`REALIZADA` ou `CANCELADA`).
+- Q: Qual politica oficial para remocao/downgrade do papel Instrutor em conta multi-role na V1? → A: Permitir remocao com desativacao logica do `InstructorProfile`, preservando historico e bloqueando novos slots/agendas.
+- Q: Qual politica oficial para o catalogo de eventos de notificacao por e-mail na V1? → A: Catalogo fixo versionado (v1) com 8 eventos; qualquer novo evento exige atualizacao de spec, contrato e testes antes de release.
+- Q: Qual politica oficial de timezone para regras temporais na V1? → A: Regras de negocio usam timezone fixo da plataforma `America/Sao_Paulo`; persistencia e transporte de datetime permanecem em UTC.
+- Q: Qual politica oficial para falhas de dependencias externas na V1? → A: A operacao principal persiste; falha externa gera `PENDING_RETRY`, retries com backoff e alerta operacional apos atingir o limite de tentativas.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -77,6 +82,7 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - User has multiple roles but only one profile payload is provided during update.
 - Instructor coordinates or action radius are missing while instructor profile is set to active.
 - Two selected slots cross midnight; they are consecutive by time but not on the same day.
+- Time-based rules crossing date boundaries must be evaluated in `America/Sao_Paulo` before UTC conversion.
 - Booking cancellation happens exactly at the 24-hour boundary (must be treated as penalty case).
 - Instructor confirms after timeout cancellation has already occurred.
 - Completion job runs late or retries after transient failure.
@@ -87,6 +93,8 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - Instructor documents are approved or rejected after files were already removed from storage.
 - Refresh token is missing/expired in cookie while access token is invalid.
 - Credential upload is attempted above 10MB or with unsupported MIME type.
+- Instructor role is removed from a multi-role account with existing bookings/history; profile must become non-searchable and historical records must remain intact.
+- External dependency failure after primary transaction commit (e.g., SES dispatch or post-validation cleanup) must not roll back domain state and must enter retry flow.
 
 ## Requirements _(mandatory)_
 
@@ -94,10 +102,10 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 
 - **FR-001**: System MUST maintain a base user entity with unique email, account status, timestamps, and one-or-more roles.
 - **FR-002**: System MUST store credentials only as secure password hashes and never as plain text.
-- **FR-003**: System MUST allow a single user to hold multiple roles simultaneously.
+- **FR-003**: System MUST allow a single user to hold multiple roles simultaneously and MUST support role removal/downgrade while preserving historical domain records.
 - **FR-004**: System MUST require and persist student profile fields when role includes Student.
 - **FR-005**: System MUST require and persist instructor profile fields when role includes Instructor.
-- **FR-006**: System MUST keep instructors hidden from public search while credential status is pending or rejected.
+- **FR-006**: System MUST keep instructors hidden from public search while credential status is pending or rejected, and when Instructor role is logically deactivated/removed.
 - **FR-007**: System MUST support credential document records for instructors with upload and review audit fields.
 - **FR-008**: System MUST remove credential documents from storage after validation workflow completion.
 - **FR-009**: System MUST maintain one-hour slot records with explicit available/reserved/blocked status.
@@ -105,17 +113,17 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - **FR-011**: System MUST allow booking creation only with at least two consecutive slots for the same instructor on the same day.
 - **FR-012**: System MUST validate booking minimum-slot rules in both client and server flows.
 - **FR-013**: System MUST maintain booking lifecycle states: `PENDENTE`, `CONFIRMADA`, `REALIZADA`, `CANCELADA`.
-- **FR-014**: System MUST enforce booking transitions only through approved state-machine paths.
+- **FR-014**: System MUST enforce only these booking transitions in V1: `PENDENTE -> CONFIRMADA|CANCELADA` and `CONFIRMADA -> REALIZADA|CANCELADA`; `REALIZADA` and `CANCELADA` are immutable except for auditable admin override to terminal correction (`REALIZADA` or `CANCELADA`) with mandatory reason.
 - **FR-015**: System MUST auto-cancel pending bookings not decided within 24 hours and mark cancellation source as system.
 - **FR-016**: System MUST record cancellation metadata, including actor and optional reason.
 - **FR-017**: System MUST allow student cancellation with 24 hours or less before start time and MUST apply automatic penalty status to the student account.
 - **FR-018**: System MUST maintain one asynchronous message thread per booking with chronological entries.
 - **FR-019**: System MUST allow review creation only when booking status is `REALIZADA`.
 - **FR-020**: System MUST enforce one review per reviewer-reviewed pair per booking.
-- **FR-021**: System MUST trigger email notifications for all defined events in registration, validation, booking, messaging, and review flows.
+- **FR-021**: System MUST trigger email notifications for this fixed Notification Event Catalog v1 (8 event types): instructor registered waiting validation; instructor validation decision (approved or rejected); new pending booking for instructor; lesson reminder 24h before; booking confirmed for student; booking canceled for student/instructor; new booking message; new review received. Any new event type MUST require synchronized update to specification, API contract, and automated tests before release.
 - **FR-022**: System MUST expose API endpoints under a versioned base path and require bearer authentication for protected operations.
 - **FR-023**: System MUST return standardized success and error envelopes and support page/page_size pagination defaults.
-- **FR-024**: System MUST represent dates and times in ISO 8601 UTC format across API responses.
+- **FR-024**: System MUST represent dates and times in ISO 8601 UTC format across API responses, while evaluating business-time rules (same-day slot grouping, <=24h cancellation threshold, and 7-day penalty unblock) in fixed platform timezone `America/Sao_Paulo`.
 - **FR-025**: System MUST use uuidv7 as default ID format for all new domain entities in this feature.
 - **FR-026**: System MUST transition confirmed bookings to `REALIZADA` automatically using a scheduled job at least 2 hours after the end time of the last booked slot, and MUST allow admin override for correction.
 - **FR-027**: System MUST enforce a fixed 7-day booking block for students who cancel confirmed bookings with 24 hours or less before start time.
@@ -123,6 +131,8 @@ As a student or instructor, I can exchange asynchronous messages per booking, re
 - **FR-029**: System MUST enforce RN03 with no overlapping slots for the same instructor and MUST enforce uniqueness at persistence layer with conflict response semantics.
 - **FR-030**: System MUST reject credential uploads larger than 10MB per file and MUST accept only MIME types `application/pdf`, `image/jpeg`, and `image/png`.
 - **FR-031**: System MUST issue and consume refresh tokens through cookie transport with `HttpOnly`, `Secure`, and `SameSite` policy.
+- **FR-032**: System MUST apply logical deactivation (not physical deletion) when removing Instructor role in V1, preserving booking/message/review/document audit history and blocking creation of new instructor slots/agenda entries.
+- **FR-033**: System MUST preserve committed primary domain state when post-commit external integrations fail (including SES dispatch and post-validation storage cleanup), MUST register integration status as `PENDING_RETRY`, MUST retry with backoff until configured attempt limit, and MUST emit operational alert when retry limit is reached.
 
 _Note_: Penalty-free cancellation remains valid only when cancellation occurs with more than 24 hours before start time.
 
@@ -165,10 +175,12 @@ If any out-of-scope item becomes required, the spec MUST request a constitution 
 - **SC-003**: 99% of booking state transition attempts follow allowed lifecycle paths, with invalid transitions blocked.
 - **SC-004**: 100% of review submissions when booking status is not `REALIZADA` are rejected.
 - **SC-005**: At least 95% of valid booking flows (search-to-pending) are completed by users in under 3 minutes.
-- **SC-006**: 100% of configured notification event types are emitted to intended recipients.
+- **SC-006**: 100% of Notification Event Catalog v1 event types are emitted to intended recipients.
 - **SC-007**: 100% of concurrent reservation tests for identical slots result in exactly one successful booking and one conflict response.
 - **SC-008**: 100% of API datetime fields in booking/slot/message flows are returned in ISO 8601 UTC format.
 - **SC-009**: 100% of credential upload attempts with file size >10MB or unsupported MIME type are rejected with explicit validation errors.
+- **SC-010**: 100% of temporal business-rule tests (same-day validation, 24h threshold, penalty unblock) evaluate cutoffs using `America/Sao_Paulo` and return deterministic outcomes.
+- **SC-011**: 100% of simulated post-commit SES/storage integration failures create `PENDING_RETRY` records and end in either successful retry or operational alert after retry-limit exhaustion.
 
 ## Assumptions
 
