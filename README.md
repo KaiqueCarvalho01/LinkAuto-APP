@@ -89,7 +89,7 @@ No runtime atual, os endpoints operacionais sao:
 
 ## Arquitetura e stack
 
-- Frontend: React 19, Vite, Tailwind CSS 4, React Router, Leaflet (mapas) e ShadCN/UI (componentes)
+- Frontend: React 19, Vite, Tailwind CSS 4, React Router, Leaflet (mapas) e Chakra UI (componentes)
 - Backend: Python 3.11, FastAPI, SQLAlchemy, Alembic, Pydantic
 - Banco: SQLite (dev) e PostgreSQL + PostGIS (alvo de producao)
 - Integracoes: AWS S3 (documentos) e AWS SES (notificacoes)
