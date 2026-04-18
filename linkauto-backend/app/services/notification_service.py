@@ -66,6 +66,23 @@ class SESEmailGateway:
         return response["MessageId"]
 
 
+class InMemoryEmailGateway:
+    def __init__(self) -> None:
+        self.sent_messages: list[dict[str, str | list[str]]] = []
+
+    def send(self, subject: str, body: str, recipients: list[str]) -> str:
+        message_id = f"mock-{len(self.sent_messages) + 1}"
+        self.sent_messages.append(
+            {
+                "message_id": message_id,
+                "subject": subject,
+                "body": body,
+                "recipients": recipients,
+            }
+        )
+        return message_id
+
+
 class NotificationService:
     def __init__(self, email_gateway: EmailGateway) -> None:
         self._email_gateway = email_gateway
