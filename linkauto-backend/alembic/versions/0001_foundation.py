@@ -7,9 +7,6 @@ Create Date: 2026-04-17 00:00:00.000000
 
 from collections.abc import Sequence
 
-from alembic import op
-import sqlalchemy as sa
-
 revision: str = "0001_foundation"
 down_revision: str | None = None
 branch_labels: Sequence[str] | None = None
