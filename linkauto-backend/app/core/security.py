@@ -4,15 +4,14 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
 import uuid
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from app.core.config import Settings
 
 TokenType = Literal["access", "refresh"]
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 DEFAULT_ALGORITHM = "HS256"
 
 
@@ -26,11 +25,12 @@ class TokenPayload(BaseModel):
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    password_bytes = password.encode("utf-8")
+    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
-    return pwd_context.verify(plain_password, password_hash)
+    return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
 def _epoch_seconds(value: datetime) -> int:
