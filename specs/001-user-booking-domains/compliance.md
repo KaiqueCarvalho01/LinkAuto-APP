@@ -21,6 +21,17 @@
 - [x] Foundation API routes registered under versioned path with standardized error handling.
 - [x] Foundation contract/integration tests implemented and passing.
 
+## Phase 3 (US1) Evidence
+
+- [x] Auth and profile contract tests implemented and passing.
+- [x] Multi-role profile and instructor visibility integration tests implemented and passing.
+- [x] Credential upload validation tests (size + MIME whitelist) implemented and passing.
+- [x] User/StudentProfile/InstructorProfile and InstructorDocument models implemented.
+- [x] Auth/Profile/Admin Validation/Document Cleanup/Upload Validation services implemented.
+- [x] API endpoints implemented for auth, users, admin instructor validation, and instructor document uploads.
+- [x] Frontend session store and role-based route guards implemented.
+- [x] Frontend login/profile/admin dashboard wiring integrated with backend US1 endpoints.
+
 ## Constitutional Guardrails Snapshot
 
 - [x] No payments introduced.

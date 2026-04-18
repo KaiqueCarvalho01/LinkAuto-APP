@@ -60,23 +60,23 @@
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] Add contract tests for /auth/* (including refresh token cookie contract) and /users/me in linkauto-backend/tests/contract/test_us1_auth_profile_contract.py
-- [ ] T019 [P] [US1] Add integration tests for multi-role profile behavior and hidden instructors in linkauto-backend/tests/integration/test_us1_profiles_visibility.py
-- [ ] T056 [P] [US1] Add integration tests for credential upload size and MIME whitelist validations in linkauto-backend/tests/integration/test_us1_document_upload_validation.py
+- [X] T018 [P] [US1] Add contract tests for /auth/* (including refresh token cookie contract) and /users/me in linkauto-backend/tests/contract/test_us1_auth_profile_contract.py
+- [X] T019 [P] [US1] Add integration tests for multi-role profile behavior and hidden instructors in linkauto-backend/tests/integration/test_us1_profiles_visibility.py
+- [X] T056 [P] [US1] Add integration tests for credential upload size and MIME whitelist validations in linkauto-backend/tests/integration/test_us1_document_upload_validation.py
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] Create User, StudentProfile, and InstructorProfile models in linkauto-backend/app/models/user.py
-- [ ] T021 [P] [US1] Create InstructorDocument model and repository helpers in linkauto-backend/app/models/instructor_document.py
-- [ ] T022 [US1] Implement auth service (register/login/refresh/password reset trigger) with refresh token cookie `HttpOnly`/`Secure`/`SameSite` in linkauto-backend/app/services/auth_service.py
-- [ ] T023 [US1] Implement role-aware profile service for /users/me in linkauto-backend/app/services/profile_service.py
-- [ ] T024 [US1] Implement auth and users API endpoints in linkauto-backend/app/api/v1/auth.py and linkauto-backend/app/api/v1/users.py
-- [ ] T025 [US1] Implement admin instructor validation workflow (approve/reject plus SES) in linkauto-backend/app/services/admin_validation_service.py
-- [ ] T026 [US1] Implement S3 credential document purge after validation in linkauto-backend/app/services/document_cleanup_service.py
-- [ ] T057 [US1] Implement backend validation for credential upload limit (10MB/file) and MIME whitelist in linkauto-backend/app/services/instructor_document_service.py
-- [ ] T027 [US1] Implement admin instructor endpoints in linkauto-backend/app/api/v1/admin_instructors.py
-- [ ] T028 [US1] Implement frontend login/profile/admin dashboard wiring in linkauto-frontend/src/pages/Login.jsx, linkauto-frontend/src/pages/Profile.jsx, and linkauto-frontend/src/pages/InstructorDashboard.jsx
-- [ ] T029 [US1] Implement frontend session and route guards by role in linkauto-frontend/src/state/sessionStore.js and linkauto-frontend/src/app/router.jsx
+- [X] T020 [P] [US1] Create User, StudentProfile, and InstructorProfile models in linkauto-backend/app/models/user.py
+- [X] T021 [P] [US1] Create InstructorDocument model and repository helpers in linkauto-backend/app/models/instructor_document.py
+- [X] T022 [US1] Implement auth service (register/login/refresh/password reset trigger) with refresh token cookie `HttpOnly`/`Secure`/`SameSite` in linkauto-backend/app/services/auth_service.py
+- [X] T023 [US1] Implement role-aware profile service for /users/me in linkauto-backend/app/services/profile_service.py
+- [X] T024 [US1] Implement auth and users API endpoints in linkauto-backend/app/api/v1/auth.py and linkauto-backend/app/api/v1/users.py
+- [X] T025 [US1] Implement admin instructor validation workflow (approve/reject plus SES) in linkauto-backend/app/services/admin_validation_service.py
+- [X] T026 [US1] Implement S3 credential document purge after validation in linkauto-backend/app/services/document_cleanup_service.py
+- [X] T057 [US1] Implement backend validation for credential upload limit (10MB/file) and MIME whitelist in linkauto-backend/app/services/instructor_document_service.py
+- [X] T027 [US1] Implement admin instructor endpoints in linkauto-backend/app/api/v1/admin_instructors.py
+- [X] T028 [US1] Implement frontend login/profile/admin dashboard wiring in linkauto-frontend/src/pages/Login.jsx, linkauto-frontend/src/pages/Profile.jsx, and linkauto-frontend/src/pages/InstructorDashboard.jsx
+- [X] T029 [US1] Implement frontend session and route guards by role in linkauto-frontend/src/state/sessionStore.js and linkauto-frontend/src/app/router.jsx
 
 **Checkpoint**: US1 stable and independently testable.
 
