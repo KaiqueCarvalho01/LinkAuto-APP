@@ -17,6 +17,12 @@ def test_ping_returns_standard_success_envelope():
 
 
 def test_login_returns_auth_envelope_and_refresh_cookie():
+    register_response = client.post(
+        "/api/v1/auth/register",
+        json={"email": "student@example.com", "password": "strong-password", "roles": ["ALUNO"]},
+    )
+    assert register_response.status_code == 201
+
     response = client.post(
         "/api/v1/auth/login",
         json={"email": "student@example.com", "password": "strong-password"},
