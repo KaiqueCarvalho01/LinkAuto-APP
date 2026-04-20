@@ -6,7 +6,7 @@ from enum import Enum
 from sqlalchemy import Boolean, Enum as SqlEnum, ForeignKey, JSON, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import AuditTimestampsMixin, AuditUUIDBase
+from app.models.base import AuditTimestampsMixin, AuditUUIDBase, Base
 
 
 class UserRole(str, Enum):
@@ -48,7 +48,7 @@ class User(AuditUUIDBase):
     )
 
 
-class StudentProfile(AuditTimestampsMixin):
+class StudentProfile(Base, AuditTimestampsMixin):
     __tablename__ = "student_profiles"
 
     user_id: Mapped[str] = mapped_column(
@@ -66,7 +66,7 @@ class StudentProfile(AuditTimestampsMixin):
     user: Mapped[User] = relationship("User", back_populates="student_profile")
 
 
-class InstructorProfile(AuditTimestampsMixin):
+class InstructorProfile(Base, AuditTimestampsMixin):
     __tablename__ = "instructor_profiles"
 
     user_id: Mapped[str] = mapped_column(

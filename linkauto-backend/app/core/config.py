@@ -10,6 +10,11 @@ class Settings(BaseSettings):
     app_name: str = Field(default="LinkAuto API", alias="APP_NAME")
 
     database_url: str = Field(default="sqlite:///./app.db", alias="DATABASE_URL")
+    reset_sqlite_on_startup: bool = Field(default=True, alias="RESET_SQLITE_ON_STARTUP")
+    cors_origins: str = Field(
+        default="http://localhost:5173,http://127.0.0.1:5173",
+        alias="CORS_ORIGINS",
+    )
 
     jwt_secret: str = Field(default="change-me", alias="JWT_SECRET")
     jwt_access_minutes: int = Field(default=15, alias="JWT_ACCESS_MINUTES")
@@ -22,6 +27,10 @@ class Settings(BaseSettings):
     ses_from_email: str | None = Field(default=None, alias="SES_FROM_EMAIL")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache(maxsize=1)
