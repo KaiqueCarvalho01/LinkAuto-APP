@@ -122,6 +122,8 @@ Diagramas disponiveis:
 docker compose -f infra/docker-compose.yml up -d
 ```
 
+No ambiente de desenvolvimento, o backend agora reinicializa o SQLite local a cada startup (`RESET_SQLITE_ON_STARTUP=true`), recriando o arquivo `app.db` e o schema base automaticamente.
+
 Servicos:
 
 - Frontend: [http://localhost:5173](http://localhost:5173)
@@ -151,6 +153,49 @@ npm run dev
 > [!TIP]
 > Se voce for validar fluxo de auth com refresh cookie, mantenha frontend e backend rodando com credentials habilitado (ja configurado no cliente HTTP).
 
+## Testes e2e (manual + automatizado)
+
+Preparo inicial (uma vez):
+
+```bash
+cd linkauto-frontend
+npm install
+npm run e2e:install
+```
+
+Dependencias de sistema (Linux, quando necessario):
+
+```bash
+cd linkauto-frontend
+sudo npx playwright install-deps
+```
+
+Para Arch Linux (incluindo WSL2 custom), prefira instalar via `yay`/AUR:
+
+```bash
+sudo pacman -Syy
+yay -S --needed atk at-spi2-core libxcomposite libxdamage libxfixes libxrandr mesa libxkbcommon alsa-lib
+```
+
+Executar smoke automatizado (login + busca + solicitacao de agendamento):
+
+```bash
+cd linkauto-frontend
+npm run e2e
+```
+
+Fluxo manual sugerido (com backend e frontend ativos):
+
+1. Abrir `/login`.
+2. Registrar um usuario `ALUNO` via endpoint `/api/v1/auth/register` (ou usar conta existente).
+3. Autenticar e validar redirecionamento para `/buscar`.
+4. Abrir um instrutor em `Agendar`, selecionar 2 slots consecutivos e confirmar navegacao para `/agendamentos`.
+
+Variaveis opcionais para e2e:
+
+- `E2E_BASE_URL` (default: `http://127.0.0.1:5173`)
+- `E2E_API_BASE_URL` (default: `http://127.0.0.1:8000/api/v1`)
+
 ## Qualidade e testes
 
 Backend (contrato + integracao):
@@ -168,6 +213,13 @@ Frontend (qualidade basica):
 cd linkauto-frontend
 npm run lint
 npm run build
+```
+
+Frontend (e2e smoke):
+
+```bash
+cd linkauto-frontend
+npm run e2e
 ```
 
 Coberturas relevantes ja presentes:
