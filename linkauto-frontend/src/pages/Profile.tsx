@@ -1,8 +1,10 @@
 import {
 	Bell,
 	Car,
+	Compass,
 	ChevronRight,
 	CreditCard,
+	CalendarClock,
 	LogOut,
 	Shield,
 	User,
@@ -15,6 +17,8 @@ import type { ProfileUserData } from "../types/session";
 interface ProfileProps {
 	readonly userData?: ProfileUserData;
 	readonly onLogout: () => void;
+	readonly onNavigateToSearch: () => void;
+	readonly onNavigateToBookings: () => void;
 	readonly onNavigateToVehicles: () => void;
 }
 
@@ -35,6 +39,8 @@ const roleLabels: Record<ProfileUserData["role"], string> = {
 export default function Profile({
 	userData,
 	onLogout,
+	onNavigateToSearch,
+	onNavigateToBookings,
 	onNavigateToVehicles,
 }: ProfileProps) {
 	const resolvedUser: ProfileUserData = userData ?? {
@@ -44,6 +50,20 @@ export default function Profile({
 	};
 
 	const menuItems: MenuItem[] = [
+		{
+			id: "search",
+			icon: Compass,
+			label: "Buscar instrutores",
+			iconColor: "brand.600",
+			action: onNavigateToSearch,
+		},
+		{
+			id: "bookings",
+			icon: CalendarClock,
+			label: "Meus agendamentos",
+			iconColor: "brand.700",
+			action: onNavigateToBookings,
+		},
 		...(resolvedUser.role === "instructor"
 			? [
 					{
@@ -59,19 +79,19 @@ export default function Profile({
 			id: "notifications",
 			icon: Bell,
 			label: "Notificacoes",
-			iconColor: "brand.600",
+			iconColor: "laBlue.600",
 		},
 		{
 			id: "security",
 			icon: Shield,
 			label: "Seguranca e senha",
-			iconColor: "brand.700",
+			iconColor: "laBlue.700",
 		},
 		{
 			id: "plans",
 			icon: CreditCard,
 			label: "Planos e assinaturas",
-			iconColor: "ink.700",
+			iconColor: "text.secondary",
 		},
 	];
 
@@ -108,21 +128,18 @@ export default function Profile({
 						placeItems="center"
 						bg="whiteAlpha.250"
 						border="1px solid"
-						borderColor="whiteAlpha.400">
-						<User size={26} color="white" />
+						borderColor="text-foreground">
+						<User size={26} className="text-foreground" />
 					</Box>
 					<Stack gap={1}>
 						<Text
-							color="white"
+							color="text.primary"
 							fontFamily="heading"
 							fontSize={{ base: "xl", md: "2xl" }}
 							fontWeight="800">
 							{resolvedUser.name}
 						</Text>
-						<Text
-							color="whiteAlpha.800"
-							fontWeight="600"
-							fontSize="sm">
+						<Text color="text.muted" fontWeight="600" fontSize="sm">
 							{resolvedUser.email}
 						</Text>
 						<Box
@@ -133,9 +150,9 @@ export default function Profile({
 							borderRadius="full"
 							bg="whiteAlpha.250"
 							border="1px solid"
-							borderColor="whiteAlpha.400">
+							borderColor="border.emphasized">
 							<Text
-								color="white"
+								color="text.muted"
 								fontSize="2xs"
 								fontWeight="800"
 								letterSpacing="0.14em"
@@ -152,7 +169,7 @@ export default function Profile({
 				borderRadius="3xl"
 				p={3}
 				border="1px solid"
-				borderColor="ink.100">
+				borderColor="border.subtle">
 				<Stack gap={1}>
 					{menuItems.map((item) => {
 						const ItemIcon = item.icon;
@@ -165,23 +182,26 @@ export default function Profile({
 								h="58px"
 								borderRadius="2xl"
 								px={3.5}
-								_hover={{ bg: "ink.50" }}>
+								_hover={{ bg: "surface.muted" }}>
 								<HStack align="center" gap={3}>
 									<Box
 										w="36px"
 										h="36px"
 										display="grid"
 										placeItems="center"
-										bg="ink.50"
+										bg="surface.muted"
 										borderRadius="xl"
 										color={item.iconColor}>
 										<ItemIcon size={18} />
 									</Box>
-									<Text color="ink.800" fontWeight="700">
+									<Text color="text.primary" fontWeight="700">
 										{item.label}
 									</Text>
 								</HStack>
-								<ChevronRight size={16} color="#607489" />
+								<ChevronRight
+									size={16}
+									color="var(--chakra-colors-text-muted)"
+								/>
 							</Button>
 						);
 					})}
@@ -192,18 +212,20 @@ export default function Profile({
 				onClick={onLogout}
 				h="56px"
 				borderRadius="2xl"
-				bg="#fff1f1"
-				color="#d6336c"
+				bg="state.danger.bg"
+				color="state.danger.fg"
+				border="1px solid"
+				borderColor="state.danger.border"
 				fontWeight="800"
 				gap={2}
-				_hover={{ bg: "#ffe3e3" }}>
+				_hover={{ filter: "brightness(0.95)" }}>
 				<LogOut size={18} />
 				Sair da conta
 			</Button>
 
 			<Text
 				textAlign="center"
-				color="ink.500"
+				color="text.muted"
 				fontSize="xs"
 				fontWeight="600"
 				letterSpacing="0.08em">

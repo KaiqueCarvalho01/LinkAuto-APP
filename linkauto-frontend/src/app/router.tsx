@@ -6,19 +6,27 @@ import {
 	useState,
 	type ReactNode,
 } from "react";
+import { MoonStar, SunMedium } from "lucide-react";
+import { Box, IconButton } from "@chakra-ui/react";
 import {
 	BrowserRouter,
 	Navigate,
 	Route,
 	Routes,
+	useLocation,
 	useNavigate,
 } from "react-router-dom";
 
+import Home from "../pages/Home";
 import InstructorDashboard from "../pages/InstructorDashboard";
+import LessonDetails from "../pages/LessonDetails";
 import Login from "../pages/Login";
+import MyLessons from "../pages/MyLessons";
 import Profile from "../pages/Profile";
+import SearchPage from "../pages/SearchPage";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
+import type { InstructorSummary } from "../types/instructor";
 import type {
 	DashboardRequest,
 	ProfileUserData,
@@ -33,6 +41,35 @@ interface RouteGuardProps {
 interface RoleRouteProps extends RouteGuardProps {
 	readonly roles: string[];
 }
+
+type ThemeMode = "light" | "dark";
+
+const COLOR_MODE_STORAGE_KEY = "linkauto-color-mode";
+
+const resolvePreferredColorMode = (): ThemeMode => {
+	if (globalThis.window === undefined) {
+		return "light";
+	}
+
+	const stored = globalThis.localStorage.getItem(COLOR_MODE_STORAGE_KEY);
+	if (stored === "dark" || stored === "light") {
+		return stored;
+	}
+
+	return globalThis.matchMedia("(prefers-color-scheme: dark)").matches
+		? "dark"
+		: "light";
+};
+
+const applyColorMode = (mode: ThemeMode) => {
+	if (typeof document === "undefined") {
+		return;
+	}
+
+	const root = document.documentElement;
+	root.classList.toggle("dark", mode === "dark");
+	root.style.colorScheme = mode;
+};
 
 const toUiRole = (roles: string[]): UiRole => {
 	if (roles.includes("ADMIN")) {
@@ -59,19 +96,47 @@ function RoleRoute({ roles, children }: RoleRouteProps) {
 	const { roles: userRoles } = useSessionStore();
 	const allowed = roles.some((role) => userRoles.includes(role));
 	if (!allowed) {
-		return <Navigate to="/profile" replace />;
+		return <Navigate to="/buscar" replace />;
 	}
 
 	return children;
 }
 
+function HomeRoute() {
+	const navigate = useNavigate();
+	const { isAuthenticated } = useSessionStore();
+
+	return (
+		<Home
+			isAuthenticated={isAuthenticated}
+			onOpenLogin={() => navigate("/login")}
+			onOpenSearch={() => {
+				if (isAuthenticated) {
+					navigate("/buscar");
+					return;
+				}
+				navigate("/login");
+			}}
+		/>
+	);
+}
+
 function LoginRoute() {
 	const navigate = useNavigate();
-	const { signIn } = useSessionStore();
+	const { isAuthenticated, roles, signIn } = useSessionStore();
+
+	if (isAuthenticated) {
+		if (roles.includes("ADMIN")) {
+			return <Navigate to="/admin/instructors" replace />;
+		}
+
+		return <Navigate to="/buscar" replace />;
+	}
 
 	const handleAuthenticate = async ({
 		email,
 		password,
+		preferredRole,
 	}: {
 		email: string;
 		password: string;
@@ -80,6 +145,14 @@ function LoginRoute() {
 		const session = await signIn({ email, password });
 		if (session.user.roles.includes("ADMIN")) {
 			navigate("/admin/instructors", { replace: true });
+			return;
+		}
+
+		if (
+			preferredRole === "student" &&
+			session.user.roles.includes("ALUNO")
+		) {
+			navigate("/buscar", { replace: true });
 			return;
 		}
 
@@ -144,9 +217,48 @@ function ProfileRoute() {
 				signOut();
 				navigate("/login", { replace: true });
 			}}
+			onNavigateToSearch={() => navigate("/buscar")}
+			onNavigateToBookings={() => navigate("/agendamentos")}
 			onNavigateToVehicles={() => navigate("/profile")}
 		/>
 	);
+}
+
+function SearchRoute() {
+	const navigate = useNavigate();
+	const { session } = useSessionStore();
+
+	return (
+		<SearchPage
+			token={session?.accessToken}
+			onOpenProfile={() => navigate("/profile")}
+			onStartBooking={(instructor) =>
+				navigate("/bookings/new", { state: { instructor } })
+			}
+		/>
+	);
+}
+
+function BookingDetailsRoute() {
+	const navigate = useNavigate();
+	const location = useLocation();
+	const state = location.state as { instructor?: InstructorSummary } | null;
+
+	return (
+		<LessonDetails
+			instructor={state?.instructor}
+			onBack={() => navigate("/buscar")}
+			onBookingCreated={() => {
+				navigate("/agendamentos", { replace: true });
+			}}
+		/>
+	);
+}
+
+function MyLessonsRoute() {
+	const navigate = useNavigate();
+
+	return <MyLessons onNewBooking={() => navigate("/buscar")} />;
 }
 
 function AdminInstructorDashboardRoute() {
@@ -244,24 +356,102 @@ function AdminInstructorDashboardRoute() {
 }
 
 function RootRedirect() {
-	const { roles } = useSessionStore();
+	const { isAuthenticated, roles } = useSessionStore();
+	if (!isAuthenticated) {
+		return <Navigate to="/" replace />;
+	}
+
 	if (roles.includes("ADMIN")) {
 		return <Navigate to="/admin/instructors" replace />;
 	}
 
-	return <Navigate to="/profile" replace />;
+	return <Navigate to="/buscar" replace />;
+}
+
+function ColorModeToggle() {
+	const [mode, setMode] = useState<ThemeMode>(() =>
+		resolvePreferredColorMode(),
+	);
+
+	useEffect(() => {
+		applyColorMode(mode);
+		globalThis.localStorage.setItem(COLOR_MODE_STORAGE_KEY, mode);
+	}, [mode]);
+
+	const isDark = mode === "dark";
+
+	return (
+		<Box
+			position="fixed"
+			right={{ base: 4, md: 6 }}
+			bottom={{ base: 4, md: 6 }}
+			zIndex={60}>
+			<IconButton
+				aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+				title={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+				onClick={() => {
+					setMode((current) =>
+						current === "dark" ? "light" : "dark",
+					);
+				}}
+				size="md"
+				variant="ghost"
+				border="1px solid"
+				borderColor="border.default"
+				bg="surface.panel"
+				color="text.primary"
+				boxShadow={{
+					base: "0 12px 24px rgba(15, 42, 67, 0.16)",
+					_dark: "0 12px 24px rgba(2, 6, 14, 0.44)",
+				}}
+				_hover={{ bg: "surface.muted" }}>
+				{isDark ? <SunMedium size={16} /> : <MoonStar size={16} />}
+			</IconButton>
+		</Box>
+	);
 }
 
 export default function AppRouter() {
 	return (
 		<BrowserRouter>
 			<Routes>
+				<Route path="/" element={<HomeRoute />} />
 				<Route path="/login" element={<LoginRoute />} />
 				<Route
 					path="/profile"
 					element={
 						<ProtectedRoute>
 							<ProfileRoute />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/buscar"
+					element={
+						<ProtectedRoute>
+							<RoleRoute roles={["ALUNO", "INSTRUTOR", "ADMIN"]}>
+								<SearchRoute />
+							</RoleRoute>
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/bookings/new"
+					element={
+						<ProtectedRoute>
+							<RoleRoute roles={["ALUNO", "ADMIN"]}>
+								<BookingDetailsRoute />
+							</RoleRoute>
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/agendamentos"
+					element={
+						<ProtectedRoute>
+							<RoleRoute roles={["ALUNO", "INSTRUTOR", "ADMIN"]}>
+								<MyLessonsRoute />
+							</RoleRoute>
 						</ProtectedRoute>
 					}
 				/>
@@ -275,16 +465,10 @@ export default function AppRouter() {
 						</ProtectedRoute>
 					}
 				/>
-				<Route
-					path="/"
-					element={
-						<ProtectedRoute>
-							<RootRedirect />
-						</ProtectedRoute>
-					}
-				/>
-				<Route path="*" element={<Navigate to="/" replace />} />
+				<Route path="/app" element={<RootRedirect />} />
+				<Route path="*" element={<RootRedirect />} />
 			</Routes>
+			<ColorModeToggle />
 		</BrowserRouter>
 	);
 }

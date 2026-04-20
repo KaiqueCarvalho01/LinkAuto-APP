@@ -75,7 +75,7 @@ export default function InstructorDashboard({
 					<HStack justify="space-between" align="start">
 						<Stack gap={1}>
 							<Text
-								color="whiteAlpha.700"
+								color="text.muted"
 								fontSize="xs"
 								fontWeight="800"
 								letterSpacing="0.14em"
@@ -83,10 +83,10 @@ export default function InstructorDashboard({
 								{dashboardTitle}
 							</Text>
 							<Text
-								color="white"
+								color="text.secondary"
 								fontFamily="heading"
 								fontSize={{ base: "2xl", md: "3xl" }}
-								fontWeight="800">
+								fontWeight="600">
 								{titleName}
 							</Text>
 						</Stack>
@@ -96,8 +96,8 @@ export default function InstructorDashboard({
 							bg="whiteAlpha.200"
 							borderRadius="xl"
 							border="1px solid"
-							borderColor="whiteAlpha.300"
-							color="white">
+							borderColor="border.default-subtle"
+							color="text.muted">
 							<Star size={16} fill="currentColor" />
 							<Text fontWeight="800" fontSize="sm">
 								{rating.toFixed(1)}
@@ -116,16 +116,16 @@ export default function InstructorDashboard({
 							borderRadius="2xl"
 							p={4}
 							border="1px solid"
-							borderColor="whiteAlpha.300">
+							borderColor="border.default">
 							<Text
-								color="whiteAlpha.700"
+								color="text.secondary"
 								fontSize="xs"
 								textTransform="uppercase"
 								fontWeight="700">
 								Total de aulas
 							</Text>
 							<Text
-								color="white"
+								color="text.primary"
 								fontWeight="900"
 								fontSize="2xl"
 								lineHeight="1">
@@ -139,16 +139,16 @@ export default function InstructorDashboard({
 							borderRadius="2xl"
 							p={4}
 							border="1px solid"
-							borderColor="whiteAlpha.300">
+							borderColor="border.default">
 							<Text
-								color="whiteAlpha.700"
+								color="text.secondary"
 								fontSize="xs"
 								textTransform="uppercase"
 								fontWeight="700">
 								Horas ministradas
 							</Text>
 							<Text
-								color="white"
+								color="text.primary"
 								fontWeight="900"
 								fontSize="2xl"
 								lineHeight="1">
@@ -162,7 +162,7 @@ export default function InstructorDashboard({
 			<Stack gap={4}>
 				<HStack justify="space-between" px={1} align="center">
 					<Text
-						color="ink.800"
+						color="text.primary"
 						fontWeight="800"
 						fontSize="lg"
 						fontFamily="heading">
@@ -172,11 +172,11 @@ export default function InstructorDashboard({
 						px={3}
 						py={1}
 						borderRadius="full"
-						bg="orange.50"
+						bg="state.warning.bg"
 						border="1px solid"
-						borderColor="orange.200">
+						borderColor="state.warning.border">
 						<Text
-							color="orange.600"
+							color="state.warning.fg"
 							fontSize="xs"
 							fontWeight="800"
 							letterSpacing="0.08em">
@@ -195,7 +195,7 @@ export default function InstructorDashboard({
 								bg="surface.panel"
 								borderRadius="3xl"
 								border="1px solid"
-								borderColor="ink.100"
+								borderColor="border.subtle"
 								boxShadow="0 16px 36px rgba(47, 63, 79, 0.08)"
 								p={5}>
 								<Stack gap={4}>
@@ -206,21 +206,21 @@ export default function InstructorDashboard({
 											display="grid"
 											placeItems="center"
 											borderRadius="xl"
-											bg="ink.50"
-											color="ink.700"
+											bg="surface.muted"
+											color="text.secondary"
 											fontWeight="800">
 											{displayName.charAt(0)}
 										</Box>
 										<Stack gap={0}>
 											<Text
 												fontWeight="800"
-												color="ink.900">
+												color="text.primary">
 												{displayName}
 											</Text>
 											<Text
 												fontSize="xs"
 												fontWeight="700"
-												color="ink.500"
+												color="text.muted"
 												textTransform="uppercase">
 												{request.neighborhood ??
 													request.city}
@@ -232,28 +232,31 @@ export default function InstructorDashboard({
 										gap={4}
 										px={3}
 										py={2.5}
-										bg="ink.50"
+										bg="surface.muted"
 										borderRadius="xl"
 										border="1px solid"
-										borderColor="ink.100">
+										borderColor="border.subtle">
 										<HStack gap={1.5}>
 											<Calendar
 												size={14}
-												color="#2f87cc"
+												color="var(--chakra-colors-brand-solid)"
 											/>
 											<Text
 												fontSize="sm"
 												fontWeight="700"
-												color="ink.700">
+												color="text.secondary">
 												{request.date}
 											</Text>
 										</HStack>
 										<HStack gap={1.5}>
-											<Clock size={14} color="#2f87cc" />
+											<Clock
+												size={14}
+												color="var(--chakra-colors-brand-solid)"
+											/>
 											<Text
 												fontSize="sm"
 												fontWeight="700"
-												color="ink.700">
+												color="text.secondary">
 												{request.time}
 											</Text>
 										</HStack>
@@ -264,8 +267,8 @@ export default function InstructorDashboard({
 											flex="1"
 											h="46px"
 											variant="outline"
-											borderColor="ink.200"
-											color="ink.600"
+											borderColor="border.default"
+											color="text.secondary"
 											onClick={() => {
 												void handleAction(
 													onReject,
@@ -280,7 +283,7 @@ export default function InstructorDashboard({
 											flex="1"
 											h="46px"
 											bgGradient="linear(95deg, brand.700, brand.500)"
-											color="white"
+											color="text.inverse"
 											onClick={() => {
 												void handleAction(
 													onAccept,
@@ -301,11 +304,11 @@ export default function InstructorDashboard({
 						bg="surface.panel"
 						borderRadius="3xl"
 						border="1px dashed"
-						borderColor="ink.200"
+						borderColor="border.default"
 						py={12}
 						px={6}
 						textAlign="center">
-						<Text color="ink.600" fontWeight="700">
+						<Text color="text.secondary" fontWeight="700">
 							Nenhuma solicitacao pendente no momento.
 						</Text>
 					</Box>
@@ -320,9 +323,11 @@ export default function InstructorDashboard({
 					flex="1"
 					h={{ base: "52px", md: "58px" }}
 					variant="outline"
-					borderColor="ink.200"
+					borderColor="border.default"
 					bg="surface.panel"
-					onClick={onViewStudents}>
+					color="text.secondary"
+					onClick={onViewStudents}
+					_hover={{ bg: "bg.emphasized" }}>
 					<Users size={18} />
 					Meus alunos
 				</Button>
@@ -330,8 +335,9 @@ export default function InstructorDashboard({
 					flex="1"
 					h={{ base: "52px", md: "58px" }}
 					variant="outline"
-					borderColor="ink.200"
+					borderColor="border.default"
 					bg="surface.panel"
+					color="text.secondary"
 					disabled>
 					<Award size={18} />
 					Conquistas

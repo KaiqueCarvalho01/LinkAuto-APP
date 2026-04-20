@@ -93,7 +93,7 @@ export default function Login({ onAuthenticate }: LoginProps) {
 				boxShadow="0 30px 80px rgba(19, 62, 93, 0.18)"
 				overflow="hidden"
 				border="1px solid"
-				borderColor="white">
+				borderColor="border.default">
 				<Box
 					position="relative"
 					flex={{ base: "0 0 auto", lg: "0 0 44%" }}
@@ -123,17 +123,19 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								fontWeight="700"
 								letterSpacing="0.18em"
 								textTransform="uppercase"
-								color="whiteAlpha.700">
+								color="text.muted">
 								Fatec Mogi Mirim • ADS 2026
 							</Text>
 							<Heading
 								fontFamily="heading"
 								fontSize={{ base: "2xl", md: "3xl" }}
 								lineHeight="1.08">
-								Projeto comercial com qualidade enterprise e
-								foco jovem.
+								<Text color="text.primary">
+									Projeto comercial com qualidade enterprise e
+									foco jovem.
+								</Text>
 							</Heading>
-							<Text color="whiteAlpha.800" fontWeight="500">
+							<Text color="text.secondary" fontWeight="500">
 								Agendamento inteligente de instrutores
 								autonomos, com governanca de perfis e fluxo
 								integrado ao backend LinkAuto.
@@ -153,21 +155,21 @@ export default function Login({ onAuthenticate }: LoginProps) {
 							<Heading
 								fontFamily="heading"
 								fontSize={{ base: "2xl", md: "3xl" }}
-								color="ink.900">
+								color="text.primary">
 								Bem-vindo ao painel LinkAuto
 							</Heading>
-							<Text color="ink.500" fontWeight="500">
+							<Text color="text.secondary" fontWeight="500">
 								Entre com seu e-mail institucional para acessar
 								o fluxo de autenticacao.
 							</Text>
 						</Stack>
 
 						<HStack
-							bg="ink.50"
+							bg="surface.muted"
 							p={1.5}
 							borderRadius="xl"
 							border="1px solid"
-							borderColor="ink.100">
+							borderColor="border.subtle">
 							<Button
 								flex="1"
 								h="44px"
@@ -184,7 +186,7 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								color={
 									preferredRole === "student"
 										? "white"
-										: "ink.600"
+										: "text.secondary"
 								}
 								onClick={() => setPreferredRole("student")}
 								borderRadius="lg">
@@ -206,7 +208,7 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								color={
 									preferredRole === "instructor"
 										? "white"
-										: "ink.600"
+										: "text.secondary"
 								}
 								onClick={() => setPreferredRole("instructor")}
 								borderRadius="lg">
@@ -239,8 +241,9 @@ export default function Login({ onAuthenticate }: LoginProps) {
 											setEmail(event.target.value)
 										}
 										h="50px"
-										bg="white"
-										borderColor="ink.200"
+										bg="surface.panel"
+										borderColor="border.default"
+										color="text.primary"
 										placeholder="voce@linkauto.app"
 										required
 										_focusVisible={{
@@ -264,7 +267,7 @@ export default function Login({ onAuthenticate }: LoginProps) {
 										<Text
 											fontSize="xs"
 											fontWeight="700"
-											color="brand.600">
+											color="brand.emphasized">
 											Recuperar acesso
 										</Text>
 									</Flex>
@@ -277,8 +280,9 @@ export default function Login({ onAuthenticate }: LoginProps) {
 											setPassword(event.target.value)
 										}
 										h="50px"
-										bg="white"
-										borderColor="ink.200"
+										bg="surface.panel"
+										borderColor="border.default"
+										color="text.primary"
 										placeholder="••••••••"
 										required
 										_focusVisible={{
@@ -292,7 +296,7 @@ export default function Login({ onAuthenticate }: LoginProps) {
 									type="submit"
 									h="52px"
 									bgGradient="linear(95deg, brand.700, brand.500)"
-									color="white"
+									color="text.inverse"
 									fontWeight="800"
 									loading={submitting}
 									loadingText="Entrando"
@@ -305,12 +309,12 @@ export default function Login({ onAuthenticate }: LoginProps) {
 										px={4}
 										py={3}
 										borderRadius="lg"
-										bg="#fff0f0"
+										bg="state.danger.bg"
 										border="1px solid"
-										borderColor="#ffc9c9">
+										borderColor="state.danger.border">
 										<Text
 											fontSize="sm"
-											color="#c92a2a"
+											color="state.danger.fg"
 											fontWeight="700">
 											{errorMessage}
 										</Text>
