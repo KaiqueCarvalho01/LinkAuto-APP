@@ -348,3 +348,26 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 
 - Ensured all routes are working with English paths (e.g., `/register`, `/about`, `/students/how-it-works`).
 - Next step: proceed to `FE-001` (Visitor Navbar) with high-quality design standards.
+
+## Iteracao 10 - Visitor Navbar (FE-001)
+
+### What was delivered (Iteracao 10)
+
+- Visitor Navbar component with dropdowns for Students and Instructors.
+- Responsive design with a mobile-first approach.
+- Scroll-triggered shadow and blur effect for a modern look.
+
+### Where it was delivered (Iteracao 10)
+
+- `linkauto-frontend/src/components/Navbar.tsx`
+- `linkauto-frontend/src/components/Navbar.test.tsx`
+
+### How it was validated (Iteracao 10)
+
+- `npm run test -- src/components/Navbar.test.tsx` ✅
+
+### Risks / observacoes (Iteracao 10)
+
+- Mobile drawer is not yet implemented, but the structure is in place.
+- The authenticated state will be implemented in FE-002.
+

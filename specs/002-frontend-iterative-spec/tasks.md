@@ -208,3 +208,12 @@
 - [x] T036 [P] [FE-008] Create scaffold page components in linkauto-frontend/src/pages/ (Refactored to English)
 - [x] T037 [FE-008] Register scaffold pages in linkauto-frontend/src/app/router.tsx (Refactored to English)
 - [ ] T038 [FE-008] Record quality gate outputs for cycle 002 in specs/002-frontend-iterative-spec/iterations/iteration-002.md
+
+## Phase 8: Visitor Navbar (FE-001)
+
+**Purpose**: Implement the visitor navigation bar with responsive layout and dropdowns.
+
+- [x] T039 [FE-001] Add failing tests for Navbar component (visitor state)
+- [x] T040 [FE-001] Implement Navbar component and responsive Drawer for mobile
+- [x] T041 [FE-001] Implement scroll-triggered shadow
+- [ ] T042 [FE-001] Record quality gate outputs for cycle 003 in iteration-003.md
