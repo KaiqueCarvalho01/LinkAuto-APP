@@ -4,6 +4,16 @@
 
 - 2026-04-18
 
+## Diretrizes operacionais ativas
+
+- Escopo por iteracao: no maximo 4 tasks ou 1 feature delimitada de user story.
+- Qualidade XP obrigatoria: ciclo red-green por task (teste falhando antes da implementacao final).
+- Cobertura minima por fatia alterada: 80%.
+- Rastreabilidade obrigatoria em markdown: registrar o que foi feito, onde foi feito (arquivos) e como foi validado (comandos e resultado).
+- Atualizacao obrigatoria ao final de cada iteracao neste arquivo (`progressTracker-frontend.md`).
+- Mock-first permitido e recomendado quando endpoint backend nao estiver contratado/disponivel.
+- Necessidade de novo endpoint: registrar justificativa antes de implementacao em `specs/002-frontend-iterative-spec/endpoint-requests.md`.
+
 ## Iteracao 1 - Base Chakra UI + TypeScript Strict
 
 ### Objetivo (Iteracao 1)
@@ -194,3 +204,40 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 - O bundle principal permanece acima de 500kB apos minificacao; continua nao bloqueante, mas recomenda-se code splitting por rota (especialmente mapa e dashboard).
 - O popup do Leaflet permanece com cores explicitas em tons claros para preservar legibilidade no container visual branco do proprio Leaflet.
 - O arquivo `docs/DESIGN.md` possui backlog de padronizacao de Markdown (MD013/MD060 e afins) em secoes historicas; a iteracao atual atualizou conteudo funcional sem normalizacao completa de estilo para evitar refatoracao documental massiva.
+
+## Iteracao 5 - Frontend governance baseline (spec 002)
+
+### What was delivered
+
+- Templates markdown de governanca para ciclo, red-green, coverage gate e integration boundary.
+- Modulo de validacao de politica de fatia (maximo 4 tasks ou 1 user story feature).
+- Modulo de validacao de ordem de scaffold de rota antes de UI final.
+- CLI de validacao de governanca e script npm associado.
+
+### Where it was delivered
+
+- `specs/002-frontend-iterative-spec/checklists/iteration-slice-template.md`
+- `specs/002-frontend-iterative-spec/checklists/red-green-evidence-template.md`
+- `specs/002-frontend-iterative-spec/checklists/coverage-gate-template.md`
+- `specs/002-frontend-iterative-spec/checklists/integration-boundary-template.md`
+- `specs/002-frontend-iterative-spec/checklists/v1-scope-guardrails.md`
+- `specs/002-frontend-iterative-spec/iterations/README.md`
+- `specs/002-frontend-iterative-spec/iterations/iteration-001.md`
+- `linkauto-frontend/src/features/iteration-governance/logLoader.ts`
+- `linkauto-frontend/src/features/iteration-governance/logLoader.test.ts`
+- `linkauto-frontend/src/features/iteration-governance/slicePolicy.ts`
+- `linkauto-frontend/src/features/iteration-governance/slicePolicy.test.ts`
+- `linkauto-frontend/src/features/iteration-governance/routePlanningRule.ts`
+- `linkauto-frontend/src/features/iteration-governance/routePlanningRule.test.ts`
+- `linkauto-frontend/src/features/iteration-governance/index.ts`
+- `linkauto-frontend/scripts/validate-governance.mjs`
+- `linkauto-frontend/package.json`
+
+### How it was validated
+
+- `cd linkauto-frontend && npm run test -- src/features/iteration-governance/logLoader.test.ts` ✅
+- `cd linkauto-frontend && npm run test -- src/features/iteration-governance/slicePolicy.test.ts src/features/iteration-governance/routePlanningRule.test.ts` ✅
+
+### Risks / observacoes (Iteracao 5)
+
+- Validadores de quality gate completo e endpoint-request prerequisito serao implementados nos proximos blocos (US2/US3).
