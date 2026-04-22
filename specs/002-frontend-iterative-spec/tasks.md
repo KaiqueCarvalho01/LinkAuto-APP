@@ -69,15 +69,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Add failing tests for red-before-green evidence in linkauto-frontend/src/features/iteration-governance/qualityGate.test.ts
-- [ ] T020 [P] [US2] Add failing tests for coverage threshold policy in linkauto-frontend/src/features/iteration-governance/coveragePolicy.test.ts
+- [x] T019 [P] [US2] Add failing tests for red-before-green evidence in linkauto-frontend/src/features/iteration-governance/qualityGate.test.ts
+- [x] T020 [P] [US2] Add failing tests for coverage threshold policy in linkauto-frontend/src/features/iteration-governance/coveragePolicy.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Implement red-green evidence validator in linkauto-frontend/src/features/iteration-governance/qualityGate.ts
-- [ ] T022 [US2] Implement changed-scope coverage validator in linkauto-frontend/src/features/iteration-governance/coveragePolicy.ts
-- [ ] T023 [US2] Extend governance CLI to enforce quality gates in linkauto-frontend/scripts/validate-governance.mjs
-- [ ] T024 [US2] Record quality gate outputs for cycle 001 in specs/002-frontend-iterative-spec/iterations/iteration-001.md
+- [x] T021 [US2] Implement red-green evidence validator in linkauto-frontend/src/features/iteration-governance/qualityGate.ts
+- [x] T022 [US2] Implement changed-scope coverage validator in linkauto-frontend/src/features/iteration-governance/coveragePolicy.ts
+- [x] T023 [US2] Extend governance CLI to enforce quality gates in linkauto-frontend/scripts/validate-governance.mjs
+- [x] T024 [US2] Record quality gate outputs for cycle 001 in specs/002-frontend-iterative-spec/iterations/iteration-001.md
 
 **Checkpoint**: User Story 2 quality gates are independently enforceable.
 
@@ -91,15 +91,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Add failing tests for mock-first decision logic in linkauto-frontend/src/features/iteration-governance/integrationBoundary.test.ts
-- [ ] T026 [P] [US3] Add failing tests for endpoint-request prerequisite rule in linkauto-frontend/src/features/iteration-governance/endpointRequestPolicy.test.ts
+- [x] T025 [P] [US3] Add failing tests for mock-first decision logic in linkauto-frontend/src/features/iteration-governance/integrationBoundary.test.ts
+- [x] T026 [P] [US3] Add failing tests for endpoint-request prerequisite rule in linkauto-frontend/src/features/iteration-governance/endpointRequestPolicy.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Implement integration boundary resolver in linkauto-frontend/src/features/iteration-governance/integrationBoundary.ts
-- [ ] T028 [US3] Implement endpoint-request prerequisite validator in linkauto-frontend/src/features/iteration-governance/endpointRequestPolicy.ts
-- [ ] T029 [US3] Add capability endpoint-or-mock mapping section in specs/002-frontend-iterative-spec/contracts/frontend-iteration-governance.md
-- [ ] T030 [US3] Add endpoint request lifecycle example in specs/002-frontend-iterative-spec/endpoint-requests.md
+- [x] T027 [US3] Implement integration boundary resolver in linkauto-frontend/src/features/iteration-governance/integrationBoundary.ts
+- [x] T028 [US3] Implement endpoint-request prerequisite validator in linkauto-frontend/src/features/iteration-governance/endpointRequestPolicy.ts
+- [x] T029 [US3] Add capability endpoint-or-mock mapping section in specs/002-frontend-iterative-spec/contracts/frontend-iteration-governance.md
+- [x] T030 [US3] Add endpoint request lifecycle example in specs/002-frontend-iterative-spec/endpoint-requests.md
 
 **Checkpoint**: User Story 3 integration boundaries are independently enforceable.
 
@@ -109,10 +109,10 @@
 
 **Purpose**: Final consistency, documentation polish, and end-to-end validation across stories.
 
-- [ ] T031 [P] Consolidate governance command examples in specs/002-frontend-iterative-spec/quickstart.md
-- [ ] T032 [P] Cross-link governance workflow in docs/designs/landpage_UX.md
-- [ ] T033 Run full frontend validation bundle and log results in progressTracker-frontend.md
-- [ ] T034 Run e2e smoke and register evidence in progressTracker-frontend.md
+- [x] T031 [P] Consolidate governance command examples in specs/002-frontend-iterative-spec/quickstart.md
+- [x] T032 [P] Cross-link governance workflow in docs/designs/landpage_UX.md
+- [x] T033 Run full frontend validation bundle and log results in progressTracker-frontend.md
+- [x] T034 Run e2e smoke and register evidence in progressTracker-frontend.md
 
 ---
 

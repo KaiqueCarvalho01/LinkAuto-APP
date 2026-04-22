@@ -54,3 +54,16 @@ Objetivo: registrar, antes de implementar, qualquer necessidade de novo endpoint
 ## Registros
 
 Nenhum endpoint novo solicitado ate o momento.
+
+### Exemplo de ciclo de vida (Referencia)
+
+```md
+## ER-000 - Exemplo de Endpoint Request
+- Data: 2026-04-22
+- Solicitante: Dev frontend
+- Iteracao frontend: 001
+- Status: APPROVED
+- Justificativa: Necessario criar recurso porque os slots locais precisam sincronizar com o banco.
+- Impacto: Baixo. Endpoint isolado.
+- Referencias: specs/001-user-booking-domains/...
+```

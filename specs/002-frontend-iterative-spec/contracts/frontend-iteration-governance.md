@@ -62,6 +62,14 @@ The following actions violate this contract:
 - backend endpoint implementation without prior endpoint request record
 - closing cycle without markdown traceability update
 
+## Capability Mapping (Mock vs Contract)
+
+This section actively logs current capabilities and their status per this feature iteration.
+
+- **Instructor Search**: `CONTRACTED` (Ref: `GET /api/v1/instructors`)
+- **Booking Creation**: `NOT_CONTRACTED` (Fallback: `USE_MOCK` locally until slot creation endpoint is contracted)
+- **Profile Fetch**: `NOT_CONTRACTED` (Fallback: `USE_MOCK` until session integration finalized)
+
 ## Change Control
 
 Any modification to this contract must be reflected in:

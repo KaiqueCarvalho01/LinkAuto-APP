@@ -50,12 +50,31 @@
 - green_command: npm run test -- src/features/iteration-governance/slicePolicy.test.ts src/features/iteration-governance/routePlanningRule.test.ts
 - green_success_summary: all policy tests passed (6/6).
 
+### us2 quality gate validators
+
+- red_command: npm run test -- src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts
+- red_failure_summary: module imports failed because quality gate validators were not implemented yet.
+- green_command: npm run test -- src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts
+- green_success_summary: all quality gate tests passed (7/7).
+
+### us3 integration boundary validators
+
+- red_command: npm run test -- src/features/iteration-governance/integrationBoundary.test.ts src/features/iteration-governance/endpointRequestPolicy.test.ts
+- red_failure_summary: module imports failed because validators were not implemented yet.
+- green_command: npm run test -- src/features/iteration-governance/integrationBoundary.test.ts src/features/iteration-governance/endpointRequestPolicy.test.ts
+- green_success_summary: all integration tests passed (8/8).
+
 ## Coverage Gate
 
-- target_scope: src/features/iteration-governance/*
-- command: npm run test -- src/features/iteration-governance/logLoader.test.ts src/features/iteration-governance/slicePolicy.test.ts src/features/iteration-governance/routePlanningRule.test.ts
-- result: pass for selected scope tests.
-- policy_note: full coverage gate will be consolidated in cross-cutting validation task.
+- target_scope: src/features/iteration-governance/qualityGate.ts + src/features/iteration-governance/coveragePolicy.ts
+- command: npx vitest run src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts --coverage --coverage.include='src/features/iteration-governance/qualityGate.ts' --coverage.include='src/features/iteration-governance/coveragePolicy.ts'
+- required_threshold_pct: 80
+- lines_pct: 97.01
+- branches_pct: 90.47
+- functions_pct: 100
+- statements_pct: 97.01
+- passed: true
+- policy_note: coverage threshold validated for changed scope in US2.
 
 ## Delivery Summary
 
@@ -79,6 +98,10 @@
 - linkauto-frontend/src/features/iteration-governance/slicePolicy.test.ts
 - linkauto-frontend/src/features/iteration-governance/routePlanningRule.ts
 - linkauto-frontend/src/features/iteration-governance/routePlanningRule.test.ts
+- linkauto-frontend/src/features/iteration-governance/qualityGate.ts
+- linkauto-frontend/src/features/iteration-governance/qualityGate.test.ts
+- linkauto-frontend/src/features/iteration-governance/coveragePolicy.ts
+- linkauto-frontend/src/features/iteration-governance/coveragePolicy.test.ts
 - linkauto-frontend/src/features/iteration-governance/index.ts
 - linkauto-frontend/scripts/validate-governance.mjs
 - linkauto-frontend/package.json
@@ -88,6 +111,8 @@
 
 - npm run test -- src/features/iteration-governance/logLoader.test.ts
 - npm run test -- src/features/iteration-governance/slicePolicy.test.ts src/features/iteration-governance/routePlanningRule.test.ts
+- npm run test -- src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts
+- npx vitest run src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts --coverage --coverage.include='src/features/iteration-governance/qualityGate.ts' --coverage.include='src/features/iteration-governance/coveragePolicy.ts'
 
 ## Risks and Notes
 

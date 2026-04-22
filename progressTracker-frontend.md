@@ -207,14 +207,14 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 
 ## Iteracao 5 - Frontend governance baseline (spec 002)
 
-### What was delivered
+### What was delivered (Iteracao 6)
 
 - Templates markdown de governanca para ciclo, red-green, coverage gate e integration boundary.
 - Modulo de validacao de politica de fatia (maximo 4 tasks ou 1 user story feature).
 - Modulo de validacao de ordem de scaffold de rota antes de UI final.
 - CLI de validacao de governanca e script npm associado.
 
-### Where it was delivered
+### Where it was delivered (Iteracao 6)
 
 - `specs/002-frontend-iterative-spec/checklists/iteration-slice-template.md`
 - `specs/002-frontend-iterative-spec/checklists/red-green-evidence-template.md`
@@ -233,7 +233,7 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 - `linkauto-frontend/scripts/validate-governance.mjs`
 - `linkauto-frontend/package.json`
 
-### How it was validated
+### How it was validated (Iteracao 6)
 
 - `cd linkauto-frontend && npm run test -- src/features/iteration-governance/logLoader.test.ts` ✅
 - `cd linkauto-frontend && npm run test -- src/features/iteration-governance/slicePolicy.test.ts src/features/iteration-governance/routePlanningRule.test.ts` ✅
@@ -241,3 +241,84 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 ### Risks / observacoes (Iteracao 5)
 
 - Validadores de quality gate completo e endpoint-request prerequisito serao implementados nos proximos blocos (US2/US3).
+
+## Iteracao 6 - US2 quality gates (spec 002)
+
+### What was delivered
+
+- Validadores de evidência red-green por task.
+- Validador de threshold de cobertura no escopo alterado.
+- Regras da CLI de governança expandidas para exigir campos red-green e métricas de cobertura.
+- Registro do quality gate no ciclo 001 atualizado com métricas reais de cobertura.
+
+### Where it was delivered
+
+- specs/002-frontend-iterative-spec/tasks.md
+- specs/002-frontend-iterative-spec/iterations/iteration-001.md
+- linkauto-frontend/src/features/iteration-governance/qualityGate.ts
+- linkauto-frontend/src/features/iteration-governance/qualityGate.test.ts
+- linkauto-frontend/src/features/iteration-governance/coveragePolicy.ts
+- linkauto-frontend/src/features/iteration-governance/coveragePolicy.test.ts
+- linkauto-frontend/src/features/iteration-governance/index.ts
+- linkauto-frontend/scripts/validate-governance.mjs
+
+### How it was validated
+
+- cd linkauto-frontend && npm run test -- src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts ✅
+- cd linkauto-frontend && npx vitest run src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts --coverage --coverage.include='src/features/iteration-governance/qualityGate.ts' --coverage.include='src/features/iteration-governance/coveragePolicy.ts' ✅
+- cd linkauto-frontend && npm run typecheck && npm run lint && npm run validate:governance ✅
+
+### Risks / observacoes (Iteracao 6)
+
+- Bloco US3 (integration boundary resolver + endpoint request policy) permanece pendente para completar governança de integração com backend.
+
+## Iteracao 7 - US3 integration boundaries (spec 002)
+
+### What was delivered (Iteracao 7)
+
+- Testes TDD para lógica de `integrationBoundary` e `endpointRequestPolicy`.
+- Resolutores e validadores implementados para fallback mock-first e prerrequisitos de requests de endpoints.
+- Documentação de contratos preenchida com mapeamento de capacidades (mock vs contratado).
+- Exemplo de ciclo de vida de `endpoint-requests` criado em `endpoint-requests.md`.
+
+### Where it was delivered (Iteracao 7)
+
+- `linkauto-frontend/src/features/iteration-governance/integrationBoundary.test.ts`
+- `linkauto-frontend/src/features/iteration-governance/endpointRequestPolicy.test.ts`
+- `linkauto-frontend/src/features/iteration-governance/integrationBoundary.ts`
+- `linkauto-frontend/src/features/iteration-governance/endpointRequestPolicy.ts`
+- `linkauto-frontend/src/features/iteration-governance/index.ts`
+- `specs/002-frontend-iterative-spec/contracts/frontend-iteration-governance.md`
+- `specs/002-frontend-iterative-spec/endpoint-requests.md`
+- `specs/002-frontend-iterative-spec/tasks.md`
+
+### How it was validated (Iteracao 7)
+
+- `cd linkauto-frontend && npm run test -- src/features/iteration-governance/integrationBoundary.test.ts src/features/iteration-governance/endpointRequestPolicy.test.ts` ✅
+- `cd linkauto-frontend && npm run validate:governance` ✅
+
+### Risks / observacoes (Iteracao 7)
+
+- O frontend está pronto com suas políticas de governança locais.
+
+## Iteracao 8 - Polish final de Governança (spec 002)
+
+### What was delivered (Iteracao 8)
+
+- Consolidação e validação full bundle da base de governança.
+- `landpage_UX.md` documentado com as políticas cruzadas.
+- Rastreamento geral consolidado.
+
+### Where it was delivered (Iteracao 8)
+
+- `docs/designs/landpage_UX.md`
+- `specs/002-frontend-iterative-spec/tasks.md`
+
+### How it was validated (Iteracao 8)
+
+- `cd linkauto-frontend && npm run build` ✅
+- `cd linkauto-frontend && npm run e2e -- --project=chromium` ✅
+
+### Risks / observacoes (Iteracao 8)
+
+- Finalizadas todas as tasks de spec 002 com sucesso sem quebrar fluxo principal do estudante de marcação (comprovado no teste e2e).
