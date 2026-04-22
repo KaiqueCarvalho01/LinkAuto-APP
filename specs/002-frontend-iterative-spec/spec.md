@@ -93,6 +93,7 @@ Como responsavel pela integracao, eu quero que a especificacao frontend explicit
 - **CC-005**: Feature MUST preservar invariantes de agendamento quando aplicavel: slots de 1h, booking minimo de 2h, cancelamento sem penalidade apenas com >24h, e avaliacao mutua apenas apos `REALIZADA`.
 - **CC-006**: Feature MUST permanecer dentro da stack V1 aprovada, salvo emenda formal de constituicao.
 - **CC-007**: English language MUST be used for all source code (variables, functions, classes) and Git commit messages, as required by the core constitution. Documentations (markdown) can be bilingual or localized.
+- **CC-008**: Portuguese (Brazilian) text content MUST be preserved for all UI elements, as required by the core constitution. Software MUST be localized for Brazil only.
 
 ### Out of Scope _(mandatory)_
 

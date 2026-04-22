@@ -10,69 +10,69 @@ describe("Navbar (Visitor State)", () => {
 		renderWithProviders(<Navbar />);
 
 		expect(
-			screen.getByRole("link", { name: /Explorar/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Explore/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /Para Alunos/i }),
-		).toBeInTheDocument();
+screen.getByRole("button", { name: /For Students/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /Para Instrutores/i }),
-		).toBeInTheDocument();
+screen.getByRole("button", { name: /For Instructors/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Sobre/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /About/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Contato/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Contact/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Entrar/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Log In/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Comece agora/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Sign Up/i }),
+).toBeInTheDocument();
 	});
 
-	it("opens 'Para Alunos' dropdown menu", async () => {
+	it("opens 'For Students' dropdown menu", async () => {
 		const user = userEvent.setup();
 		renderWithProviders(<Navbar />);
 
-		const menuButton = screen.getByRole("button", { name: /Para Alunos/i });
+		const menuButton = screen.getByRole("button", { name: /For Students/i });
 		await user.click(menuButton);
 
 		expect(
-			screen.getByRole("link", { name: /Primeira Habilitação/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /First License/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Habilitados/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Licensed Drivers/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Como Funciona/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /How it Works/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Ver Instrutores/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Find Instructors/i }),
+).toBeInTheDocument();
 	});
 
-	it("opens 'Para Instrutores' dropdown menu", async () => {
+	it("opens 'For Instructors' dropdown menu", async () => {
 		const user = userEvent.setup();
 		renderWithProviders(<Navbar />);
 
 		const menuButton = screen.getByRole("button", {
-			name: /Para Instrutores/i,
-		});
+name: /For Instructors/i,
+});
 		await user.click(menuButton);
 
 		expect(
-			screen.getByRole("link", { name: /Cadastre-se/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Register Now/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Como Funciona/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /How it Works/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Vantagens/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Benefits/i }),
+).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Simulador/i }),
-		).toBeInTheDocument();
+screen.getByRole("link", { name: /Simulator/i }),
+).toBeInTheDocument();
 	});
 });

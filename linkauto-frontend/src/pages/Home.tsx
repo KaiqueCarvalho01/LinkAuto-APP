@@ -12,8 +12,6 @@ import {
 	Text,
 } from "@chakra-ui/react";
 
-import { BrandLockup } from "../components/BrandLockup";
-
 interface HomeProps {
 	readonly isAuthenticated: boolean;
 	readonly onOpenLogin: () => void;
@@ -22,82 +20,51 @@ interface HomeProps {
 
 const references = [
 	{
-		title: "Landing institucional",
+		title: "Institutional Landing",
 		source: "/design/landpage_example.png",
 	},
 	{
-		title: "Busca com mapa",
+		title: "Map Search",
 		source: "/design/instructor_search_mapview_example.png",
 	},
 	{
-		title: "Painel do instrutor",
+		title: "Instructor Dashboard",
 		source: "/design/instructor_dashboard_example.png",
 	},
 	{
-		title: "Painel administrativo",
+		title: "Administrative Panel",
 		source: "/design/admin_dashboard_example.png",
 	},
 ];
 
 const highlights = [
 	{
-		title: "Busca geolocalizada",
+		title: "Geolocation Search",
 		description:
-			"Encontre instrutores credenciados por bairro, distancia e especialidade.",
+			"Find certified instructors by neighborhood, distance, and specialty.",
 		icon: Compass,
 	},
 	{
-		title: "Governanca de perfis",
+		title: "Profile Governance",
 		description:
-			"Fluxo de aprovacao administrativa para manter a qualidade e a seguranca da plataforma.",
+			"Administrative approval flow to maintain quality and safety on the platform.",
 		icon: ShieldCheck,
 	},
 	{
-		title: "Regras de agenda",
+		title: "Scheduling Rules",
 		description:
-			"Agendamento com no minimo 2 horas consecutivas e timeline de status para cada reserva.",
+			"Booking with a minimum of 2 consecutive hours and status timeline for each reservation.",
 		icon: TimerReset,
 	},
 ];
 
 export default function Home({
-	isAuthenticated,
-	onOpenLogin,
-	onOpenSearch,
+isAuthenticated,
+onOpenLogin,
+onOpenSearch,
 }: HomeProps) {
 	return (
-		<Stack minH="100vh" pb={14}>
-			<Box
-				bg="surface.panel"
-				borderBottom="1px solid"
-				borderColor="border.default"
-				position="sticky"
-				top={0}
-				zIndex={30}>
-				<Container maxW="7xl" py={3.5}>
-					<HStack justify="space-between" gap={4}>
-						<BrandLockup compact />
-						<HStack gap={2}>
-							<Button
-								variant="ghost"
-								color="text.secondary"
-								onClick={onOpenSearch}>
-								Busca
-							</Button>
-							{isAuthenticated ? null : (
-								<Button
-									bg="brand.solid"
-									color="text.inverse"
-									onClick={onOpenLogin}
-									_hover={{ bg: "brand.emphasized" }}>
-									Entrar
-								</Button>
-							)}
-						</HStack>
-					</HStack>
-				</Container>
-			</Box>
-
+<Stack minH="100vh" pb={14}>
 			<Container maxW="7xl" pt={{ base: 9, md: 14 }}>
 				<Grid
 					templateColumns={{ base: "1fr", lg: "1.15fr 0.85fr" }}
@@ -122,18 +89,18 @@ export default function Home({
 								fontSize={{ base: "3xl", md: "4xl" }}
 								lineHeight="1.1"
 								color="text.primary">
-								Conecte alunos e instrutores de transito com uma
-								busca clara, local e confiavel.
+								Connect students and driving instructors with a
+								clear, local, and reliable search.
 							</Heading>
 							<Text
 								fontSize={{ base: "md", md: "lg" }}
 								lineHeight="1.6"
 								color="text.secondary"
 								maxW="680px">
-								A plataforma aplica validacao de instrutores,
-								agendamento com regras de slots e fluxo de
-								status para dar previsibilidade ao aluno e ao
-								instrutor.
+								The platform applies instructor validation,
+								scheduling with slot rules, and status flow to
+								provide predictability for both students and
+								instructors.
 							</Text>
 						</Stack>
 
@@ -141,16 +108,16 @@ export default function Home({
 							<Button
 								h="48px"
 								px={6}
-								bg="brand.solid"
-								color="text.inverse"
+								bg="brand.500"
+								color="white"
 								fontWeight="700"
 								onClick={
 									isAuthenticated ? onOpenSearch : onOpenLogin
 								}
-								_hover={{ bg: "brand.emphasized" }}>
+								_hover={{ bg: "brand.600" }}>
 								{isAuthenticated
-									? "Ir para busca"
-									: "Acessar plataforma"}
+									? "Go to Search"
+									: "Access Platform"}
 								<ArrowRight size={16} />
 							</Button>
 							<Button
@@ -160,7 +127,7 @@ export default function Home({
 								borderColor="border.default"
 								color="text.secondary"
 								onClick={onOpenSearch}>
-								Ver busca demo
+								View Demo Search
 							</Button>
 						</HStack>
 
@@ -168,7 +135,7 @@ export default function Home({
 							{highlights.map((item) => {
 								const Icon = item.icon;
 								return (
-									<Box
+<Box
 										key={item.title}
 										bg="surface.panel"
 										border="1px solid"
@@ -218,7 +185,7 @@ export default function Home({
 						boxShadow="0 28px 48px rgba(17, 24, 39, 0.08)">
 						<Image
 							src="/brand/LinkAuto-banner.webp"
-							alt="Identidade visual LinkAuto"
+							alt="LinkAuto Visual Identity"
 							borderRadius="2xl"
 							w="100%"
 							objectFit="cover"
@@ -228,8 +195,8 @@ export default function Home({
 							fontSize="sm"
 							color="text.muted"
 							fontWeight="600">
-							Design inspirado em civic tech refinado com foco em
-							legibilidade, confianca e velocidade de acao.
+							Design inspired by refined civic tech with a focus on
+							readability, trust, and speed of action.
 						</Text>
 					</Box>
 				</Grid>
@@ -240,18 +207,18 @@ export default function Home({
 					<Heading
 						fontSize={{ base: "xl", md: "2xl" }}
 						color="text.primary">
-						Referencias visuais usadas nesta entrega
+						Visual references used in this delivery
 					</Heading>
 					<Text color="text.muted" maxW="720px">
-						As composicoes abaixo foram usadas como guia para
-						landing, mapa de busca e dashboards, com adaptacao para
-						os fluxos da especificacao de usuarios e agendamentos.
+						The compositions below were used as a guide for the
+						landing page, search map, and dashboards, adapted for
+						the user specification and scheduling flows.
 					</Text>
 				</Stack>
 
 				<SimpleGrid mt={5} columns={{ base: 1, md: 2 }} gap={4}>
 					{references.map((reference) => (
-						<Box
+<Box
 							key={reference.title}
 							bg="surface.panel"
 							border="1px solid"

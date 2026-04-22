@@ -223,3 +223,18 @@ Task T044 can run in parallel with frontend prep in Task T050 after API contract
 - Booking-core changes always trigger cascade regression validation before progression.
 - No promotion to US3 without contract-complete review APIs (create and list) and admin override booking endpoint.
 - No phase completion without UTC datetime contract checks and upload validation checks passing.
+
+## Phase 9: FE-007 - Footer Implementation
+
+- **Task FE-007.1: Create Test File for Footer**
+  - **Status:** Done
+  - **Description:** Create `src/components/Footer.test.tsx` with tests for rendering, content, and links.
+
+- **Task FE-007.2: Implement Footer Component**
+  - **Status:** Done
+  - **Description:** Create `src/components/Footer.tsx` and implement the component to pass all tests.
+
+- **Task FE-007.3: Integrate Footer into App**
+  - **Status:** Done
+  - **Description:** Add the Footer component to the main layout in `src/App.jsx`.
+

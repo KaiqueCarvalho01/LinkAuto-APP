@@ -8,10 +8,9 @@ import {
 	MenuTrigger,
 	MenuContent,
 	MenuItem,
-	useWindowScroll,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import { Menu, X, ChevronDown, User, Shield } from "lucide-react";
+import { Menu, ChevronDown } from "lucide-react";
 import { BrandLockup } from "./BrandLockup";
 import { useState, useEffect } from "react";
 
@@ -59,7 +58,7 @@ export function Navbar() {
 						fontWeight="medium"
 						color="text.primary"
 						_hover={{ bg: "surface.muted" }}>
-						<RouterLink to="/">Explorar</RouterLink>
+						<RouterLink to="/">Explore</RouterLink>
 					</Button>
 
 					<MenuRoot>
@@ -69,7 +68,7 @@ export function Navbar() {
 								fontWeight="medium"
 								color="text.primary"
 								_hover={{ bg: "surface.muted" }}>
-								Para Alunos <ChevronDown size={16} />
+								For Students <ChevronDown size={16} />
 							</Button>
 						</MenuTrigger>
 						<MenuContent
@@ -83,7 +82,7 @@ export function Navbar() {
 								rounded="md"
 								asChild>
 								<RouterLink to="/students/first-license">
-									Primeira Habilitação
+									First License
 								</RouterLink>
 							</MenuItem>
 							<MenuItem
@@ -92,7 +91,7 @@ export function Navbar() {
 								rounded="md"
 								asChild>
 								<RouterLink to="/students/licensed">
-									Habilitados
+									Licensed Drivers
 								</RouterLink>
 							</MenuItem>
 							<MenuItem
@@ -101,18 +100,18 @@ export function Navbar() {
 								rounded="md"
 								asChild>
 								<RouterLink to="/students/how-it-works">
-									Como Funciona
+									How it Works
 								</RouterLink>
 							</MenuItem>
 							<MenuItem
 								value="search"
-								color="laBlue.600"
+								color="brand.600"
 								fontWeight="bold"
 								cursor="pointer"
 								rounded="md"
 								asChild>
-								<RouterLink to="/login">
-									Ver Instrutores
+								<RouterLink to="/search">
+									Find Instructors
 								</RouterLink>
 							</MenuItem>
 						</MenuContent>
@@ -125,7 +124,7 @@ export function Navbar() {
 								fontWeight="medium"
 								color="text.primary"
 								_hover={{ bg: "surface.muted" }}>
-								Para Instrutores <ChevronDown size={16} />
+								For Instructors <ChevronDown size={16} />
 							</Button>
 						</MenuTrigger>
 						<MenuContent
@@ -135,13 +134,13 @@ export function Navbar() {
 							p={2}>
 							<MenuItem
 								value="register"
-								color="laGreen.600"
+								color="brand.600"
 								fontWeight="bold"
 								cursor="pointer"
 								rounded="md"
 								asChild>
-								<RouterLink to="/register?role=instructor">
-									Cadastre-se
+								<RouterLink to="/instructors/register">
+									Register Now
 								</RouterLink>
 							</MenuItem>
 							<MenuItem
@@ -150,7 +149,7 @@ export function Navbar() {
 								rounded="md"
 								asChild>
 								<RouterLink to="/instructors/how-it-works">
-									Como Funciona
+									How it Works
 								</RouterLink>
 							</MenuItem>
 							<MenuItem
@@ -159,7 +158,7 @@ export function Navbar() {
 								rounded="md"
 								asChild>
 								<RouterLink to="/instructors/benefits">
-									Vantagens
+									Benefits
 								</RouterLink>
 							</MenuItem>
 							<MenuItem
@@ -168,7 +167,7 @@ export function Navbar() {
 								rounded="md"
 								asChild>
 								<RouterLink to="/instructors/simulator">
-									Simulador
+									Simulator
 								</RouterLink>
 							</MenuItem>
 						</MenuContent>
@@ -180,7 +179,7 @@ export function Navbar() {
 						fontWeight="medium"
 						color="text.primary"
 						_hover={{ bg: "surface.muted" }}>
-						<RouterLink to="/about">Sobre</RouterLink>
+						<RouterLink to="/about">About</RouterLink>
 					</Button>
 					<Button
 						asChild
@@ -188,7 +187,7 @@ export function Navbar() {
 						fontWeight="medium"
 						color="text.primary"
 						_hover={{ bg: "surface.muted" }}>
-						<RouterLink to="/contact">Contato</RouterLink>
+						<RouterLink to="/contact">Contact</RouterLink>
 					</Button>
 				</HStack>
 
@@ -198,17 +197,17 @@ export function Navbar() {
 						asChild
 						variant="ghost"
 						fontWeight="bold"
-						color="text.secondary">
-						<RouterLink to="/login">Entrar</RouterLink>
+						color="text.primary">
+						<RouterLink to="/login">Log In</RouterLink>
 					</Button>
 					<Button
 						asChild
-						variant="solid"
-						colorScheme="laBlue"
-						rounded="full"
+						bg="brand.500"
+						color="white"
 						px={6}
-						shadow="md">
-						<RouterLink to="/register">Comece agora</RouterLink>
+						fontWeight="bold"
+						_hover={{ bg: "brand.600" }}>
+						<RouterLink to="/register">Sign Up</RouterLink>
 					</Button>
 				</HStack>
 

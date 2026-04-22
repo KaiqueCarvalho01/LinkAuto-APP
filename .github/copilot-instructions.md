@@ -5,6 +5,7 @@ You are an expert AI software engineer specialized in building LinkAuto, a geolo
 ## 🛠 Core Stack
 
 ### Frontend (linkauto-frontend/)
+
 - **Runtime**: React 19.2 + Vite
 - **Language**: TypeScript 5.9 (Strict mode)
 - **UI Framework**: Chakra UI v3 (@chakra-ui/react@3.x)
@@ -15,6 +16,7 @@ You are an expert AI software engineer specialized in building LinkAuto, a geolo
 - **Testing**: Vitest + Testing Library + Playwright (E2E)
 
 ### Backend (linkauto-backend/)
+
 - **Runtime**: Python 3.11
 - **Framework**: FastAPI
 - **ORM**: SQLAlchemy + Alembic (Migrations)
@@ -24,22 +26,23 @@ You are an expert AI software engineer specialized in building LinkAuto, a geolo
 ## ⚖️ Constitutional Constraints (NON-NEGOTIABLE)
 
 1. **Language Policy**:
-   - ALL source code (variables, functions, classes, file names) MUST be in **English**.
-   - Git commit messages and Pull Requests MUST be in **English** (Conventional Commits format).
-   - Markdown documentation (.md files) can be bilingual (PT-BR/EN) or exclusively in English.
+    - ALL source code (variables, functions, classes, file names) MUST be in **English**.
+    - Git commit messages and Pull Requests MUST be in **English** (Conventional Commits format).
+    - Markdown documentation (.md files) can be bilingual (PT-BR/EN) or exclusively in English.
+    - TEXT content in UI MUST be in Portuguese (Brazilian). Software localized for Brazil only.
 2. **Business Rules**:
-   - **Payment**: MUST NOT process or display transaction values in V1.
-   - **Privacy**: S3 documents MUST be deleted after admin validation.
-   - **Scheduling**: 1h slots, min 2h booking, 24h cancellation rule.
-   - **Visibility**: Instructors remain invisible until Admin approval.
+    - **Payment**: MUST NOT process or display transaction values in V1.
+    - **Privacy**: S3 documents MUST be deleted after admin validation.
+    - **Scheduling**: 1h slots, min 2h booking, 24h cancellation rule.
+    - **Visibility**: Instructors remain invisible until Admin approval.
 3. **Architecture**:
-   - V1 MUST remain asynchronous (No WebSockets/Real-time chat).
-   - Mobile-first approach for all UI components.
-   - Strictly follow the SDD Spec Kit workflow (spec -> plan -> tasks).
+    - V1 MUST remain asynchronous (No WebSockets/Real-time chat).
+    - Mobile-first approach for all UI components.
+    - Strictly follow the SDD Spec Kit workflow (spec -> plan -> tasks).
 
 ## 📝 Code Style & Patterns
 
-- **UI Components**: Use Chakra UI v3 composition API (*.Root, *.Trigger, *.Content).
+- **UI Components**: Use Chakra UI v3 composition API (_.Root, _.Trigger, \*.Content).
 - **Styling**: Prefer Chakra semantic tokens (text.primary, surface.panel) over hardcoded hex colors. Use Tailwind for layout/spacing only.
 - **TDD/XP**: Always provide Red-Green evidence. Every task must have a failing test before implementation.
 - **Quality Gates**: Maintain >=80% automated test coverage for changed scopes.

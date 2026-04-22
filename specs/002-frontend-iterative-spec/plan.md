@@ -35,6 +35,7 @@ Pre-Phase 0 gate:
 - [x] Stack remains compliant with approved V1 baseline; this feature does not introduce new runtime stack changes.
 - [x] Out-of-scope V1 guardrails preserved: no payments, no push/SMS/WhatsApp, no PDF/CSV export, no automated moderation, no instructor financial history.
 - [x] Strict English language policy enforced for code and git commits.
+- [x] Strict Portuguese (Brazilian) text content policy preserved for all UI elements. Software localized for Brazil only
 
 Post-Phase 1 re-check:
 

@@ -15,7 +15,11 @@ import {
 	Routes,
 	useLocation,
 	useNavigate,
+	Outlet,
 } from "react-router-dom";
+
+import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
 
 import Home from "../pages/Home";
 import InstructorDashboard from "../pages/InstructorDashboard";
@@ -108,7 +112,7 @@ function RoleRoute({ roles, children }: RoleRouteProps) {
 	const { roles: userRoles } = useSessionStore();
 	const allowed = roles.some((role) => userRoles.includes(role));
 	if (!allowed) {
-		return <Navigate to="/buscar" replace />;
+		return <Navigate to="/search" replace />;
 	}
 
 	return children;
@@ -119,12 +123,12 @@ function HomeRoute() {
 	const { isAuthenticated } = useSessionStore();
 
 	return (
-		<Home
+<Home
 			isAuthenticated={isAuthenticated}
 			onOpenLogin={() => navigate("/login")}
 			onOpenSearch={() => {
 				if (isAuthenticated) {
-					navigate("/buscar");
+					navigate("/search");
 					return;
 				}
 				navigate("/login");
@@ -142,15 +146,15 @@ function LoginRoute() {
 			return <Navigate to="/admin/instructors" replace />;
 		}
 
-		return <Navigate to="/buscar" replace />;
+		return <Navigate to="/search" replace />;
 	}
 
 	const handleAuthenticate = async ({
-		email,
-		password,
-		preferredRole,
-	}: {
-		email: string;
+email,
+password,
+preferredRole,
+}: {
+email: string;
 		password: string;
 		preferredRole: "student" | "instructor";
 	}) => {
@@ -164,7 +168,7 @@ function LoginRoute() {
 			preferredRole === "student" &&
 			session.user.roles.includes("ALUNO")
 		) {
-			navigate("/buscar", { replace: true });
+			navigate("/search", { replace: true });
 			return;
 		}
 
@@ -223,14 +227,14 @@ function ProfileRoute() {
 	};
 
 	return (
-		<Profile
+<Profile
 			userData={userData}
 			onLogout={() => {
 				signOut();
 				navigate("/login", { replace: true });
 			}}
-			onNavigateToSearch={() => navigate("/buscar")}
-			onNavigateToBookings={() => navigate("/agendamentos")}
+			onNavigateToSearch={() => navigate("/search")}
+			onNavigateToBookings={() => navigate("/my-lessons")}
 			onNavigateToVehicles={() => navigate("/profile")}
 		/>
 	);
@@ -241,7 +245,7 @@ function SearchRoute() {
 	const { session } = useSessionStore();
 
 	return (
-		<SearchPage
+<SearchPage
 			token={session?.accessToken}
 			onOpenProfile={() => navigate("/profile")}
 			onStartBooking={(instructor) =>
@@ -257,11 +261,11 @@ function BookingDetailsRoute() {
 	const state = location.state as { instructor?: InstructorSummary } | null;
 
 	return (
-		<LessonDetails
+<LessonDetails
 			instructor={state?.instructor}
-			onBack={() => navigate("/buscar")}
+			onBack={() => navigate("/search")}
 			onBookingCreated={() => {
-				navigate("/agendamentos", { replace: true });
+				navigate("/my-lessons", { replace: true });
 			}}
 		/>
 	);
@@ -270,7 +274,7 @@ function BookingDetailsRoute() {
 function MyLessonsRoute() {
 	const navigate = useNavigate();
 
-	return <MyLessons onNewBooking={() => navigate("/buscar")} />;
+	return <MyLessons onNewBooking={() => navigate("/search")} />;
 }
 
 function AdminInstructorDashboardRoute() {
@@ -291,12 +295,12 @@ function AdminInstructorDashboardRoute() {
 		);
 
 		const mapped = payload.data.map((item) => ({
-			id: item.id,
-			name: item.instructor_profile?.full_name || item.email,
-			city: item.instructor_profile?.city || "Sem cidade",
-			date: "Pendente",
-			time: "--",
-		}));
+id: item.id,
+name: item.instructor_profile?.full_name || item.email,
+city: item.instructor_profile?.city || "Sem cidade",
+date: "Pendente",
+time: "--",
+}));
 		return mapped;
 	}, [token]);
 
@@ -321,10 +325,10 @@ function AdminInstructorDashboardRoute() {
 	}, [loadPending]);
 
 	const instructorData = useMemo(
-		() => ({
-			name: session?.user?.email || "Admin LinkAuto",
-			rating: 5,
-		}),
+() => ({
+name: session?.user?.email || "Admin LinkAuto",
+rating: 5,
+}),
 		[session?.user?.email],
 	);
 
@@ -355,14 +359,14 @@ function AdminInstructorDashboardRoute() {
 	};
 
 	return (
-		<InstructorDashboard
+<InstructorDashboard
 			instructorData={instructorData}
 			requests={requests}
 			onAccept={approve}
 			onReject={reject}
 			onViewStudents={() => undefined}
-			dashboardTitle="Painel Administrativo"
-			pendingLabel="Instrutores pendentes"
+			dashboardTitle="Administrative Panel"
+			pendingLabel="Pending Instructors"
 		/>
 	);
 }
@@ -377,7 +381,7 @@ function RootRedirect() {
 		return <Navigate to="/admin/instructors" replace />;
 	}
 
-	return <Navigate to="/buscar" replace />;
+	return <Navigate to="/search" replace />;
 }
 
 function ColorModeToggle() {
@@ -393,14 +397,14 @@ function ColorModeToggle() {
 	const isDark = mode === "dark";
 
 	return (
-		<Box
+<Box
 			position="fixed"
 			right={{ base: 4, md: 6 }}
 			bottom={{ base: 4, md: 6 }}
 			zIndex={60}>
 			<IconButton
-				aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
-				title={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+				aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+				title={isDark ? "Switch to light theme" : "Switch to dark theme"}
 				onClick={() => {
 					setMode((current) =>
 						current === "dark" ? "light" : "dark",
@@ -423,100 +427,107 @@ function ColorModeToggle() {
 	);
 }
 
+function MainLayout() {
+	return (
+<Box minH="100vh" display="flex" flexDirection="column">
+			<Navbar />
+			<Box as="main" flex="1" pt="16">
+				<Outlet />
+			</Box>
+			<Footer />
+		</Box>
+	);
+}
+
 export default function AppRouter() {
 	return (
-		<BrowserRouter>
+<BrowserRouter>
 			<Routes>
-				<Route path="/" element={<HomeRoute />} />
+				<Route element={<MainLayout />}>
+					<Route path="/" element={<HomeRoute />} />
+					<Route path="/about" element={<About />} />
+					<Route path="/contact" element={<Contact />} />
+					<Route path="/help" element={<Help />} />
+					
+					{/* Students routes */}
+					<Route path="/students/first-license" element={<FirstLicense />} />
+					<Route path="/students/licensed" element={<LicensedDrivers />} />
+					<Route path="/students/how-it-works" element={<HowItWorksStudent />} />
+					
+					{/* Instructors routes */}
+					<Route path="/instructors/how-it-works" element={<HowItWorksInstructor />} />
+					<Route path="/instructors/benefits" element={<Benefits />} />
+					<Route path="/instructors/simulator" element={<Simulator />} />
+					
+					{/* Protected search */}
+					<Route
+						path="/search"
+						element={
+							<ProtectedRoute>
+								<SearchRoute />
+							</ProtectedRoute>
+						}
+					/>
+
+					<Route
+						path="/bookings/new"
+						element={
+							<ProtectedRoute>
+								<BookingDetailsRoute />
+							</ProtectedRoute>
+						}
+					/>
+
+					<Route
+						path="/profile"
+						element={
+							<ProtectedRoute>
+								<ProfileRoute />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/notifications"
+						element={
+							<ProtectedRoute>
+								<Notifications />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/my-lessons"
+						element={
+							<ProtectedRoute>
+								<MyLessonsRoute />
+							</ProtectedRoute>
+						}
+					/>
+
+					<Route
+						path="/admin/instructors"
+						element={
+							<ProtectedRoute>
+								<RoleRoute roles={["ADMIN"]}>
+									<AdminInstructorDashboardRoute />
+								</RoleRoute>
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/admin/audit"
+						element={
+							<ProtectedRoute>
+								<RoleRoute roles={["ADMIN"]}>
+									<AuditLog />
+								</RoleRoute>
+							</ProtectedRoute>
+						}
+					/>
+				</Route>
+
 				<Route path="/login" element={<LoginRoute />} />
 				<Route path="/register" element={<Register />} />
-				<Route path="/about" element={<About />} />
-				<Route path="/contact" element={<Contact />} />
-				<Route path="/help" element={<Help />} />
-				<Route
-					path="/students/first-license"
-					element={<FirstLicense />}
-				/>
-				<Route
-					path="/students/licensed"
-					element={<LicensedDrivers />}
-				/>
-				<Route
-					path="/students/how-it-works"
-					element={<HowItWorksStudent />}
-				/>
-				<Route
-					path="/instructors/how-it-works"
-					element={<HowItWorksInstructor />}
-				/>
-				<Route path="/instructors/benefits" element={<Benefits />} />
-				<Route path="/instructors/simulator" element={<Simulator />} />
-				<Route
-					path="/profile"
-					element={
-						<ProtectedRoute>
-							<ProfileRoute />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/buscar"
-					element={
-						<ProtectedRoute>
-							<RoleRoute roles={["ALUNO", "INSTRUTOR", "ADMIN"]}>
-								<SearchRoute />
-							</RoleRoute>
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/bookings/new"
-					element={
-						<ProtectedRoute>
-							<RoleRoute roles={["ALUNO", "ADMIN"]}>
-								<BookingDetailsRoute />
-							</RoleRoute>
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/agendamentos"
-					element={
-						<ProtectedRoute>
-							<RoleRoute roles={["ALUNO", "INSTRUTOR", "ADMIN"]}>
-								<MyLessonsRoute />
-							</RoleRoute>
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/admin/instructors"
-					element={
-						<ProtectedRoute>
-							<RoleRoute roles={["ADMIN"]}>
-								<AdminInstructorDashboardRoute />
-							</RoleRoute>
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/notifications"
-					element={
-						<ProtectedRoute>
-							<Notifications />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/admin/audit"
-					element={
-						<ProtectedRoute>
-							<RoleRoute roles={["ADMIN"]}>
-								<AuditLog />
-							</RoleRoute>
-						</ProtectedRoute>
-					}
-				/>
+
 				<Route path="/app" element={<RootRedirect />} />
 				<Route path="*" element={<RootRedirect />} />
 			</Routes>
