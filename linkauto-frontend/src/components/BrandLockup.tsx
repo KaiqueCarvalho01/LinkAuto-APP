@@ -5,7 +5,6 @@ import {
 	VStack,
 	Link as ChakraLink,
 } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
 
 interface BrandLockupProps {
 	readonly showTagline?: boolean;
@@ -23,8 +22,7 @@ export function BrandLockup({
 
 	return (
 		<ChakraLink
-			as={RouterLink}
-			to="/"
+			href="/"
 			_hover={{ textDecoration: "none", opacity: 0.85 }} // Remove sublinhado e adiciona feedback visual
 			transition="opacity 0.2s" // Suaviza a transição do hover
 		>
