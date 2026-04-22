@@ -92,6 +92,7 @@ Como responsavel pela integracao, eu quero que a especificacao frontend explicit
 - **CC-004**: Feature MUST preservar invariantes de seguranca quando aplicavel: armazenamento de senha com hash, sem senha em texto puro, modelo de token de acesso + refresh.
 - **CC-005**: Feature MUST preservar invariantes de agendamento quando aplicavel: slots de 1h, booking minimo de 2h, cancelamento sem penalidade apenas com >24h, e avaliacao mutua apenas apos `REALIZADA`.
 - **CC-006**: Feature MUST permanecer dentro da stack V1 aprovada, salvo emenda formal de constituicao.
+- **CC-007**: English language MUST be used for all source code (variables, functions, classes) and Git commit messages, as required by the core constitution. Documentations (markdown) can be bilingual or localized.
 
 ### Out of Scope _(mandatory)_
 

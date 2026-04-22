@@ -34,6 +34,7 @@ Pre-Phase 0 gate:
 - [x] Business rules preserved where applicable: penalty-free cancellation only with >24h notice; mutual rating only after status `REALIZADA`.
 - [x] Stack remains compliant with approved V1 baseline; this feature does not introduce new runtime stack changes.
 - [x] Out-of-scope V1 guardrails preserved: no payments, no push/SMS/WhatsApp, no PDF/CSV export, no automated moderation, no instructor financial history.
+- [x] Strict English language policy enforced for code and git commits.
 
 Post-Phase 1 re-check:
 
