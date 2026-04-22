@@ -197,3 +197,14 @@
 - All tasks follow checklist format with Task ID, optional parallel marker, optional story label, and explicit file path.
 - Keep iteration slices within max 4 tasks or 1 user-story feature at execution time.
 - Use markdown artifacts as the source of truth for planning, execution evidence, and endpoint governance.
+
+---
+
+## Phase 7: Scaffold & Router (FE-008)
+
+**Purpose**: Set up required placeholder pages and routing before navigation components.
+
+- [ ] T035 [P] [FE-008] Add failing tests for scaffold pages rendering in linkauto-frontend/src/pages/ScaffoldPages.test.tsx
+- [x] T036 [P] [FE-008] Create scaffold page components in linkauto-frontend/src/pages/ (Refactored to English)
+- [x] T037 [FE-008] Register scaffold pages in linkauto-frontend/src/app/router.tsx (Refactored to English)
+- [ ] T038 [FE-008] Record quality gate outputs for cycle 002 in specs/002-frontend-iterative-spec/iterations/iteration-002.md

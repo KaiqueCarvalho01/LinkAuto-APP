@@ -322,3 +322,29 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 ### Risks / observacoes (Iteracao 8)
 
 - Finalizadas todas as tasks de spec 002 com sucesso sem quebrar fluxo principal do estudante de marcação (comprovado no teste e2e).
+
+## Iteracao 9 - Refactor Scaffold and Instructions (spec 002)
+
+### What was delivered (Iteracao 9)
+
+- Refactored `copilot-instructions.md` with structured guidelines and project constraints.
+- Refactored `FE-008` (Scaffold + Router) from Portuguese to English to comply with constitutional constraints.
+- Updated all component names, internal text, file paths, and imports to English.
+- Verified rendering tests for all scaffold pages.
+
+### Where it was delivered (Iteracao 9)
+
+- `.github/copilot-instructions.md`
+- `linkauto-frontend/src/app/router.tsx`
+- `linkauto-frontend/src/pages/` (renamed and refactored files)
+- `linkauto-frontend/src/pages/ScaffoldPages.test.tsx`
+
+### How it was validated (Iteracao 9)
+
+- `cd linkauto-frontend && npm run test -- src/pages/ScaffoldPages.test.tsx` ✅
+- `cd linkauto-frontend && npm run build` ✅
+
+### Risks / observacoes (Iteracao 9)
+
+- Ensured all routes are working with English paths (e.g., `/register`, `/about`, `/students/how-it-works`).
+- Next step: proceed to `FE-001` (Visitor Navbar) with high-quality design standards.
