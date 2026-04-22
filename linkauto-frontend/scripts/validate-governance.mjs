@@ -85,6 +85,62 @@ function validateIterationFiles() {
 			errors.push(`${name}: missing integration boundary section`);
 		}
 
+		const evidenceFields = [
+			"red_command",
+			"red_failure_summary",
+			"green_command",
+			"green_success_summary",
+		];
+		for (const field of evidenceFields) {
+			const fieldRegex = new RegExp(`${field}\\s*:`, "i");
+			if (!fieldRegex.test(content)) {
+				errors.push(`${name}: missing ${field} evidence field`);
+			}
+		}
+
+		const thresholdMatch = content.match(
+			/required_threshold_pct\s*:\s*(\d+(?:\.\d+)?)/i,
+		);
+		if (!thresholdMatch) {
+			errors.push(
+				`${name}: missing required_threshold_pct in coverage gate`,
+			);
+		}
+
+		const metricFields = [
+			"lines_pct",
+			"branches_pct",
+			"functions_pct",
+			"statements_pct",
+		];
+		const metricValues = new Map();
+		for (const metricField of metricFields) {
+			const metricMatch = content.match(
+				new RegExp(`${metricField}\\s*:\\s*(\\d+(?:\\.\\d+)?)`, "i"),
+			);
+			if (!metricMatch) {
+				errors.push(`${name}: missing ${metricField} in coverage gate`);
+				continue;
+			}
+			metricValues.set(metricField, Number.parseFloat(metricMatch[1]));
+		}
+
+		if (thresholdMatch && metricValues.size === metricFields.length) {
+			const threshold = Number.parseFloat(thresholdMatch[1]);
+			for (const metricField of metricFields) {
+				const metricValue = metricValues.get(metricField);
+				if (
+					typeof metricValue === "number" &&
+					Number.isFinite(metricValue) &&
+					metricValue < threshold
+				) {
+					errors.push(
+						`${name}: ${metricField} is below required threshold ${threshold}`,
+					);
+				}
+			}
+		}
+
 		const selectedItemsMatch = content.match(
 			/selected_items_count\s*:\s*(\d+)/i,
 		);
