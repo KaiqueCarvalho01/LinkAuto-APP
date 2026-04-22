@@ -24,6 +24,18 @@ import Login from "../pages/Login";
 import MyLessons from "../pages/MyLessons";
 import Profile from "../pages/Profile";
 import SearchPage from "../pages/SearchPage";
+import Register from "../pages/Register";
+import About from "../pages/About";
+import Contact from "../pages/Contact";
+import Notifications from "../pages/Notifications";
+import Help from "../pages/Help";
+import AuditLog from "../pages/admin/AuditLog";
+import FirstLicense from "../pages/students/FirstLicense";
+import LicensedDrivers from "../pages/students/LicensedDrivers";
+import HowItWorksStudent from "../pages/students/HowItWorks";
+import HowItWorksInstructor from "../pages/instructors/HowItWorks";
+import Benefits from "../pages/instructors/Benefits";
+import Simulator from "../pages/instructors/Simulator";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
 import type { InstructorSummary } from "../types/instructor";
@@ -417,6 +429,28 @@ export default function AppRouter() {
 			<Routes>
 				<Route path="/" element={<HomeRoute />} />
 				<Route path="/login" element={<LoginRoute />} />
+				<Route path="/register" element={<Register />} />
+				<Route path="/about" element={<About />} />
+				<Route path="/contact" element={<Contact />} />
+				<Route path="/help" element={<Help />} />
+				<Route
+					path="/students/first-license"
+					element={<FirstLicense />}
+				/>
+				<Route
+					path="/students/licensed"
+					element={<LicensedDrivers />}
+				/>
+				<Route
+					path="/students/how-it-works"
+					element={<HowItWorksStudent />}
+				/>
+				<Route
+					path="/instructors/how-it-works"
+					element={<HowItWorksInstructor />}
+				/>
+				<Route path="/instructors/benefits" element={<Benefits />} />
+				<Route path="/instructors/simulator" element={<Simulator />} />
 				<Route
 					path="/profile"
 					element={
@@ -461,6 +495,24 @@ export default function AppRouter() {
 						<ProtectedRoute>
 							<RoleRoute roles={["ADMIN"]}>
 								<AdminInstructorDashboardRoute />
+							</RoleRoute>
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/notifications"
+					element={
+						<ProtectedRoute>
+							<Notifications />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/admin/audit"
+					element={
+						<ProtectedRoute>
+							<RoleRoute roles={["ADMIN"]}>
+								<AuditLog />
 							</RoleRoute>
 						</ProtectedRoute>
 					}

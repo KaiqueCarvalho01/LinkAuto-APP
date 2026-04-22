@@ -2,77 +2,101 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { renderWithProviders } from "../test/renderWithProviders";
-import Cadastro from "./Cadastro";
-import Sobre from "./Sobre";
-import Contato from "./Contato";
-import Notificacoes from "./Notificacoes";
-import Ajuda from "./Ajuda";
+import Register from "./Register";
+import About from "./About";
+import Contact from "./Contact";
+import Notifications from "./Notifications";
+import Help from "./Help";
 import AuditLog from "./admin/AuditLog";
-import PrimeiraHabilitacao from "./alunos/PrimeiraHabilitacao";
-import Habilitados from "./alunos/Habilitados";
-import ComoFuncionaAluno from "./alunos/ComoFunciona";
-import ComoFuncionaInstrutor from "./instrutores/ComoFunciona";
-import Vantagens from "./instrutores/Vantagens";
-import Simulador from "./instrutores/Simulador";
+import FirstLicense from "./students/FirstLicense";
+import LicensedDrivers from "./students/LicensedDrivers";
+import HowItWorksStudent from "./students/HowItWorks";
+import HowItWorksInstructor from "./instructors/HowItWorks";
+import Benefits from "./instructors/Benefits";
+import Simulator from "./instructors/Simulator";
 
 describe("Scaffold Pages", () => {
-	it("renders Cadastro page", () => {
-		renderWithProviders(<Cadastro />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Cadastro");
+	it("renders Register page", () => {
+		renderWithProviders(<Register />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Register",
+		);
 	});
 
-	it("renders Sobre page", () => {
-		renderWithProviders(<Sobre />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Sobre");
+	it("renders About page", () => {
+		renderWithProviders(<About />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"About",
+		);
 	});
 
-	it("renders Contato page", () => {
-		renderWithProviders(<Contato />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Contato");
+	it("renders Contact page", () => {
+		renderWithProviders(<Contact />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Contact",
+		);
 	});
 
-	it("renders Notificacoes page", () => {
-		renderWithProviders(<Notificacoes />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Notificações");
+	it("renders Notifications page", () => {
+		renderWithProviders(<Notifications />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Notifications",
+		);
 	});
 
-	it("renders Ajuda page", () => {
-		renderWithProviders(<Ajuda />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Ajuda");
+	it("renders Help page", () => {
+		renderWithProviders(<Help />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Help",
+		);
 	});
 
 	it("renders AuditLog page", () => {
 		renderWithProviders(<AuditLog />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Audit Log");
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Audit Log",
+		);
 	});
 
-	it("renders PrimeiraHabilitacao page", () => {
-		renderWithProviders(<PrimeiraHabilitacao />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Primeira Habilitação");
+	it("renders FirstLicense page", () => {
+		renderWithProviders(<FirstLicense />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"First License",
+		);
 	});
 
-	it("renders Habilitados page", () => {
-		renderWithProviders(<Habilitados />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Habilitados");
+	it("renders LicensedDrivers page", () => {
+		renderWithProviders(<LicensedDrivers />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Licensed Drivers",
+		);
 	});
 
-	it("renders alunos ComoFunciona page", () => {
-		renderWithProviders(<ComoFuncionaAluno />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Como Funciona para Alunos");
+	it("renders students HowItWorks page", () => {
+		renderWithProviders(<HowItWorksStudent />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"How It Works for Students",
+		);
 	});
 
-	it("renders instrutores ComoFunciona page", () => {
-		renderWithProviders(<ComoFuncionaInstrutor />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Como Funciona para Instrutores");
+	it("renders instructors HowItWorks page", () => {
+		renderWithProviders(<HowItWorksInstructor />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"How It Works for Instructors",
+		);
 	});
 
-	it("renders Vantagens page", () => {
-		renderWithProviders(<Vantagens />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Vantagens");
+	it("renders Benefits page", () => {
+		renderWithProviders(<Benefits />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Benefits",
+		);
 	});
 
-	it("renders Simulador page", () => {
-		renderWithProviders(<Simulador />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Simulador");
+	it("renders Simulator page", () => {
+		renderWithProviders(<Simulator />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Simulator",
+		);
 	});
 });

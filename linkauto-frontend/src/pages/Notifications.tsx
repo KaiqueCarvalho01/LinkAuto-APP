@@ -1,12 +1,12 @@
 import { Box, Heading, Text } from "@chakra-ui/react";
 
-export default function Habilitados() {
+export default function Notifications() {
 	return (
 		<Box p={8} maxW="1200px" mx="auto" pt="100px">
 			<Heading as="h1" size="2xl" mb={4} color="text.primary">
-				Habilitados
+				Notifications
 			</Heading>
-			<Text color="text.secondary">Página em construção.</Text>
+			<Text color="text.secondary">Page under construction.</Text>
 		</Box>
 	);
 }
