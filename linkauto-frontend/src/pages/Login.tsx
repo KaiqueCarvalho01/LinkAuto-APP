@@ -10,7 +10,6 @@ import {
 	Link,
 	Stack,
 	Text,
-	VStack,
 	Separator,
 	Checkbox,
 	CheckboxHiddenInput,
