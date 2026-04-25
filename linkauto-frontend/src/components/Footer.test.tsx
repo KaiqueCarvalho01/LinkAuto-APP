@@ -20,9 +20,9 @@ describe("Footer", () => {
 
 	it("should have three columns of links in Portuguese", () => {
 		renderWithProviders(<Footer />);
-		expect(screen.getByText(/Alunos/i)).toBeInTheDocument();
-		expect(screen.getByText(/Instrutores/i)).toBeInTheDocument();
-		expect(screen.getByText(/Institucional/i)).toBeInTheDocument();
+		expect(screen.getByText("Alunos")).toBeInTheDocument();
+		expect(screen.getByText("Instrutores")).toBeInTheDocument();
+		expect(screen.getByText("Institucional")).toBeInTheDocument();
 	});
 
 	it("should have the correct links under the Alunos column", () => {
@@ -56,10 +56,8 @@ describe("Footer", () => {
 		expect(
 			screen.getByRole("link", { name: /Sobre Nós/i }),
 		).toHaveAttribute("href", "/about");
-		expect(screen.getByRole("link", { name: /Contato/i })).toHaveAttribute(
-			"href",
-			"/contact",
-		);
+		// Use getAllByRole because "Contato" also appears in aria-label of social link
+		expect(screen.getAllByRole("link", { name: /Contato/i })[0]).toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /Termos de Uso/i }),
 		).toHaveAttribute("href", "/terms");

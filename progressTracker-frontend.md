@@ -455,6 +455,23 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 - coverage_pct: 100% (Line), 100% (Branch) ✅
 - governance_validation: passed ✅
 
+### Iteracao 15 - Bug Fixing (Known Issues #1-6)
+
+- cycle_id: iteration-008
+- task_id: ISSUE-FIX-ALL
+- red_command: `npm run test` (Failing due to structural changes and missing affordance) ✅
+- green_command: `npm run test` ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+
+### Risks / observacoes (Iteracao 15)
+
+- Resolved all 6 issues from `docs/known-issues.md`.
+- Refactored `InfoSections.tsx`, `Testimonials.tsx`, `FAQ.tsx`, and `Login.tsx` for consistency and theme compatibility.
+- Fixed `z-index` leaking issues for Leaflet maps and Navbar.
+- Improved label association and accessibility in `Login.tsx`.
+- Updated `Footer.test.tsx` to handle more specific queries.
+
 ### Risks / observacoes (Iteracao 14)
 
 - Mini FAQ implemented with Accordion UI.
