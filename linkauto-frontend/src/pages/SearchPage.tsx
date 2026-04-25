@@ -7,7 +7,6 @@ import {
 	Container,
 	Grid,
 	Heading,
-	HStack,
 	Input,
 	SimpleGrid,
 	Skeleton,
@@ -15,7 +14,6 @@ import {
 	Text,
 } from "@chakra-ui/react";
 
-import { BrandLockup } from "../components/BrandLockup";
 import { InstructorCard } from "../components/InstructorCard";
 import { InstructorMap } from "../components/InstructorMap";
 import { searchInstructors } from "../services/instructorSearch";
@@ -81,25 +79,6 @@ export default function SearchPage({
 
 	return (
 		<Stack minH="100vh" pb={10}>
-			<Box
-				bg="surface.panel"
-				borderBottom="1px solid"
-				borderColor="border.default">
-				<Container maxW="7xl" py={3.5}>
-					<HStack justify="space-between">
-						<BrandLockup compact />
-						<HStack gap={2}>
-							<Button
-								variant="ghost"
-								onClick={onOpenProfile}
-								color="text.secondary">
-								Meu perfil
-							</Button>
-						</HStack>
-					</HStack>
-				</Container>
-			</Box>
-
 			<Container maxW="7xl" pt={8}>
 				<Stack gap={6}>
 					<Stack gap={1.5}>

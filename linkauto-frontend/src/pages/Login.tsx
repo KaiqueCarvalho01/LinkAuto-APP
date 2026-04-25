@@ -6,12 +6,15 @@ import {
 	Heading,
 	HStack,
 	Input,
+	Image,
+	Link,
 	Stack,
 	Text,
 	VStack,
+	Separator,
+	Checkbox,
+	CheckboxHiddenInput,
 } from "@chakra-ui/react";
-
-import { BrandLockup } from "../components/BrandLockup";
 
 type PreferredRole = "student" | "instructor";
 
@@ -41,7 +44,7 @@ export default function Login({ onAuthenticate }: LoginProps) {
 		try {
 			await onAuthenticate({ email, password, preferredRole });
 		} catch (error) {
-			const fallback = "Nao foi possivel autenticar sua conta.";
+			const fallback = "Não foi possível autenticar sua conta.";
 			if (error instanceof Error) {
 				setErrorMessage(error.message || fallback);
 			} else {
@@ -55,121 +58,54 @@ export default function Login({ onAuthenticate }: LoginProps) {
 	return (
 		<Flex
 			minH="100vh"
-			position="relative"
-			px={{ base: 5, md: 8 }}
-			py={{ base: 8, md: 12 }}
-			justify="center"
-			align="center"
-			overflow="hidden">
-			<Box
-				position="absolute"
-				top="-120px"
-				left="-120px"
-				w="320px"
-				h="320px"
-				borderRadius="full"
-				bg="brand.200"
-				filter="blur(70px)"
-				opacity={0.55}
-			/>
-			<Box
-				position="absolute"
-				bottom="-140px"
-				right="-100px"
-				w="360px"
-				h="360px"
-				borderRadius="full"
-				bg="accent.200"
-				filter="blur(80px)"
-				opacity={0.45}
-			/>
-
+			w="full"
+			direction={{ base: "column", lg: "row" }}
+			bg="white">
+			{/* =========================================
+          LADO ESQUERDO: Formulário de Login
+          ========================================= */}
 			<Flex
-				w="full"
-				maxW="1080px"
-				direction={{ base: "column", lg: "row" }}
-				bg="surface.panel"
-				borderRadius={{ base: "3xl", lg: "32px" }}
-				boxShadow="0 30px 80px rgba(19, 62, 93, 0.18)"
-				overflow="hidden"
-				border="1px solid"
-				borderColor="border.default">
-				<Box
-					position="relative"
-					flex={{ base: "0 0 auto", lg: "0 0 44%" }}
-					minH={{ base: "280px", lg: "620px" }}
-					p={{ base: 8, md: 10 }}
-					bgGradient="linear(145deg, #0f2f47 0%, #236ea8 52%, #44ad4f 100%)"
-					color="white">
-					<Box
-						position="absolute"
-						inset="16px"
-						borderRadius="28px"
-						border="1px solid"
-						borderColor="whiteAlpha.300"
-						pointerEvents="none"
-					/>
+				flex={{ base: 1, lg: "0 0 40%" }}
+				align="center"
+				justify="center"
+				px={{ base: 6, md: 10 }}
+				py={{ base: 10, md: 12 }}>
+				<Box w="full" maxW="420px">
+					{/* Botão de Voltar (opcional) */}
+					<Text
+						color="gray.500"
+						fontSize="sm"
+						mb={10}
+						cursor="pointer"
+						_hover={{ color: "brand.500" }}>
+						&lt; Voltar para{" "}
+						<Link variant="underline" href="/" colorPalette="brand">
+							LinkAuto
+						</Link>
+					</Text>
 
-					<VStack
-						align="start"
-						justify="space-between"
-						h="full"
-						position="relative"
-						zIndex={1}>
-						<BrandLockup showTagline colorMode="dark" />
-						<Stack gap={4} maxW="320px">
-							<Text
-								fontSize="xs"
-								fontWeight="700"
-								letterSpacing="0.18em"
-								textTransform="uppercase"
-								color="text.muted">
-								Fatec Mogi Mirim • ADS 2026
-							</Text>
-							<Heading
-								fontFamily="heading"
-								fontSize={{ base: "2xl", md: "3xl" }}
-								lineHeight="1.08">
-								<Text color="text.primary">
-									Projeto comercial com qualidade enterprise e
-									foco jovem.
-								</Text>
-							</Heading>
-							<Text color="text.secondary" fontWeight="500">
-								Agendamento inteligente de instrutores
-								autonomos, com governanca de perfis e fluxo
-								integrado ao backend LinkAuto.
-							</Text>
-						</Stack>
-					</VStack>
-				</Box>
+					<Box mb={8}>
+						<Heading
+							color="brand.900"
+							fontSize="4xl"
+							fontWeight="bold"
+							mb={2}>
+							Entrar
+						</Heading>
+						<Text color="gray.500" fontSize="md">
+							Insira seu e-mail e senha para acessar sua conta!
+						</Text>
+					</Box>
 
-				<Box flex="1" p={{ base: 7, md: 10 }}>
 					<Stack
-						gap={7}
-						maxW="420px"
-						mx="auto"
-						justify="center"
-						h="full">
-						<Stack gap={2}>
-							<Heading
-								fontFamily="heading"
-								fontSize={{ base: "2xl", md: "3xl" }}
-								color="text.primary">
-								Bem-vindo ao painel LinkAuto
-							</Heading>
-							<Text color="text.secondary" fontWeight="500">
-								Entre com seu e-mail institucional para acessar
-								o fluxo de autenticacao.
-							</Text>
-						</Stack>
-
-						<HStack
-							bg="surface.muted"
-							p={1.5}
-							borderRadius="xl"
-							border="1px solid"
-							borderColor="border.subtle">
+						as="form"
+						gap={5}
+						onSubmit={(event) => {
+							event.preventDefault();
+							void submitAuthentication();
+						}}>
+						{/* Seletor de Perfil */}
+						<HStack bg="gray.50" p={1} borderRadius="xl">
 							<Button
 								flex="1"
 								h="44px"
@@ -180,16 +116,21 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								}
 								bg={
 									preferredRole === "student"
-										? "brand.600"
+										? "brand.500"
 										: "transparent"
 								}
 								color={
 									preferredRole === "student"
 										? "white"
-										: "text.secondary"
+										: "gray.600"
 								}
 								onClick={() => setPreferredRole("student")}
-								borderRadius="lg">
+								borderRadius="lg"
+								_hover={
+									preferredRole === "student"
+										? {}
+										: { bg: "gray.200" }
+								}>
 								Aluno
 							</Button>
 							<Button
@@ -202,128 +143,225 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								}
 								bg={
 									preferredRole === "instructor"
-										? "brand.600"
+										? "brand.500"
 										: "transparent"
 								}
 								color={
 									preferredRole === "instructor"
 										? "white"
-										: "text.secondary"
+										: "gray.600"
 								}
 								onClick={() => setPreferredRole("instructor")}
-								borderRadius="lg">
+								borderRadius="lg"
+								_hover={
+									preferredRole === "instructor"
+										? {}
+										: { bg: "gray.200" }
+								}>
 								Instrutor
 							</Button>
 						</HStack>
 
-						<Box
-							as="form"
-							onSubmit={(event) => {
-								event.preventDefault();
-								void submitAuthentication();
-							}}>
-							<Stack gap={4}>
-								<Box>
-									<Box
-										as="label"
-										display="block"
-										fontWeight="700"
-										fontSize="sm"
-										mb={1.5}>
-										E-mail
-									</Box>
-									<Input
-										id="email"
-										type="email"
-										aria-label="E-mail"
-										value={email}
-										onChange={(event) =>
-											setEmail(event.target.value)
-										}
-										h="50px"
-										bg="surface.panel"
-										borderColor="border.default"
-										color="text.primary"
-										placeholder="voce@linkauto.app"
-										required
-										_focusVisible={{
-											borderColor: "brand.500",
-											boxShadow: "0 0 0 1px #49abf4",
-										}}
-									/>
-								</Box>
+						<HStack w="full" my={2}>
+							<Separator borderColor="gray.300" />
+							<Text
+								fontSize="sm"
+								color="gray.400"
+								whiteSpace="nowrap"></Text>
+							<Separator borderColor="gray.300" />
+						</HStack>
 
-								<Box>
-									<Flex
-										justify="space-between"
-										align="center"
-										mb={1.5}>
-										<Box
-											as="span"
-											fontWeight="700"
-											fontSize="sm">
-											Senha
-										</Box>
-										<Text
-											fontSize="xs"
-											fontWeight="700"
-											color="brand.emphasized">
-											Recuperar acesso
-										</Text>
-									</Flex>
-									<Input
-										id="password"
-										type="password"
-										aria-label="Senha"
-										value={password}
-										onChange={(event) =>
-											setPassword(event.target.value)
-										}
-										h="50px"
-										bg="surface.panel"
-										borderColor="border.default"
-										color="text.primary"
-										placeholder="••••••••"
-										required
-										_focusVisible={{
-											borderColor: "brand.500",
-											boxShadow: "0 0 0 1px #49abf4",
-										}}
-									/>
-								</Box>
-
-								<Button
-									type="submit"
-									h="52px"
-									bgGradient="linear(95deg, brand.700, brand.500)"
-									color="text.inverse"
-									fontWeight="800"
-									loading={submitting}
-									loadingText="Entrando"
-									_hover={{ filter: "brightness(1.05)" }}>
-									Entrar no LinkAuto
-								</Button>
-
-								{errorMessage ? (
-									<Box
-										px={4}
-										py={3}
-										borderRadius="lg"
-										bg="state.danger.bg"
-										border="1px solid"
-										borderColor="state.danger.border">
-										<Text
-											fontSize="sm"
-											color="state.danger.fg"
-											fontWeight="700">
-											{errorMessage}
-										</Text>
-									</Box>
-								) : null}
-							</Stack>
+						{/* Input de E-mail */}
+						<Box>
+							<Text
+								as="label"
+								display="block"
+								fontSize="sm"
+								fontWeight="medium"
+								color="gray.700"
+								mb={2}>
+								E-mail*
+							</Text>
+							<Input
+								id="email"
+								type="email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="voce@linkauto.app"
+								h="50px"
+								borderRadius="xl"
+								borderColor="gray.200"
+								_focusVisible={{
+									borderColor: "brand.500",
+									boxShadow: "outline",
+								}}
+								required
+							/>
 						</Box>
+
+						{/* Input de Senha */}
+						<Box>
+							<Text
+								as="label"
+								display="block"
+								fontSize="sm"
+								fontWeight="medium"
+								color="gray.700"
+								mb={2}>
+								Senha*
+							</Text>
+							<Input
+								id="password"
+								type="password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								placeholder="Mín. 8 caracteres"
+								h="50px"
+								borderRadius="xl"
+								borderColor="gray.200"
+								_focusVisible={{
+									borderColor: "brand.500",
+									boxShadow: "outline",
+								}}
+								required
+							/>
+						</Box>
+
+						{/* Manter conectado e Esqueci a senha */}
+						<HStack justify="space-between" mt={1}>
+							<Checkbox.Root
+								colorPalette="brand"
+								size="md"
+								value="remember-me">
+								<CheckboxHiddenInput />
+								<Checkbox.Control />
+								<Checkbox.Label color="gray.600" fontSize="sm">
+									Manter conectado
+								</Checkbox.Label>
+							</Checkbox.Root>
+							<Link href="#">
+								<Text
+									as="a"
+									fontSize="sm"
+									color="brand.500"
+									fontWeight="medium"
+									_hover={{ textDecoration: "underline" }}>
+									Esqueceu a senha?
+								</Text>
+							</Link>
+						</HStack>
+						{/* Mensagem de Erro */}
+						{errorMessage && (
+							<Box
+								p={3}
+								borderRadius="md"
+								bg="red.50"
+								border="1px solid"
+								borderColor="red.200">
+								<Text
+									fontSize="sm"
+									color="red.600"
+									fontWeight="medium">
+									{errorMessage}
+								</Text>
+							</Box>
+						)}
+
+						{/* Botão de Submit */}
+						<Button
+							type="submit"
+							h="50px"
+							w="full"
+							bg="brand.500" // Use a cor azul/roxa vibrante do seu tema aqui
+							color="white"
+							fontWeight="bold"
+							borderRadius="xl"
+							loading={submitting}
+							loadingText="Entrando"
+							_hover={{ bg: "brand.600" }}
+							mt={2}>
+							Entrar no LinkAuto
+						</Button>
+
+						<Text
+							textAlign="center"
+							fontSize="sm"
+							color="gray.600"
+							mt={4}>
+							Ainda não registrado?{" "}
+							<Text
+								as="span"
+								color="brand.500"
+								fontWeight="bold"
+								cursor="pointer">
+								<Link
+									href="/register"
+									variant="underline"
+									colorPalette="brand">
+									Crie uma conta
+								</Link>
+							</Text>
+						</Text>
 					</Stack>
 				</Box>
+			</Flex>
+
+			{/* =========================================
+          LADO DIREITO: Banner Visual
+          ========================================= */}
+			<Flex
+				display={{ base: "none", lg: "flex" }}
+				flex="1" // Garante que divida o espaço meio a meio com o formulário
+				position="relative"
+				p={{ lg: 8, xl: 10 }} // Cria a margem branca ao redor (efeito "card")
+				align="center"
+				justify="center">
+				<Box
+					borderRadius="3xl"
+					w="full"
+					h="full"
+					overflow="hidden"
+					position="relative">
+					<Image
+						src="/login_image.webp"
+						alt="Ilustração ou Logo da LinkAuto"
+						w="full"
+						h="full"
+						fit="cover"
+					/>
+					<Box
+						border="1px solid"
+						borderColor="whiteAlpha.400"
+						bg="whiteAlpha.100"
+						backdropFilter="blur(10px)"
+						px={8}
+						py={4}
+						borderRadius="2xl"
+						mt={8}></Box>
+				</Box>
+
+				{/* Rodapé do Banner */}
+				<HStack
+					position="absolute"
+					bottom={2}
+					right={{ lg: 8, xl: 10 }} // Alinha com o início do card
+					gap={6}
+					fontSize="sm"
+					fontWeight="medium"
+					color="gray.500">
+					<Link variant="plain" href="/about">
+						Sobre
+					</Link>
+					<Link variant="plain" href="/contact">
+						Contato
+					</Link>
+					<Link variant="plain" href="/terms">
+						Termos de Uso
+					</Link>
+					<Link variant="plain" href="">
+						Blog
+					</Link>
+				</HStack>
 			</Flex>
 		</Flex>
 	);
