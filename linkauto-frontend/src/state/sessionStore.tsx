@@ -18,6 +18,11 @@ interface SessionContextValue {
 	isAuthenticated: boolean;
 	roles: string[];
 	signIn: (payload: SignInInput) => Promise<SessionData>;
+	signUp: (payload: {
+		email: string;
+		password: string;
+		roles: string[];
+	}) => Promise<void>;
 	signOut: () => void;
 	clearSession: () => void;
 	refreshProfile: (token: string) => Promise<ApiSuccessEnvelope<UserAccount>>;
@@ -109,6 +114,25 @@ export function SessionProvider({ children }: SessionProviderProps) {
 		[refreshProfile],
 	);
 
+	const signUp = useCallback(
+		async ({
+			email,
+			password,
+			roles,
+		}: {
+			email: string;
+			password: string;
+			roles: string[];
+		}) => {
+			await httpClient.post("/auth/register", {
+				email,
+				password,
+				roles,
+			});
+		},
+		[],
+	);
+
 	const signOut = useCallback(() => {
 		clearSession();
 	}, [clearSession]);
@@ -119,11 +143,12 @@ export function SessionProvider({ children }: SessionProviderProps) {
 			isAuthenticated: Boolean(session?.accessToken),
 			roles: session?.user?.roles ?? [],
 			signIn,
+			signUp,
 			signOut,
 			clearSession,
 			refreshProfile,
 		}),
-		[session, signIn, signOut, clearSession, refreshProfile],
+		[session, signIn, signUp, signOut, clearSession, refreshProfile],
 	);
 
 	return <SessionContext value={value}>{children}</SessionContext>;
