@@ -13,7 +13,9 @@ import {
 	Separator,
 	Checkbox,
 	CheckboxHiddenInput,
+	Field,
 } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom";
 
 type PreferredRole = "student" | "instructor";
 
@@ -59,39 +61,49 @@ export default function Login({ onAuthenticate }: LoginProps) {
 			minH="100vh"
 			w="full"
 			direction={{ base: "column", lg: "row" }}
-			bg="white">
+			bg="surface.canvas">
 			{/* =========================================
           LADO ESQUERDO: Formulário de Login
           ========================================= */}
 			<Flex
-				flex={{ base: 1, lg: "0 0 40%" }}
+				flex={{ base: 1, lg: "0 0 45%" }}
 				align="center"
 				justify="center"
 				px={{ base: 6, md: 10 }}
-				py={{ base: 10, md: 12 }}>
-				<Box w="full" maxW="420px">
-					{/* Botão de Voltar (opcional) */}
-					<Text
-						color="gray.500"
-						fontSize="sm"
-						mb={10}
-						cursor="pointer"
-						_hover={{ color: "brand.500" }}>
-						&lt; Voltar para{" "}
-						<Link variant="underline" href="/" colorPalette="brand">
-							LinkAuto
-						</Link>
-					</Text>
+				py={{ base: 10, md: 12 }}
+				bg="surface.panel">
+				<Box w="full" maxW="400px">
+					{/* Botão de Voltar */}
+					<Box mb={10}>
+						<RouterLink to="/">
+							<Text
+								as="span"
+								color="text.muted"
+								fontSize="sm"
+								cursor="pointer"
+								_hover={{ color: "brand.solid" }}>
+								&lt; Voltar para{" "}
+								<Text
+									as="span"
+									textDecoration="underline"
+									color="brand.solid"
+									fontWeight="bold">
+									LinkAuto
+								</Text>
+							</Text>
+						</RouterLink>
+					</Box>
 
 					<Box mb={8}>
 						<Heading
-							color="brand.900"
+							color="text.primary"
 							fontSize="4xl"
 							fontWeight="bold"
-							mb={2}>
+							mb={2}
+							letterSpacing="tight">
 							Entrar
 						</Heading>
-						<Text color="gray.500" fontSize="md">
+						<Text color="text.secondary" fontSize="md">
 							Insira seu e-mail e senha para acessar sua conta!
 						</Text>
 					</Box>
@@ -104,10 +116,11 @@ export default function Login({ onAuthenticate }: LoginProps) {
 							void submitAuthentication();
 						}}>
 						{/* Seletor de Perfil */}
-						<HStack bg="gray.50" p={1} borderRadius="xl">
+						<HStack bg="surface.muted" p={1} borderRadius="xl">
 							<Button
 								flex="1"
 								h="44px"
+								type="button"
 								variant={
 									preferredRole === "student"
 										? "solid"
@@ -115,26 +128,27 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								}
 								bg={
 									preferredRole === "student"
-										? "brand.500"
+										? "brand.solid"
 										: "transparent"
 								}
 								color={
 									preferredRole === "student"
-										? "white"
-										: "gray.600"
+										? "text.inverse"
+										: "text.secondary"
 								}
 								onClick={() => setPreferredRole("student")}
 								borderRadius="lg"
 								_hover={
 									preferredRole === "student"
 										? {}
-										: { bg: "gray.200" }
+										: { bg: "whiteAlpha.200" }
 								}>
 								Aluno
 							</Button>
 							<Button
 								flex="1"
 								h="44px"
+								type="button"
 								variant={
 									preferredRole === "instructor"
 										? "solid"
@@ -142,89 +156,73 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								}
 								bg={
 									preferredRole === "instructor"
-										? "brand.500"
+										? "brand.solid"
 										: "transparent"
 								}
 								color={
 									preferredRole === "instructor"
-										? "white"
-										: "gray.600"
+										? "text.inverse"
+										: "text.secondary"
 								}
 								onClick={() => setPreferredRole("instructor")}
 								borderRadius="lg"
 								_hover={
 									preferredRole === "instructor"
 										? {}
-										: { bg: "gray.200" }
+										: { bg: "whiteAlpha.200" }
 								}>
 								Instrutor
 							</Button>
 						</HStack>
 
 						<HStack w="full" my={2}>
-							<Separator borderColor="gray.300" />
+							<Separator borderColor="border.subtle" />
 							<Text
 								fontSize="sm"
-								color="gray.400"
+								color="text.muted"
 								whiteSpace="nowrap"></Text>
-							<Separator borderColor="gray.300" />
+							<Separator borderColor="border.subtle" />
 						</HStack>
 
 						{/* Input de E-mail */}
-						<Box>
-							<Text
-								as="label"
-								display="block"
-								fontSize="sm"
-								fontWeight="medium"
-								color="gray.700"
-								mb={2}>
-								E-mail*
-							</Text>
+						<Field.Root id="email" required>
+							<Field.Label fontWeight="bold">E-mail</Field.Label>
 							<Input
-								id="email"
 								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								placeholder="voce@linkauto.app"
-								h="50px"
+								h="54px"
 								borderRadius="xl"
-								borderColor="gray.200"
+								borderColor="border.default"
+								bg="surface.panel"
 								_focusVisible={{
-									borderColor: "brand.500",
-									boxShadow: "outline",
+									borderColor: "brand.solid",
+									boxShadow:
+										"0 0 0 1px var(--chakra-colors-brand-solid)",
 								}}
-								required
 							/>
-						</Box>
+						</Field.Root>
 
 						{/* Input de Senha */}
-						<Box>
-							<Text
-								as="label"
-								display="block"
-								fontSize="sm"
-								fontWeight="medium"
-								color="gray.700"
-								mb={2}>
-								Senha*
-							</Text>
+						<Field.Root id="password" required>
+							<Field.Label fontWeight="bold">Senha</Field.Label>
 							<Input
-								id="password"
 								type="password"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								placeholder="Mín. 8 caracteres"
-								h="50px"
+								h="54px"
 								borderRadius="xl"
-								borderColor="gray.200"
+								borderColor="border.default"
+								bg="surface.panel"
 								_focusVisible={{
-									borderColor: "brand.500",
-									boxShadow: "outline",
+									borderColor: "brand.solid",
+									boxShadow:
+										"0 0 0 1px var(--chakra-colors-brand-solid)",
 								}}
-								required
 							/>
-						</Box>
+						</Field.Root>
 
 						{/* Manter conectado e Esqueci a senha */}
 						<HStack justify="space-between" mt={1}>
@@ -234,32 +232,39 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								value="remember-me">
 								<CheckboxHiddenInput />
 								<Checkbox.Control />
-								<Checkbox.Label color="gray.600" fontSize="sm">
+								<Checkbox.Label
+									color="text.secondary"
+									fontSize="sm">
 									Manter conectado
 								</Checkbox.Label>
 							</Checkbox.Root>
-							<Link href="#">
-								<Text
-									as="a"
-									fontSize="sm"
-									color="brand.500"
-									fontWeight="medium"
-									_hover={{ textDecoration: "underline" }}>
-									Esqueceu a senha?
-								</Text>
+							<Link asChild>
+								<RouterLink to="#">
+									<Text
+										as="span"
+										fontSize="sm"
+										color="brand.solid"
+										fontWeight="bold"
+										_hover={{
+											textDecoration: "underline",
+										}}>
+										Esqueceu a senha?
+									</Text>
+								</RouterLink>
 							</Link>
 						</HStack>
+
 						{/* Mensagem de Erro */}
 						{errorMessage && (
 							<Box
-								p={3}
-								borderRadius="md"
-								bg="red.50"
+								p={4}
+								borderRadius="xl"
+								bg="state.danger.bg"
 								border="1px solid"
-								borderColor="red.200">
+								borderColor="state.danger.border">
 								<Text
 									fontSize="sm"
-									color="red.600"
+									color="state.danger.fg"
 									fontWeight="medium">
 									{errorMessage}
 								</Text>
@@ -269,35 +274,35 @@ export default function Login({ onAuthenticate }: LoginProps) {
 						{/* Botão de Submit */}
 						<Button
 							type="submit"
-							h="50px"
+							h="54px"
 							w="full"
-							bg="brand.500" // Use a cor azul/roxa vibrante do seu tema aqui
-							color="white"
+							bg="brand.solid"
+							color="text.inverse"
 							fontWeight="bold"
 							borderRadius="xl"
 							loading={submitting}
 							loadingText="Entrando"
-							_hover={{ bg: "brand.600" }}
-							mt={2}>
+							_hover={{ bg: "brand.emphasized" }}
+							mt={2}
+							shadow="0 10px 20px -5px var(--colors-brand-solid)">
 							Entrar no LinkAuto
 						</Button>
 
 						<Text
 							textAlign="center"
 							fontSize="sm"
-							color="gray.600"
+							color="text.muted"
 							mt={4}>
 							Ainda não registrado?{" "}
 							<Text
 								as="span"
-								color="brand.500"
+								color="brand.solid"
 								fontWeight="bold"
 								cursor="pointer">
-								<Link
-									href="/register"
-									variant="underline"
-									colorPalette="brand">
-									Crie uma conta
+								<Link asChild colorPalette="brand">
+									<RouterLink to="/register">
+										Crie uma conta
+									</RouterLink>
 								</Link>
 							</Text>
 						</Text>
@@ -310,17 +315,19 @@ export default function Login({ onAuthenticate }: LoginProps) {
           ========================================= */}
 			<Flex
 				display={{ base: "none", lg: "flex" }}
-				flex="1" // Garante que divida o espaço meio a meio com o formulário
+				flex="1"
 				position="relative"
-				p={{ lg: 8, xl: 10 }} // Cria a margem branca ao redor (efeito "card")
+				p={{ lg: 8, xl: 10 }}
 				align="center"
-				justify="center">
+				justify="center"
+				bg="surface.canvas">
 				<Box
 					borderRadius="3xl"
 					w="full"
 					h="full"
 					overflow="hidden"
-					position="relative">
+					position="relative"
+					shadow="2xl">
 					<Image
 						src="/login_image.webp"
 						alt="Ilustração ou Logo da LinkAuto"
@@ -328,37 +335,56 @@ export default function Login({ onAuthenticate }: LoginProps) {
 						h="full"
 						fit="cover"
 					/>
+					{/* Overlay Gradient */}
 					<Box
-						border="1px solid"
-						borderColor="whiteAlpha.400"
-						bg="whiteAlpha.100"
-						backdropFilter="blur(10px)"
-						px={8}
-						py={4}
-						borderRadius="2xl"
-						mt={8}></Box>
+						position="absolute"
+						inset={0}
+						bgGradient="to-t"
+						gradientFrom="blackAlpha.800"
+						gradientTo="transparent"
+					/>
+
+					<Stack
+						position="absolute"
+						bottom={12}
+						left={12}
+						gap={2}
+						color="white">
+						<Heading fontSize="3xl" fontWeight="800">
+							Sua jornada começa aqui.
+						</Heading>
+						<Text fontSize="lg" opacity={0.9}>
+							Acesse a maior rede de instrutores do país.
+						</Text>
+					</Stack>
 				</Box>
 
 				{/* Rodapé do Banner */}
 				<HStack
 					position="absolute"
-					bottom={2}
-					right={{ lg: 8, xl: 10 }} // Alinha com o início do card
+					top={12}
+					right={20}
 					gap={6}
-					fontSize="sm"
-					fontWeight="medium"
-					color="gray.500">
-					<Link variant="plain" href="/about">
-						Sobre
+					fontSize="xs"
+					fontWeight="bold"
+					color="text.muted">
+					<Link
+						asChild
+						variant="plain"
+						_hover={{ color: "brand.solid" }}>
+						<RouterLink to="/about">Sobre</RouterLink>
 					</Link>
-					<Link variant="plain" href="/contact">
-						Contato
+					<Link
+						asChild
+						variant="plain"
+						_hover={{ color: "brand.solid" }}>
+						<RouterLink to="/contact">Contato</RouterLink>
 					</Link>
-					<Link variant="plain" href="/terms">
-						Termos de Uso
-					</Link>
-					<Link variant="plain" href="">
-						Blog
+					<Link
+						asChild
+						variant="plain"
+						_hover={{ color: "brand.solid" }}>
+						<RouterLink to="/terms">Termos de Uso</RouterLink>
 					</Link>
 				</HStack>
 			</Flex>
