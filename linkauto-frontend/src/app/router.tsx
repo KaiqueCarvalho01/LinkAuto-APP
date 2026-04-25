@@ -178,6 +178,33 @@ function LoginRoute() {
 	return <Login onAuthenticate={handleAuthenticate} />;
 }
 
+function RegisterRoute() {
+	const navigate = useNavigate();
+	const { signUp, isAuthenticated } = useSessionStore();
+
+	if (isAuthenticated) {
+		return <Navigate to="/search" replace />;
+	}
+
+	const handleRegister = async ({
+		email,
+		password,
+		preferredRole,
+	}: {
+		name: string;
+		email: string;
+		password: string;
+		preferredRole: "student" | "instructor";
+	}) => {
+		const roles = preferredRole === "student" ? ["ALUNO"] : ["INSTRUTOR"];
+		await signUp({ email, password, roles });
+		// After successful registration, redirect to login
+		navigate("/login", { replace: true });
+	};
+
+	return <Register onRegister={handleRegister} />;
+}
+
 function ProfileRoute() {
 	const navigate = useNavigate();
 	const { session, signOut } = useSessionStore();
@@ -548,7 +575,7 @@ export default function AppRouter() {
 				</Route>
 
 				<Route path="/login" element={<LoginRoute />} />
-				<Route path="/register" element={<Register />} />
+				<Route path="/register" element={<RegisterRoute />} />
 
 				<Route path="/app" element={<RootRedirect />} />
 				<Route path="*" element={<RootRedirect />} />
