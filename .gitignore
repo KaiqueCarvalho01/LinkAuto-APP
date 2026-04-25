@@ -20,3 +20,4 @@ Thumbs.db
 linkauto-backend/app.db
 linkauto-frontend/test-results/
 api-requests/
+linkauto-frontend/coverage/
