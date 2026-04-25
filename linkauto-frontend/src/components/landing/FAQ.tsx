@@ -8,6 +8,7 @@ import {
 	AccordionItem,
 	AccordionItemTrigger,
 	AccordionItemContent,
+	AccordionItemIndicator,
 } from "@chakra-ui/react";
 
 export function FAQ() {
@@ -49,11 +50,29 @@ export function FAQ() {
 
 					<AccordionRoot collapsible variant="subtle" size="lg">
 						{items.map((item) => (
-							<AccordionItem key={item.value} value={item.value} borderBottomWidth="1px" borderColor="border.subtle" py={2}>
-								<AccordionItemTrigger fontWeight="bold">
+							<AccordionItem
+								key={item.value}
+								value={item.value}
+								borderBottomWidth="1px"
+								borderColor="border.subtle"
+								py={2}>
+								<AccordionItemTrigger
+									fontWeight="bold"
+									_hover={{
+										bg: "surface.muted",
+										color: "brand.500",
+									}}
+									cursor="pointer"
+									px={4}
+									rounded="md"
+									transition="all 0.2s">
 									{item.title}
+									<AccordionItemIndicator />
 								</AccordionItemTrigger>
-								<AccordionItemContent color="text.muted" pb={4}>
+								<AccordionItemContent
+									color="text.muted"
+									pb={4}
+									px={4}>
 									{item.text}
 								</AccordionItemContent>
 							</AccordionItem>
