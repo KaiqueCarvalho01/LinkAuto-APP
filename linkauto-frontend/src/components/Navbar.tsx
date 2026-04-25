@@ -188,7 +188,7 @@ export function Navbar() {
 									cursor="pointer"
 									rounded="md"
 									asChild>
-									<RouterLink to="/instructors/register">
+									<RouterLink to="/register">
 										Cadastre-se Agora
 									</RouterLink>
 								</MenuItem>
