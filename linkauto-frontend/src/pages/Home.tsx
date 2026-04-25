@@ -14,6 +14,9 @@ import {
 } from "@chakra-ui/react";
 import { useState, useMemo } from "react";
 import { InstructorMap } from "../components/InstructorMap";
+import { InfoSections } from "../components/landing/InfoSections";
+import { Testimonials } from "../components/landing/Testimonials";
+import { FAQ } from "../components/landing/FAQ";
 import { getMockInstructors } from "../services/mockData";
 
 interface HomeProps {
@@ -264,11 +267,10 @@ export default function Home({
 					</Stack>
 				</Container>
 			</Box>
-			{/* Identity Box */}
-			{/* Reasons to use Box  */}
-			{/*  Funcionalities Box */}
-			{/*  Testimonials Marquee Grid BOX */}
-			{/*   Mini FAQ BOX */}
+
+			<InfoSections />
+			<Testimonials />
+			<FAQ />
 		</Stack>
 	);
 }
