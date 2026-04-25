@@ -55,6 +55,10 @@ export const mockInstructors: InstructorSummary[] = [
 	},
 ];
 
+export const getMockInstructors = (): InstructorSummary[] => {
+	return mockInstructors;
+};
+
 const [primaryInstructor, secondaryInstructor, tertiaryInstructor] =
 	mockInstructors;
 
