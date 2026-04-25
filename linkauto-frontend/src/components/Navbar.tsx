@@ -24,6 +24,7 @@ import {
 	DrawerBody,
 	DrawerCloseTrigger,
 	Stack,
+	PopoverPositioner,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { Menu, ChevronDown, Bell, LogOut } from "lucide-react";
@@ -51,8 +52,16 @@ export function Navbar() {
 
 	// Mock notifications for FE-002
 	const notifications = [
-		{ id: 1, text: "Sua aula com Marcos foi confirmada.", time: "2h atrás" },
-		{ id: 2, text: "Novo instrutor disponível na sua área.", time: "5h atrás" },
+		{
+			id: 1,
+			text: "Sua aula com Marcos foi confirmada.",
+			time: "2h atrás",
+		},
+		{
+			id: 2,
+			text: "Novo instrutor disponível na sua área.",
+			time: "5h atrás",
+		},
 	];
 
 	const user = session?.user;
@@ -68,7 +77,7 @@ export function Navbar() {
 			position="fixed"
 			top={0}
 			w="full"
-			zIndex={100}
+			zIndex={500}
 			h={16}
 			bg={scrolled ? "surface.panel" : "transparent"}
 			backdropFilter={scrolled ? "blur(12px)" : "none"}
@@ -256,56 +265,58 @@ export function Navbar() {
 										/>
 									</IconButton>
 								</PopoverTrigger>
-								<PopoverContent
-									rounded="xl"
-									shadow="xl"
-									border="1px solid"
-									borderColor="border.subtle"
-									bg="surface.panel">
-									<PopoverHeader
-										fontWeight="bold"
-										p={4}
-										borderBottom="1px solid"
-										borderColor="border.subtle">
-										Notificações
-									</PopoverHeader>
-									<PopoverBody p={0}>
-										<Stack gap={0}>
-											{notifications.map((n) => (
-												<Box
-													key={n.id}
-													p={4}
-													_hover={{
-														bg: "surface.muted",
-													}}
-													borderBottom="1px solid"
-													borderColor="border.subtle"
-													cursor="pointer">
-													<Text fontSize="sm">
-														{n.text}
-													</Text>
-													<Text
-														fontSize="xs"
-														color="text.muted"
-														mt={1}>
-														{n.time}
-													</Text>
-												</Box>
-											))}
-										</Stack>
-									</PopoverBody>
-									<PopoverFooter p={3} textAlign="center">
-										<Link
-											asChild
-											fontSize="sm"
+								<PopoverPositioner>
+									<PopoverContent
+										rounded="xl"
+										shadow="xl"
+										border="1px solid"
+										borderColor="border.subtle"
+										bg="surface.panel">
+										<PopoverHeader
 											fontWeight="bold"
-											color="brand.500">
-											<RouterLink to="/notifications">
-												Ver todas as notificações
-											</RouterLink>
-										</Link>
-									</PopoverFooter>
-								</PopoverContent>
+											p={4}
+											borderBottom="1px solid"
+											borderColor="border.subtle">
+											Notificações
+										</PopoverHeader>
+										<PopoverBody p={0}>
+											<Stack gap={0}>
+												{notifications.map((n) => (
+													<Box
+														key={n.id}
+														p={4}
+														_hover={{
+															bg: "surface.muted",
+														}}
+														borderBottom="1px solid"
+														borderColor="border.subtle"
+														cursor="pointer">
+														<Text fontSize="sm">
+															{n.text}
+														</Text>
+														<Text
+															fontSize="xs"
+															color="text.muted"
+															mt={1}>
+															{n.time}
+														</Text>
+													</Box>
+												))}
+											</Stack>
+										</PopoverBody>
+										<PopoverFooter p={3} textAlign="center">
+											<Link
+												asChild
+												fontSize="sm"
+												fontWeight="bold"
+												color="brand.500">
+												<RouterLink to="/notifications">
+													Ver todas as notificações
+												</RouterLink>
+											</Link>
+										</PopoverFooter>
+									</PopoverContent>
+								</PopoverPositioner>
 							</PopoverRoot>
 
 							<HStack
@@ -401,9 +412,7 @@ export function Navbar() {
 											justify="center"
 											fontWeight="bold"
 											fontSize="xl">
-											{displayName.charAt(
-												0,
-											)}
+											{displayName.charAt(0)}
 										</Flex>
 										<Box>
 											<Text fontWeight="bold">

@@ -68,6 +68,7 @@ export function InstructorMap({
 			borderRadius="2xl"
 			overflow="hidden"
 			bg="surface.panel"
+			zIndex={0}
 			aria-label="Mapa de instrutores disponiveis">
 			<MapContainer
 				center={mapCenter}
