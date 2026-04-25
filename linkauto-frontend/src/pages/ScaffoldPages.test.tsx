@@ -1,5 +1,5 @@
 import { screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import { renderWithProviders } from "../test/renderWithProviders";
 import Register from "./Register";
@@ -17,10 +17,8 @@ import Simulator from "./instructors/Simulator";
 
 describe("Scaffold Pages", () => {
 	it("renders Register page", () => {
-		renderWithProviders(<Register />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-			"Register",
-		);
+		renderWithProviders(<Register onRegister={vi.fn()} />);
+		expect(screen.getByText(/Crie sua conta/i)).toBeInTheDocument();
 	});
 
 	it("renders About page", () => {
