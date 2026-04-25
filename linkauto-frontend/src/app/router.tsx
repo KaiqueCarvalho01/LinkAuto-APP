@@ -123,7 +123,7 @@ function HomeRoute() {
 	const { isAuthenticated } = useSessionStore();
 
 	return (
-<Home
+		<Home
 			isAuthenticated={isAuthenticated}
 			onOpenLogin={() => navigate("/login")}
 			onOpenSearch={() => {
@@ -150,11 +150,11 @@ function LoginRoute() {
 	}
 
 	const handleAuthenticate = async ({
-email,
-password,
-preferredRole,
-}: {
-email: string;
+		email,
+		password,
+		preferredRole,
+	}: {
+		email: string;
 		password: string;
 		preferredRole: "student" | "instructor";
 	}) => {
@@ -227,7 +227,7 @@ function ProfileRoute() {
 	};
 
 	return (
-<Profile
+		<Profile
 			userData={userData}
 			onLogout={() => {
 				signOut();
@@ -245,7 +245,7 @@ function SearchRoute() {
 	const { session } = useSessionStore();
 
 	return (
-<SearchPage
+		<SearchPage
 			token={session?.accessToken}
 			onOpenProfile={() => navigate("/profile")}
 			onStartBooking={(instructor) =>
@@ -261,7 +261,7 @@ function BookingDetailsRoute() {
 	const state = location.state as { instructor?: InstructorSummary } | null;
 
 	return (
-<LessonDetails
+		<LessonDetails
 			instructor={state?.instructor}
 			onBack={() => navigate("/search")}
 			onBookingCreated={() => {
@@ -295,12 +295,12 @@ function AdminInstructorDashboardRoute() {
 		);
 
 		const mapped = payload.data.map((item) => ({
-id: item.id,
-name: item.instructor_profile?.full_name || item.email,
-city: item.instructor_profile?.city || "Sem cidade",
-date: "Pendente",
-time: "--",
-}));
+			id: item.id,
+			name: item.instructor_profile?.full_name || item.email,
+			city: item.instructor_profile?.city || "Sem cidade",
+			date: "Pendente",
+			time: "--",
+		}));
 		return mapped;
 	}, [token]);
 
@@ -325,10 +325,10 @@ time: "--",
 	}, [loadPending]);
 
 	const instructorData = useMemo(
-() => ({
-name: session?.user?.email || "Admin LinkAuto",
-rating: 5,
-}),
+		() => ({
+			name: session?.user?.email || "Admin LinkAuto",
+			rating: 5,
+		}),
 		[session?.user?.email],
 	);
 
@@ -359,7 +359,7 @@ rating: 5,
 	};
 
 	return (
-<InstructorDashboard
+		<InstructorDashboard
 			instructorData={instructorData}
 			requests={requests}
 			onAccept={approve}
@@ -397,14 +397,18 @@ function ColorModeToggle() {
 	const isDark = mode === "dark";
 
 	return (
-<Box
+		<Box
 			position="fixed"
 			right={{ base: 4, md: 6 }}
 			bottom={{ base: 4, md: 6 }}
 			zIndex={60}>
 			<IconButton
-				aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-				title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+				aria-label={
+					isDark ? "Switch to light theme" : "Switch to dark theme"
+				}
+				title={
+					isDark ? "Switch to light theme" : "Switch to dark theme"
+				}
 				onClick={() => {
 					setMode((current) =>
 						current === "dark" ? "light" : "dark",
@@ -429,7 +433,7 @@ function ColorModeToggle() {
 
 function MainLayout() {
 	return (
-<Box minH="100vh" display="flex" flexDirection="column">
+		<Box minH="100vh" display="flex" flexDirection="column">
 			<Navbar />
 			<Box as="main" flex="1" pt="16">
 				<Outlet />
@@ -441,24 +445,42 @@ function MainLayout() {
 
 export default function AppRouter() {
 	return (
-<BrowserRouter>
+		<BrowserRouter>
 			<Routes>
 				<Route element={<MainLayout />}>
 					<Route path="/" element={<HomeRoute />} />
 					<Route path="/about" element={<About />} />
 					<Route path="/contact" element={<Contact />} />
 					<Route path="/help" element={<Help />} />
-					
+
 					{/* Students routes */}
-					<Route path="/students/first-license" element={<FirstLicense />} />
-					<Route path="/students/licensed" element={<LicensedDrivers />} />
-					<Route path="/students/how-it-works" element={<HowItWorksStudent />} />
-					
+					<Route
+						path="/students/first-license"
+						element={<FirstLicense />}
+					/>
+					<Route
+						path="/students/licensed"
+						element={<LicensedDrivers />}
+					/>
+					<Route
+						path="/students/how-it-works"
+						element={<HowItWorksStudent />}
+					/>
+
 					{/* Instructors routes */}
-					<Route path="/instructors/how-it-works" element={<HowItWorksInstructor />} />
-					<Route path="/instructors/benefits" element={<Benefits />} />
-					<Route path="/instructors/simulator" element={<Simulator />} />
-					
+					<Route
+						path="/instructors/how-it-works"
+						element={<HowItWorksInstructor />}
+					/>
+					<Route
+						path="/instructors/benefits"
+						element={<Benefits />}
+					/>
+					<Route
+						path="/instructors/simulator"
+						element={<Simulator />}
+					/>
+
 					{/* Protected search */}
 					<Route
 						path="/search"
