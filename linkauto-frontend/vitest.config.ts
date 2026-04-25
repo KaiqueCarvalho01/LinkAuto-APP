@@ -12,6 +12,9 @@ export default defineConfig({
 			include: [
 				"src/components/BookingStatusBadge.tsx",
 				"src/components/SlotPicker.tsx",
+				"src/components/Navbar.tsx",
+				"src/components/ProfileSidebar.tsx",
+				"src/components/landing/*.tsx",
 				"src/features/**/*.{ts,tsx}",
 				"src/pages/Login.tsx",
 				"src/pages/LessonDetails.tsx",

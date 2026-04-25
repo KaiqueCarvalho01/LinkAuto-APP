@@ -51,9 +51,14 @@
 
 ## Coverage Gate
 
-- target_scope:
-- command:
-- result:
+- target_scope: src/pages/About.tsx, src/pages/Contact.tsx, src/pages/Help.tsx, src/pages/Register.tsx
+- command: npm run test:coverage
+- required_threshold_pct: 80
+- lines_pct: 100
+- branches_pct: 100
+- functions_pct: 100
+- statements_pct: 100
+- passed: true
 
 ## Delivery Summary
 

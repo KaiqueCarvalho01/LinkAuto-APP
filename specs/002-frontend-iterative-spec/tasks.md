@@ -217,3 +217,48 @@
 - [x] T040 [FE-001] Implement Navbar component and responsive Drawer for mobile
 - [x] T041 [FE-001] Implement scroll-triggered shadow
 - [ ] T042 [FE-001] Record quality gate outputs for cycle 003 in iteration-003.md
+
+## Phase 9: Authenticated Navbar (FE-002)
+
+**Purpose**: Implement the authenticated state for the Navbar with Notifications and User Avatar.
+
+- [x] T043 [FE-002] Add failing tests for authenticated state in linkauto-frontend/src/components/Navbar.test.tsx
+- [x] T044 [FE-002] Implement Notifications and Avatar component in linkauto-frontend/src/components/Navbar.tsx
+- [x] T045 [FE-002] Implement missing mobile Drawer for visitor and authenticated modes
+- [x] T046 [FE-002] Record quality gate outputs for cycle 004 in specs/002-frontend-iterative-spec/iterations/iteration-004.md
+
+## Phase 10: Profile Sidebar (FE-003)
+
+**Purpose**: Implement role-based Profile Sidebar Drawer.
+
+- [x] T047 [FE-003] Add failing tests for ProfileSidebar component in linkauto-frontend/src/components/ProfileSidebar.test.tsx
+- [x] T048 [FE-003] Implement ProfileSidebar component with role-based tabs and links in linkauto-frontend/src/components/ProfileSidebar.tsx
+- [x] T049 [FE-003] Integrate ProfileSidebar with Navbar avatar click
+- [x] T050 [FE-003] Record quality gate outputs for cycle 005 in specs/002-frontend-iterative-spec/iterations/iteration-005.md
+
+## Phase 11: Informative Sections (FE-005)
+
+**Purpose**: Implement landing page blocks for "Como Funciona", "Para Alunos/Instrutores" and "Stats".
+
+- [x] T051 [FE-005] Add failing tests for InfoSections component in linkauto-frontend/src/components/landing/InfoSections.test.tsx
+- [x] T052 [FE-005] Implement InfoSections component in linkauto-frontend/src/components/landing/InfoSections.tsx
+- [x] T053 [FE-005] Integrate InfoSections into Home.tsx
+
+## Phase 12: Testimonials (FE-006)
+
+**Purpose**: Implement social proof section with role-based tabs.
+
+- [x] T054 [FE-006] Add failing tests for Testimonials component in linkauto-frontend/src/components/landing/Testimonials.test.tsx
+- [x] T055 [FE-006] Create mock data in linkauto-frontend/src/services/mockTestimonials.ts
+- [x] T056 [FE-006] Implement Testimonials component in linkauto-frontend/src/components/landing/Testimonials.tsx
+- [x] T057 [FE-006] Integrate Testimonials into Home.tsx
+- [x] T058 [FE-005/FE-006] Record quality gate outputs for cycle 006 in specs/002-frontend-iterative-spec/iterations/iteration-006.md
+
+## Phase 13: FAQ Section (FE-005 Extension)
+
+**Purpose**: Implement Mini FAQ section at the bottom of the landing page.
+
+- [ ] T059 [FE-005] Add failing tests for FAQ component in linkauto-frontend/src/components/landing/FAQ.test.tsx
+- [ ] T060 [FE-005] Implement FAQ component in linkauto-frontend/src/components/landing/FAQ.tsx
+- [ ] T061 [FE-005] Integrate FAQ into Home.tsx
+- [ ] T062 [FE-005] Record quality gate outputs for cycle 007 in specs/002-frontend-iterative-spec/iterations/iteration-007.md

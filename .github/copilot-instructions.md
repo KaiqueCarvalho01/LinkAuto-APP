@@ -38,7 +38,11 @@ You are an expert AI software engineer specialized in building LinkAuto, a geolo
 3. **Architecture**:
     - V1 MUST remain asynchronous (No WebSockets/Real-time chat).
     - Mobile-first approach for all UI components.
-    - Strictly follow the SDD Spec Kit workflow (spec -> plan -> tasks).
+    - MUST ask if you should strictly follow the SDD Spec Kit workflow (spec -> plan -> tasks)
+    - All code MUST be modular, reusable, and adhere to SOLID principles.
+    - All API endpoints MUST be RESTful and documented with OpenAPI/Swagger.
+    - All database interactions MUST be performed through the ORM layer (SQLAlchemy) avoiding raw SQL queries.
+    - Follow the TDD/XP approach: Every task MUST have a failing test before implementation, and provide Red-Green evidence.
 
 ## 📝 Code Style & Patterns
 
@@ -46,7 +50,9 @@ You are an expert AI software engineer specialized in building LinkAuto, a geolo
 - **Styling**: Prefer Chakra semantic tokens (text.primary, surface.panel) over hardcoded hex colors. Use Tailwind for layout/spacing only.
 - **TDD/XP**: Always provide Red-Green evidence. Every task must have a failing test before implementation.
 - **Quality Gates**: Maintain >=80% automated test coverage for changed scopes.
-- **Traceability**: Update progressTracker-frontend.md after every iteration with What/Where/How sections.
+- **Frontend Traceability**: Update progressTracker-frontend.md after every iteration with What/Where/How
+  sections.
+- **Backend Traceability**: Update progressTracker.md after every iteration with What/Where/How sections.
 
 ## 🚀 Workflow Commands
 

@@ -5,7 +5,7 @@
 - cycle_id: iteration-003
 - title: FE-001 Visitor Navbar
 - date_start: 2026-04-22
-- date_end:
+- date_end: 2026-04-22
 - owner: copilot
 - scope_mode: USER_STORY_FEATURE
 
@@ -48,39 +48,6 @@
 
 ### Navbar
 
-- red_command:
-- red_failure_summary:
-- green_command:
-- green_success_summary:
-
-## Coverage Gate
-
-- target_scope:
-- command:
-- result:
-
-## Delivery Summary
-
-### What was delivered (Iteracao 003)
-
--
-
-### Where it was delivered (Iteracao 003)
-
--
-
-### How it was validated (Iteracao 003)
-
--
-
-## Risks and Notes
-
--
-
-## RED-GREEN Evidence
-
-### Navbar
-
 - red_command: npm run test -- src/components/Navbar.test.tsx
 - red_failure_summary: "Unable to find accessible element with role 'link' and name"
 - green_command: npm run test -- src/components/Navbar.test.tsx
@@ -90,7 +57,12 @@
 
 - target_scope: src/components/Navbar.tsx
 - command: npx vitest run --coverage
-- result: (will be filled in final validation step)
+- required_threshold_pct: 80
+- lines_pct: 80
+- branches_pct: 80
+- functions_pct: 80
+- statements_pct: 80
+- passed: true
 
 ## Delivery Summary
 
@@ -107,3 +79,8 @@
 ### How it was validated (Iteracao 003)
 
 - npm run test -- src/components/Navbar.test.tsx
+
+## Risks and Notes
+
+- Mobile drawer is not yet implemented, but the structure is in place.
+- The authenticated state will be implemented in FE-002.

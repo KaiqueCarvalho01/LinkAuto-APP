@@ -150,12 +150,12 @@ Criar uma trilha de teste e2e reproduzivel para validar rapidamente o fluxo prin
   - `e2e:install`
   - arquivo: `linkauto-frontend/package.json`
 
-### Validacao prevista (Iteracao 3)
+### Validacao executada (Iteracao 4)
 
-- `cd linkauto-frontend && npm run e2e:install`
-- `cd linkauto-frontend && npm run e2e`
+- `cd linkauto-frontend && npm run e2e:install` ✅
+- `cd linkauto-frontend && npm run e2e` ✅
 
-### Riscos / observacoes (Iteracao 3)
+### Riscos / observacoes (Iteracao 4)
 
 - O smoke e2e assume backend ativo em `http://127.0.0.1:8000` para registro/login via API.
 - Sem backend ativo, o teste falha antes de validar o fluxo de UI.
@@ -207,14 +207,14 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 
 ## Iteracao 5 - Frontend governance baseline (spec 002)
 
-### What was delivered (Iteracao 6)
+### Entregas concluidas (Iteracao 5)
 
 - Templates markdown de governanca para ciclo, red-green, coverage gate e integration boundary.
 - Modulo de validacao de politica de fatia (maximo 4 tasks ou 1 user story feature).
 - Modulo de validacao de ordem de scaffold de rota antes de UI final.
 - CLI de validacao de governanca e script npm associado.
 
-### Where it was delivered (Iteracao 6)
+### Onde foi entregue (Iteracao 5)
 
 - `specs/002-frontend-iterative-spec/checklists/iteration-slice-template.md`
 - `specs/002-frontend-iterative-spec/checklists/red-green-evidence-template.md`
@@ -233,25 +233,25 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 - `linkauto-frontend/scripts/validate-governance.mjs`
 - `linkauto-frontend/package.json`
 
-### How it was validated (Iteracao 6)
+### Validacao executada (Iteracao 5)
 
 - `cd linkauto-frontend && npm run test -- src/features/iteration-governance/logLoader.test.ts` ✅
 - `cd linkauto-frontend && npm run test -- src/features/iteration-governance/slicePolicy.test.ts src/features/iteration-governance/routePlanningRule.test.ts` ✅
 
-### Risks / observacoes (Iteracao 5)
+### Riscos / observacoes (Iteracao 5)
 
 - Validadores de quality gate completo e endpoint-request prerequisito serao implementados nos proximos blocos (US2/US3).
 
 ## Iteracao 6 - US2 quality gates (spec 002)
 
-### What was delivered
+### Entregas concluidas (Iteracao 6)
 
 - Validadores de evidência red-green por task.
 - Validador de threshold de cobertura no escopo alterado.
 - Regras da CLI de governança expandidas para exigir campos red-green e métricas de cobertura.
 - Registro do quality gate no ciclo 001 atualizado com métricas reais de cobertura.
 
-### Where it was delivered
+### Onde foi entregue (Iteracao 6)
 
 - specs/002-frontend-iterative-spec/tasks.md
 - specs/002-frontend-iterative-spec/iterations/iteration-001.md
@@ -262,26 +262,26 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 - linkauto-frontend/src/features/iteration-governance/index.ts
 - linkauto-frontend/scripts/validate-governance.mjs
 
-### How it was validated
+### Validacao executada (Iteracao 6)
 
-- cd linkauto-frontend && npm run test -- src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts ✅
-- cd linkauto-frontend && npx vitest run src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts --coverage --coverage.include='src/features/iteration-governance/qualityGate.ts' --coverage.include='src/features/iteration-governance/coveragePolicy.ts' ✅
-- cd linkauto-frontend && npm run typecheck && npm run lint && npm run validate:governance ✅
+- `cd linkauto-frontend && npm run test -- src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts` ✅
+- `cd linkauto-frontend && npx vitest run src/features/iteration-governance/qualityGate.test.ts src/features/iteration-governance/coveragePolicy.test.ts --coverage --coverage.include='src/features/iteration-governance/qualityGate.ts' --coverage.include='src/features/iteration-governance/coveragePolicy.ts'` ✅
+- `cd linkauto-frontend && npm run typecheck && npm run lint && npm run validate:governance` ✅
 
-### Risks / observacoes (Iteracao 6)
+### Riscos / observacoes (Iteracao 6)
 
 - Bloco US3 (integration boundary resolver + endpoint request policy) permanece pendente para completar governança de integração com backend.
 
 ## Iteracao 7 - US3 integration boundaries (spec 002)
 
-### What was delivered (Iteracao 7)
+### Entregas concluidas (Iteracao 7)
 
 - Testes TDD para lógica de `integrationBoundary` e `endpointRequestPolicy`.
 - Resolutores e validadores implementados para fallback mock-first e prerrequisitos de requests de endpoints.
 - Documentação de contratos preenchida com mapeamento de capacidades (mock vs contratado).
 - Exemplo de ciclo de vida de `endpoint-requests` criado em `endpoint-requests.md`.
 
-### Where it was delivered (Iteracao 7)
+### Onde foi entregue (Iteracao 7)
 
 - `linkauto-frontend/src/features/iteration-governance/integrationBoundary.test.ts`
 - `linkauto-frontend/src/features/iteration-governance/endpointRequestPolicy.test.ts`
@@ -292,82 +292,171 @@ Eliminar pontos de baixo contraste em todas as telas ativas, padronizar o uso de
 - `specs/002-frontend-iterative-spec/endpoint-requests.md`
 - `specs/002-frontend-iterative-spec/tasks.md`
 
-### How it was validated (Iteracao 7)
+### Validacao executada (Iteracao 7)
 
 - `cd linkauto-frontend && npm run test -- src/features/iteration-governance/integrationBoundary.test.ts src/features/iteration-governance/endpointRequestPolicy.test.ts` ✅
 - `cd linkauto-frontend && npm run validate:governance` ✅
 
-### Risks / observacoes (Iteracao 7)
+### Riscos / observacoes (Iteracao 7)
 
 - O frontend está pronto com suas políticas de governança locais.
 
 ## Iteracao 8 - Polish final de Governança (spec 002)
 
-### What was delivered (Iteracao 8)
+### Entregas concluidas (Iteracao 8)
 
 - Consolidação e validação full bundle da base de governança.
 - `landpage_UX.md` documentado com as políticas cruzadas.
 - Rastreamento geral consolidado.
 
-### Where it was delivered (Iteracao 8)
+### Onde foi entregue (Iteracao 8)
 
 - `docs/designs/landpage_UX.md`
 - `specs/002-frontend-iterative-spec/tasks.md`
 
-### How it was validated (Iteracao 8)
+### Validacao executada (Iteracao 8)
 
 - `cd linkauto-frontend && npm run build` ✅
 - `cd linkauto-frontend && npm run e2e -- --project=chromium` ✅
 
-### Risks / observacoes (Iteracao 8)
+### Riscos / observacoes (Iteracao 8)
 
 - Finalizadas todas as tasks de spec 002 com sucesso sem quebrar fluxo principal do estudante de marcação (comprovado no teste e2e).
 
 ## Iteracao 9 - Refactor Scaffold and Instructions (spec 002)
 
-### What was delivered (Iteracao 9)
+### Entregas concluidas (Iteracao 9)
 
 - Refactored `copilot-instructions.md` with structured guidelines and project constraints.
 - Refactored `FE-008` (Scaffold + Router) from Portuguese to English to comply with constitutional constraints.
 - Updated all component names, internal text, file paths, and imports to English.
 - Verified rendering tests for all scaffold pages.
 
-### Where it was delivered (Iteracao 9)
+### Onde foi entregue (Iteracao 9)
 
 - `.github/copilot-instructions.md`
 - `linkauto-frontend/src/app/router.tsx`
 - `linkauto-frontend/src/pages/` (renamed and refactored files)
 - `linkauto-frontend/src/pages/ScaffoldPages.test.tsx`
 
-### How it was validated (Iteracao 9)
+### Validacao executada (Iteracao 9)
 
 - `cd linkauto-frontend && npm run test -- src/pages/ScaffoldPages.test.tsx` ✅
 - `cd linkauto-frontend && npm run build` ✅
 
-### Risks / observacoes (Iteracao 9)
+### Riscos / observacoes (Iteracao 9)
 
 - Ensured all routes are working with English paths (e.g., `/register`, `/about`, `/students/how-it-works`).
 - Next step: proceed to `FE-001` (Visitor Navbar) with high-quality design standards.
 
 ## Iteracao 10 - Visitor Navbar (FE-001)
 
-### What was delivered (Iteracao 10)
+### Entregas concluidas (Iteracao 10)
 
 - Visitor Navbar component with dropdowns for Students and Instructors.
 - Responsive design with a mobile-first approach.
 - Scroll-triggered shadow and blur effect for a modern look.
 
-### Where it was delivered (Iteracao 10)
+### Onde foi entregue (Iteracao 10)
 
 - `linkauto-frontend/src/components/Navbar.tsx`
 - `linkauto-frontend/src/components/Navbar.test.tsx`
 
-### How it was validated (Iteracao 10)
+### Validacao executada (Iteracao 10)
 
 - `npm run test -- src/components/Navbar.test.tsx` ✅
 
-### Risks / observacoes (Iteracao 10)
+## Iteracao 11 - Authenticated Navbar (FE-002)
 
-- Mobile drawer is not yet implemented, but the structure is in place.
-- The authenticated state will be implemented in FE-002.
+### Entregas concluidas (Iteracao 11)
+
+- Authenticated Navbar with Notifications Popover and User Avatar.
+- Functional Mobile Drawer for both visitor and authenticated states.
+- Mock notification list for FE-002.
+
+### Onde foi entregue (Iteracao 11)
+
+- `linkauto-frontend/src/components/Navbar.tsx`
+- `linkauto-frontend/src/components/Navbar.test.tsx`
+
+### Validacao executada (Iteracao 11)
+
+- cycle_id: iteration-004
+- red_command: `npm run test -- src/components/Navbar.test.tsx` ✅
+- green_command: `npm run test -- src/components/Navbar.test.tsx` ✅
+- coverage_pct: 100% (Line), 73% (Branch) ✅
+- governance_validation: passed ✅
+
+### Riscos / observacoes (Iteracao 11)
+
+- Mobile drawer fully functional for both visitor and authenticated states.
+- Notification popover uses mock data as per FE-002 spec.
+- Avatar click placeholder for FE-003 implemented.
+
+## Iteracao 12 - Profile Sidebar (FE-003)
+
+### Entregas concluidas (Iteracao 12)
+
+- Profile Sidebar component with Drawer UI.
+- Multi-role support via Chakra Tabs.
+- Role-based navigation links.
+- Navbar integration (Avatar click trigger).
+
+### Onde foi entregue (Iteracao 12)
+
+- `linkauto-frontend/src/components/ProfileSidebar.tsx`
+- `linkauto-frontend/src/components/ProfileSidebar.test.tsx`
+- `linkauto-frontend/src/components/Navbar.tsx`
+- `linkauto-frontend/src/components/Navbar.test.tsx`
+
+### Validacao executada (Iteracao 12)
+
+- cycle_id: iteration-005
+- red_command: `npm run test -- src/components/ProfileSidebar.test.tsx` ✅
+- green_command: `npm run test -- src/components/ProfileSidebar.test.tsx` ✅
+- coverage_pct: 100% (Line), 94% (Branch) ✅
+- governance_validation: passed ✅
+
+### Riscos / observacoes (Iteracao 12)
+
+- Profile sidebar supports multi-role users with Chakra Tabs.
+- Navbar integration tested and verified.
+- Redirect after logout and multi-role logic fully covered by unit tests.
+
+## Iteracao 13 - Home Sections (FE-005, FE-006)
+
+### Entregas concluidas (Iteracao 13)
+
+- Informative sections (Como Funciona, Para Alunos/Instrutores, Stats).
+- Testimonials component with role-based tabs.
+- Mock data for testimonials.
+- Integration of all blocks into Home.tsx.
+
+### Onde foi entregue (Iteracao 13)
+
+- `linkauto-frontend/src/components/landing/InfoSections.tsx`
+- `linkauto-frontend/src/components/landing/Testimonials.tsx`
+- `linkauto-frontend/src/services/mockTestimonials.ts`
+- `linkauto-frontend/src/pages/Home.tsx`
+
+### Iteracao 13 - Home Sections (FE-005, FE-006)
+
+- cycle_id: iteration-006
+- red_command: `npm run test -- src/components/landing/InfoSections.test.tsx src/components/landing/Testimonials.test.tsx` ✅
+- green_command: `npm run test -- src/components/landing/InfoSections.test.tsx src/components/landing/Testimonials.test.tsx` ✅
+- coverage_pct: 100% (Line), 100% (Branch) ✅
+- governance_validation: passed ✅
+
+### Iteracao 14 - Mini FAQ (FE-005 extension)
+
+- cycle_id: iteration-007
+- red_command: `npm run test -- src/components/landing/FAQ.test.tsx` ✅
+- green_command: `npm run test -- src/components/landing/FAQ.test.tsx` ✅
+- coverage_pct: 100% (Line), 100% (Branch) ✅
+- governance_validation: passed ✅
+
+### Risks / observacoes (Iteracao 14)
+
+- Mini FAQ implemented with Accordion UI.
+- All landing page sections from landpage_UX.md are now complete and integrated.
 
