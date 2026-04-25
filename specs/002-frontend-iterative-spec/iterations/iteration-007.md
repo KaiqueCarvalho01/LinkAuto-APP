@@ -7,7 +7,7 @@
 - date_start: 2026-04-25
 - date_end:
 - owner: copilot
-- scope_mode: TASKS_ONLY
+- scope_mode: USER_STORY_FEATURE
 
 ## Scope Boundary
 

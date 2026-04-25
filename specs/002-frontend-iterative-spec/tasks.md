@@ -258,7 +258,15 @@
 
 **Purpose**: Implement Mini FAQ section at the bottom of the landing page.
 
-- [ ] T059 [FE-005] Add failing tests for FAQ component in linkauto-frontend/src/components/landing/FAQ.test.tsx
-- [ ] T060 [FE-005] Implement FAQ component in linkauto-frontend/src/components/landing/FAQ.tsx
-- [ ] T061 [FE-005] Integrate FAQ into Home.tsx
-- [ ] T062 [FE-005] Record quality gate outputs for cycle 007 in specs/002-frontend-iterative-spec/iterations/iteration-007.md
+- [x] T059 [FE-005] Add failing tests for FAQ component in linkauto-frontend/src/components/landing/FAQ.test.tsx
+- [x] T060 [FE-005] Implement FAQ component in linkauto-frontend/src/components/landing/FAQ.tsx
+- [x] T061 [FE-005] Integrate FAQ into Home.tsx
+- [x] T062 [FE-005] Record quality gate outputs for cycle 007 in specs/002-frontend-iterative-spec/iterations/iteration-007.md
+
+## Phase 14: Register Page (FE-Register)
+
+**Purpose**: Implement the registration page matching the login layout and standards.
+
+- [x] T063 [FE-Register] Add failing tests for Register component in linkauto-frontend/src/pages/Register.test.tsx
+- [x] T064 [FE-Register] Implement Register page in linkauto-frontend/src/pages/Register.tsx
+- [x] T065 [FE-Register] Record quality gate outputs for cycle 009 in specs/002-frontend-iterative-spec/iterations/iteration-009.md

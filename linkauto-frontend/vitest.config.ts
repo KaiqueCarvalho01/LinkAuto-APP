@@ -17,6 +17,7 @@ export default defineConfig({
 				"src/components/landing/*.tsx",
 				"src/features/**/*.{ts,tsx}",
 				"src/pages/Login.tsx",
+				"src/pages/Register.tsx",
 				"src/pages/LessonDetails.tsx",
 			],
 			exclude: ["src/main.tsx", "src/app/router.tsx"],
