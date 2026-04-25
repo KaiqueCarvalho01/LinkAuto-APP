@@ -19,3 +19,4 @@ Thumbs.db
 .idea/
 linkauto-backend/app.db
 linkauto-frontend/test-results/
+api-requests/
