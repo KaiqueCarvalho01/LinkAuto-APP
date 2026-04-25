@@ -120,7 +120,11 @@ export function ProfileSidebar({ open, onOpenChange }: ProfileSidebarProps) {
 			onOpenChange={(e) => onOpenChange(e.open)}>
 			<DrawerBackdrop />
 			<DrawerPositioner>
-				<DrawerContent bg="surface.panel" maxW="320px">
+				<DrawerContent
+					bg="surface.emphatized"
+					maxW="320px"
+					borderLeft="1px solid"
+					borderColor="border.subtle">
 					<DrawerHeader borderBottomWidth="1px" p={6}>
 						<Flex gap={1} align="center">
 							<Flex
