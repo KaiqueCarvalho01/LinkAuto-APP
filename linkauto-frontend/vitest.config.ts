@@ -20,6 +20,7 @@ export default defineConfig({
 				"src/pages/Register.tsx",
 				"src/pages/LessonDetails.tsx",
 				"src/pages/students/*.tsx",
+				"src/pages/instructors/*.tsx",
 			],
 			exclude: ["src/main.tsx", "src/app/router.tsx"],
 			thresholds: {
