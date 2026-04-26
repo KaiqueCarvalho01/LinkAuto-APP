@@ -77,7 +77,14 @@ export default function FirstLicense() {
 								bg="surface.panel"
 								borderRadius="3xl"
 								border="1px solid"
-								borderColor="border.error">
+								borderColor="border.error"
+								transition="all 0.3s"
+								_hover={{
+									transform: "translateY(-8px)",
+									boxShadow:
+										"0 20px 40px -12px rgba(0,0,0,0.08)",
+									borderColor: "laRed.500",
+								}}>
 								<Stack gap={6}>
 									<Heading
 										fontSize="xl"
@@ -111,7 +118,14 @@ export default function FirstLicense() {
 								borderRadius="3xl"
 								border="2px solid"
 								borderColor="laGreen.500"
-								shadow="xl">
+								shadow="xl"
+								transition="all 0.3s"
+								_hover={{
+									transform: "translateY(-8px)",
+									boxShadow:
+										"0 20px 40px -12px rgba(0,0,0,0.08)",
+									borderColor: "laGreen.500",
+								}}>
 								<Stack gap={6}>
 									<Heading fontSize="xl" color="brand.500">
 										LinkAuto
@@ -168,7 +182,13 @@ export default function FirstLicense() {
 							p={12}
 							borderRadius="3xl"
 							border="1px solid"
-							borderColor="border.success">
+							borderColor="border.success"
+							transition="all 0.3s"
+							_hover={{
+								transform: "translateY(-8px)",
+								boxShadow: "0 20px 40px -12px rgba(0,0,0,0.08)",
+								borderColor: "brand.200",
+							}}>
 							<Stack gap={6} textAlign="center" align="center">
 								<Circle
 									size={16}
