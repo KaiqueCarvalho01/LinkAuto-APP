@@ -165,8 +165,29 @@
 - coverage_pct: 100% (Line), 100% (Branch) ✅
 - governance_validation: passed ✅
 
+### Iteracao 18 - Instructor Pages Content (FE-011)
+
+#### What was delivered (Iteracao 18)
+- Full informational and interactive content for Benefits, HowItWorks, and Simulator.
+- Interactive Simulator tool with real-time earnings calculation and animated cards.
+- Support for Dark Mode and WCAG standards.
+
+#### Where it was delivered (Iteracao 18)
+- `src/pages/instructors/Benefits.tsx`
+- `src/pages/instructors/HowItWorks.tsx`
+- `src/pages/instructors/Simulator.tsx`
+- `src/pages/instructors/*.test.tsx`
+
+#### How it was validated (Iteracao 18)
+- cycle_id: iteration-011
+- red_command: `npm run test -- src/pages/instructors/*.test.tsx` ✅
+- green_command: `npm run test -- src/pages/instructors/*.test.tsx` ✅
+- coverage_pct: 100% (Line), 100% (Branch) ✅
+- governance_validation: passed ✅
+
 ## Riscos e Observacoes Gerais
 
+- **Iteracao 18**: Instructor pages now include interactive tools (Simulator) and animated cards. UX improved with transitions.
 - **Iteracao 17**: Student pages now have full content and visual consistency with the platform. No backend changes required.
 - **Iteracao 16**: Register page layout and accessibility match Login page standards. Integration with sessionStore via signUp method implemented. Form validation for matching passwords included.
 - **Iteracao 15**: Resolved all 6 issues from `docs/known-issues.md`. Refactored components for consistency and theme compatibility. Improved label association in Login.tsx.

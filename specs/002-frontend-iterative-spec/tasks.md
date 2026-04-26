@@ -280,3 +280,13 @@
 - [x] T068 [FE-010] Implement LicensedDrivers page content
 - [x] T069 [FE-010] Implement HowItWorks student page content
 - [x] T070 [FE-010] Record quality gate outputs for cycle 010 in specs/002-frontend-iterative-spec/iterations/iteration-010.md
+
+## Phase 16: Instructor Pages Content (FE-011)
+
+**Purpose**: Flesh out informational pages for instructors (Benefits, HowItWorks, Simulator).
+
+- [x] T071 [FE-011] Add failing tests for instructor pages in linkauto-frontend/src/pages/instructors/*.test.tsx
+- [x] T072 [FE-011] Implement Benefits page content with animated cards
+- [x] T073 [FE-011] Implement HowItWorks instructor page content
+- [x] T074 [FE-011] Implement Simulator page with interactive logic
+- [x] T075 [FE-011] Record quality gate outputs for cycle 011 in specs/002-frontend-iterative-spec/iterations/iteration-011.md
