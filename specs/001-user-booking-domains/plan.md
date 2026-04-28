@@ -9,14 +9,14 @@ Construir um MVP demo funcional para laboratorio de Engenharia de Software com f
 end-to-end Instrutor -> Admin -> Aluno -> Chat da Reserva, cobrindo os dominios de
 usuarios, agenda, agendamento, mensagens, avaliacoes e notificacoes por e-mail.
 Estrutura tecnica: monorepo com `linkauto-backend` (FastAPI + SQLAlchemy + Alembic)
-e `linkauto-frontend` (React + Vite + Tailwind + ShadCN-ui + Leaflet), armazenamento
+e `linkauto-frontend` (React + Vite + Tailwind + Chakra UI + Leaflet), armazenamento
 de documentos no S3, e regras de negocio RN02/RN03/RN04/RN05 validadas no backend
 com reforco de UX no frontend.
 
 ## Technical Context
 
 **Language/Version**: Python 3.11 (backend), JavaScript ES2023 com React 19 (frontend)  
-**Primary Dependencies**: FastAPI, SQLAlchemy, Alembic, Pydantic, boto3 (S3/SES), React, Vite, Tailwind CSS 4, ShadCN-ui, Leaflet, React Router DOM  
+**Primary Dependencies**: FastAPI, SQLAlchemy, Alembic, Pydantic, boto3 (S3/SES), React, Vite, Tailwind CSS 4, Chakra UI, Leaflet, React Router DOM  
 **Storage**: SQLite3 (dev), PostgreSQL + PostGIS (prod), AWS S3 para documentos de credenciamento  
 **Testing**: pytest + httpx (backend), Vitest + Testing Library (frontend), smoke e2e do happy path  
 **Target Platform**: Linux via Docker Compose para dev; web mobile-first para navegadores modernos  
@@ -38,7 +38,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [x] LGPD credential-document lifecycle preserved: S3 documents deleted after validation.
 - [x] Scheduling invariants preserved where applicable: 1h slots, minimum 2h booking, no overlaps.
 - [x] Business rules preserved where applicable: penalty-free cancellation only with >24h notice; mutual rating only after status `REALIZADA`.
-- [x] Stack remains compliant: React + Vite + Tailwind CSS 4 + ShadCN-ui + Leaflet; FastAPI + SQLAlchemy; SQLite dev; PostgreSQL + PostGIS prod; AWS S3 + SES.
+- [x] Stack remains compliant: React + Vite + Tailwind CSS 4 + Chakra UI + Leaflet; FastAPI + SQLAlchemy; SQLite dev; PostgreSQL + PostGIS prod; AWS S3 + SES.
 - [x] Out-of-scope V1 guardrails preserved: no payments, no push/SMS/WhatsApp, no PDF/CSV export, no automated moderation, no instructor financial history.
 
 Status: PASS

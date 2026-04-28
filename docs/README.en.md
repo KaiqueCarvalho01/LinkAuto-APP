@@ -124,6 +124,8 @@ Available diagrams:
 docker compose -f infra/docker-compose.yml up -d
 ```
 
+In development mode, backend startup now rebuilds the local SQLite database on each boot (`RESET_SQLITE_ON_STARTUP=true`), recreating `app.db` and base schema automatically.
+
 Services:
 
 - Frontend: [http://localhost:5173](http://localhost:5173)
@@ -153,6 +155,49 @@ npm run dev
 > [!TIP]
 > For auth flow validation with refresh cookie, keep both frontend and backend running with credentials enabled (already set in the HTTP client).
 
+## E2E testing (manual + automated)
+
+Initial setup (one time):
+
+```bash
+cd ../linkauto-frontend
+npm install
+npm run e2e:install
+```
+
+System dependencies (Linux, when required):
+
+```bash
+cd ../linkauto-frontend
+sudo npx playwright install-deps
+```
+
+For Arch Linux (including custom WSL2 setups), prefer installing via `yay`/AUR:
+
+```bash
+sudo pacman -Syy
+yay -S --needed atk at-spi2-core libxcomposite libxdamage libxfixes libxrandr mesa libxkbcommon alsa-lib
+```
+
+Run automated smoke flow (login + search + booking request):
+
+```bash
+cd ../linkauto-frontend
+npm run e2e
+```
+
+Suggested manual flow (with backend and frontend running):
+
+1. Open `/login`.
+2. Register an `ALUNO` account through `/api/v1/auth/register` (or use an existing account).
+3. Authenticate and confirm redirect to `/buscar`.
+4. Open an instructor from `Agendar`, select 2 consecutive slots, and confirm redirect to `/agendamentos`.
+
+Optional e2e environment variables:
+
+- `E2E_BASE_URL` (default: `http://127.0.0.1:5173`)
+- `E2E_API_BASE_URL` (default: `http://127.0.0.1:8000/api/v1`)
+
 ## Quality and tests
 
 Backend (contract + integration):
@@ -170,6 +215,13 @@ Frontend (baseline quality checks):
 cd ../linkauto-frontend
 npm run lint
 npm run build
+```
+
+Frontend (e2e smoke):
+
+```bash
+cd ../linkauto-frontend
+npm run e2e
 ```
 
 Current notable coverage includes:

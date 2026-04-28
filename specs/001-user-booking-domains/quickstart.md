@@ -23,6 +23,8 @@ Create environment files before running services.
 
 - APP_ENV=development
 - DATABASE_URL=sqlite:///./app.db
+- RESET_SQLITE_ON_STARTUP=true
+- `CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`
 - JWT_SECRET=change-me
 - JWT_ACCESS_MINUTES=15
 - JWT_REFRESH_DAYS=7
@@ -38,17 +40,43 @@ Create environment files before running services.
 
 ## Run Local Stack
 
-1. Start backend dependencies and API:
+1. Start backend and frontend:
    - docker compose -f infra/docker-compose.yml up -d
-2. Run database migrations:
-   - cd linkauto-backend
-   - alembic upgrade head
-3. Seed demo data:
-   - python scripts/seed_demo.py
-4. Start frontend:
+2. Backend startup in development will recreate SQLite (`app.db`) automatically when `RESET_SQLITE_ON_STARTUP=true`.
+3. Install frontend dependencies:
    - cd linkauto-frontend
    - npm install
-   - npm run dev
+
+## E2E Smoke (automated)
+
+1. Install Playwright browsers (once):
+   - cd linkauto-frontend
+   - npm run e2e:install
+2. Install system libs on Linux hosts (when required):
+   - cd linkauto-frontend
+   - sudo npx playwright install-deps
+   - Arch/WSL2 (AUR):
+     - sudo pacman -Syy
+     - yay -S --needed atk at-spi2-core libxcomposite libxdamage libxfixes libxrandr mesa libxkbcommon alsa-lib
+3. Run smoke e2e:
+   - npm run e2e
+
+Default targets:
+
+- Frontend: `http://127.0.0.1:5173`
+- API: `http://127.0.0.1:8000/api/v1`
+
+Optional overrides:
+
+- `E2E_BASE_URL`
+- `E2E_API_BASE_URL`
+
+Smoke coverage:
+
+- Register student account through API.
+- Login through UI.
+- Navigate search -> lesson details -> booking request.
+- Validate redirect to `/agendamentos`.
 
 ## Demo Script
 

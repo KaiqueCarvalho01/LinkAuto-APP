@@ -133,7 +133,7 @@ O produto oferece funcionalidades de busca geolocalizada, agendamento, avaliaç�
 
 | Código | Requisito |
 |---|---|
-| **RNF01** | **Stack:** Frontend em React(Vite, Tailwind CSS 4, ShadCN-ui, Leaflet) · Backend em Python (FastAPI, SQLAlchemy) · Banco de dados PostgreSQL + PostGIS para geolocalização |
+| **RNF01** | **Stack:** Frontend em React(Vite, Tailwind CSS 4, Chakra UI, Leaflet) · Backend em Python (FastAPI, SQLAlchemy) · Banco de dados PostgreSQL + PostGIS para geolocalização |
 | **RNF02** | **Performance:** Consultas de geolocalização (com PostGIS) devem retornar resultados em menos de 500ms |
 | **RNF03** | **Segurança:** Criptografia de senhas (bcrypt), HTTPS obrigatório, conformidade com a LGPD |
 | **RNF04** | **Responsividade:** Interface mobile-first, otimizada para uso em campo (aluno/instrutor em deslocamento) |

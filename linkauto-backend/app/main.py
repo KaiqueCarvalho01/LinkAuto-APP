@@ -1,14 +1,31 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import api_router
 from app.core import get_settings
+from app.core.dev_db import initialize_sqlite_dev_database
 from app.schemas.common import error_response
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title=settings.app_name)
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        initialize_sqlite_dev_database(settings)
+        yield
+
+    app = FastAPI(title=settings.app_name, lifespan=lifespan)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.include_router(api_router, prefix=settings.api_v1_prefix)
 
     @app.exception_handler(HTTPException)
