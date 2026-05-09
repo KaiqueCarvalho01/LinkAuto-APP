@@ -38,6 +38,8 @@ def create_app() -> FastAPI:
             meta=detail.get("meta"),
         )
 
+    ### Correção Smell
+    """"
     @app.exception_handler(RequestValidationError)
     async def handle_validation_exception(_: Request, exc: RequestValidationError):
         return error_response(
@@ -46,7 +48,26 @@ def create_app() -> FastAPI:
             status_code=422,
             meta={"issues": exc.errors()},
         )
+    """
+    
+    @app.exception_handler(RequestValidationError)
+    async def handle_validation_exception(_: Request, exc: RequestValidationError):
+        # Mapeia os erros de forma segura, escondendo chaves como 'input' ou 'url'
+        safe_issues = [
+            {
+                "campo": " -> ".join(map(str, err.get("loc", []))),
+                "mensagem": err.get("msg", "Valor inválido")
+            }
+            for err in exc.errors()
+        ]
 
+        return error_response(
+            code="VALIDATION_ERROR",
+            message="Request validation failed.",
+            status_code=422,
+            meta={"issues": safe_issues},
+        )
+    
     @app.get("/health", tags=["health"])
     def healthcheck() -> dict[str, str]:
         return {"status": "ok"}

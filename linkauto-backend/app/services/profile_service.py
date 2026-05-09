@@ -31,6 +31,9 @@ class ProfileService:
         user = self._store.update_profile(user_id, payload)
         return self._serialize_user(user)
 
+
+    ### Correção Smell
+    """"   
     def list_public_instructors(self) -> list[dict]:
         instructors = self._store.list_public_instructors()
         response: list[dict] = []
@@ -39,6 +42,24 @@ class ProfileService:
                 continue
             if user.instructor_profile.get("detran_status") != DetranStatus.APROVADO.value:
                 continue
+            response.append(
+                {
+                    "id": user.id,
+                    "email": user.email,
+                    "instructor_profile": user.instructor_profile,
+                }
+            )
+        return response """
+    
+    def list_public_instructors(self) -> list[dict]:
+        # O filtro passa a ser feito na query da base de dados (Store)
+        instructors = self._store.list_public_instructors(
+            required_status=DetranStatus.APROVADO.value
+        )
+        
+        response: list[dict] = []
+        for user in instructors:
+            # O serviço agora só mapeia os dados, sem percorrer "ifs" e gerar um gargalo de processamento
             response.append(
                 {
                     "id": user.id,

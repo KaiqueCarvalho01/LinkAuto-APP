@@ -10,10 +10,18 @@ from app.schemas.common import success_response
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+### Correção Smell
+""""
+class UserMePatchRequest(BaseModel):
+    model_config = ConfigDict(extra="allow") """
 
 class UserMePatchRequest(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
+    # Define explicitamente apenas os campos seguros para atualização
+    first_name: str | None = None
+    last_name: str | None = None
+    phone_number: str | None = None
+    
+    model_config = ConfigDict(extra="ignore") # Ignora campos extra maliciosos
 
 @router.get("/me")
 def get_me(
