@@ -23,6 +23,9 @@ from app.services.notification_service import (
     SESEmailGateway,
 )
 from app.services.us1_store import IdentityStore, get_identity_store
+from app.services.slot_service import SlotService, SlotOverlapError
+from app.services.penalty_service import PenaltyService
+from app.services.booking_service import BookingService, SlotValidationError, PenalizedStudentError
 
 __all__ = [
     "BookingLockService",
@@ -45,4 +48,10 @@ __all__ = [
     "InMemoryEmailGateway",
     "IdentityStore",
     "get_identity_store",
+    "SlotService",
+    "SlotOverlapError",
+    "PenaltyService",
+    "BookingService",
+    "SlotValidationError",
+    "PenalizedStudentError",
 ]
