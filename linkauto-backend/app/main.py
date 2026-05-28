@@ -47,6 +47,16 @@ def create_app() -> FastAPI:
             meta={"issues": exc.errors()},
         )
 
+    from sqlalchemy.exc import IntegrityError
+
+    @app.exception_handler(IntegrityError)
+    async def integrity_error_handler(_: Request, exc: IntegrityError):
+        return error_response(
+            code="CONFLICT",
+            message="Resource conflict — the operation could not be completed due to a constraint violation",
+            status_code=409,
+        )
+
     @app.get("/health", tags=["health"])
     def healthcheck() -> dict[str, str]:
         return {"status": "ok"}
