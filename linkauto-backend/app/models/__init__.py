@@ -3,6 +3,8 @@ from app.models.instructor_document import InstructorDocument, InstructorDocumen
 from app.models.user import DetranStatus, InstructorProfile, LicenseType, StudentProfile, User, UserRole
 from app.models.slot import Slot, SlotStatus
 from app.models.booking import Booking, BookingSlot, StudentPenalty, CancelledBy
+from app.models.booking_message import BookingMessage
+from app.models.review import Review
 
 __all__ = [
     "Base",
@@ -24,4 +26,6 @@ __all__ = [
     "BookingSlot",
     "StudentPenalty",
     "CancelledBy",
+    "BookingMessage",
+    "Review",
 ]

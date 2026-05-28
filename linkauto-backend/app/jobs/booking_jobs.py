@@ -38,6 +38,23 @@ def run_booking_completion(
     result = scheduler.run_confirmed_completion()
     db.commit()
     return success_response(
-        {"processed": result.processed, "errors": result.errors},
+        {"processed": result.processed, "errors": result.booking_ids},
+        meta={},
+    )
+
+
+@router.post("/jobs/booking-reminder")
+def run_booking_reminder(
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    _authz=Depends(require_roles("ADMIN")),
+    db: Session = Depends(get_db),
+):
+    port = SqlAlchemyBookingAutomationPort(db)
+    from app.services.dependencies import get_notification_service
+    scheduler = BookingScheduler(port, notification_service=get_notification_service())
+    result = scheduler.run_lesson_reminders()
+    db.commit()
+    return success_response(
+        {"processed": result.processed, "booking_ids": result.booking_ids},
         meta={},
     )

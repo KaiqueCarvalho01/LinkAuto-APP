@@ -26,6 +26,8 @@ from app.services.us1_store import IdentityStore, get_identity_store
 from app.services.slot_service import SlotService, SlotOverlapError
 from app.services.penalty_service import PenaltyService
 from app.services.booking_service import BookingService, SlotValidationError, PenalizedStudentError
+from app.services.booking_message_service import BookingMessageService, BookingMessageAccessError
+from app.services.review_service import ReviewService, ReviewAccessError, ReviewStateError, ReviewDuplicateError
 
 __all__ = [
     "BookingLockService",
@@ -54,4 +56,10 @@ __all__ = [
     "BookingService",
     "SlotValidationError",
     "PenalizedStudentError",
+    "BookingMessageService",
+    "BookingMessageAccessError",
+    "ReviewService",
+    "ReviewAccessError",
+    "ReviewStateError",
+    "ReviewDuplicateError",
 ]
