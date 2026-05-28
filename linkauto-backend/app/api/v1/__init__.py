@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1 import admin_instructors, auth, foundation, instructor_documents, users, slots, bookings, admin_bookings, instructor_search
+from app.jobs import booking_jobs
 
 api_v1_router = APIRouter()
 api_v1_router.include_router(foundation.router)
@@ -12,5 +13,6 @@ api_v1_router.include_router(slots.router)
 api_v1_router.include_router(bookings.router)
 api_v1_router.include_router(admin_bookings.router)
 api_v1_router.include_router(instructor_search.router)
+api_v1_router.include_router(booking_jobs.router)
 
 __all__ = ["api_v1_router"]
