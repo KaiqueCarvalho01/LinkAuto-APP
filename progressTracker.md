@@ -11,9 +11,9 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 | Phase 1 - Setup | Concluída | T001-T006 finalizadas |
 | Phase 2 - Foundational | Concluída | T007-T017 finalizadas e validadas |
 | Phase 3 - US1 | Concluída | T018-T029 + T056/T057 finalizadas |
-| Phase 4 - US2 | Em andamento | Frontend US2 preview e base backend (modelos, schemas, serviços) concluídos; implementando rotas |
-| Phase 5 - US3 | Pendente | Bloqueada por dependência |
-| Phase 6 - Polish | Pendente | Bloqueada por dependência |
+| Phase 4 - US2 | Concluída | Backend e Frontend US2 completos, com todos os testes validados (67 testes verdes) |
+| Phase 5 - US3 | Concluída | Mensagens, avaliações, lembrete 24h e 8 tipos de notificações de e-mail (94 testes verdes) |
+| Phase 6 - Polish | Em andamento | Polimento e validação de regressão finalizada no backend |
 
 ## Iterações
 
@@ -125,4 +125,33 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - **`PenaltyService`:** Valida bloqueios ativos e aplica suspensão de 7 dias conforme a regra **RN04**.
   - **`BookingService`:** Gerencia o ciclo de vida das reservas. Valida restrições geográficas futuras, consecutividade de slots, integridade de instrutor, bloqueio preventivo de alunos penalizados, transições de estado robustas e aplicação de penalidade caso o cancelamento ocorra a menos de 24 horas da aula (**RN04**).
 - Cobertura de testes unitários expandida em TDD (RED-GREEN): 22 novos testes passando com sucesso, totalizando 45 testes unitários e de integração verdes e validados.
+
+### Iteração 7 (US2 Backend Completo e Integração de Testes)
+
+- Concluída a implementação integral do backend para a US2 (Booking & Scheduling):
+  - Endpoints REST `/slots` e `/bookings` fully functional (`app/api/v1/slots.py`, `app/api/v1/bookings.py`).
+  - Geosearch de instrutores ativos e aprovados utilizando fórmula de Haversine (`app/api/v1/instructor_search.py`, `app/services/instructor_search_service.py`).
+  - Tarefas de automação (timeout 24h e conclusão automática após +2h) com endpoints administrativos expostos (`app/jobs/booking_jobs.py`).
+  - Handler global de erros traduzindo `IntegrityError` do SQLAlchemy em resposta estruturada de `409 Conflict`.
+- Execução e validação da suíte completa de testes:
+  - 67 testes passando com 100% de sucesso (unitários, integração, contratos e regressão).
+  - Cobertura total blindada contra regressão de agendamentos.
+
+### Iteração 8 (US3 Backend - Chat de Mensagens, Avaliações Mútuas e E-mails)
+
+- Concluída a implementação integral do backend para a US3 (Messages, Reviews & Notifications):
+  - **Modelagem ORM & Migrações:** Criadas as tabelas `booking_messages` e `reviews` com restrições exclusivas (uma avaliação por sentido por agendamento) e índices compostos otimizados.
+  - **UTC Datetime Serialization:** Serialização centralizada com Pydantic para garantir que todos os datetimes terminem estritamente com o sufixo ISO 8601 `Z` (UTC).
+  - **Serviços de Negócio:**
+    - `BookingMessageService` gerenciando envio e listagem cronológica do chat, disparando e-mail de notificação.
+    - `ReviewService` tratando avaliações mútuas apenas para status `REALIZADA`, atualizando atomicamente média/contador do instrutor no `InstructorProfile`.
+  - **Catálogo de Notificações por E-mail:** Implementação de 8 tipos de e-mails em todo o ciclo de vida (pendente, confirmação, cancelamentos, nova mensagem, avaliação, lembrete).
+  - **Lesson Reminder Job:** Job/endpoint cron `/jobs/booking-reminder` que varre agendamentos confirmados e envia avisos 24 horas antes do início da aula.
+  - **API Routers protegidos:** Endpoints `/bookings/{id}/messages` e `/bookings/{id}/reviews` com RBAC rigoroso impedindo acesso por terceiros (retornando 403/404).
+
+### Iteração 9 (Polimento, Ruff e Garantia de Qualidade)
+
+- Rodada a suíte completa de testes unitários, contratos e fluxos integrados: **todos os 94 testes passando com 100% de sucesso**.
+- Validada a conformidade de linter com Ruff (`ruff check .`), limpando todas as importações e dependências não utilizadas.
+- Feito o hardening de segurança conforme as diretrizes do `docs/SECURITY_TECHNIQUES.md`.
 

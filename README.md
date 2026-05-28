@@ -13,6 +13,7 @@ Navegacao rapida:
 - [Status atual](#status-atual)
 - [Como executar](#como-executar-localmente)
 - [Qualidade e testes](#qualidade-e-testes)
+- [Seguranca](docs/SECURITY_TECHNIQUES.md)
 
 ![LinkAuto Banner](docs/images/LinkAuto-banner.webp)
 
@@ -38,6 +39,7 @@ Referencias principais:
 - [specs/001-user-booking-domains/plan.md](specs/001-user-booking-domains/plan.md)
 - [specs/001-user-booking-domains/tasks.md](specs/001-user-booking-domains/tasks.md)
 - [specs/001-user-booking-domains/contracts/api-v1-openapi.yaml](specs/001-user-booking-domains/contracts/api-v1-openapi.yaml)
+- [docs/SECURITY_TECHNIQUES.md](docs/SECURITY_TECHNIQUES.md)
 
 ## Status atual
 

@@ -90,24 +90,24 @@
 
 ### Tests for User Story 2
 
-- [ ] T030 [P] [US2] Add contract tests for /instructors/*/slots, /bookings, /bookings/{id}/confirm, /bookings/{id}/cancel, and /admin/bookings/{id}/override-status in linkauto-backend/tests/contract/test_us2_booking_contract.py
-- [ ] T031 [P] [US2] Add integration tests for RN02, RN03, RN04, penalty window, first-write-wins, and `IntegrityError` to 409 mapping in linkauto-backend/tests/integration/test_us2_booking_rules.py
+- [x] T030 [P] [US2] Add contract tests for /instructors/*/slots, /bookings, /bookings/{id}/confirm, /bookings/{id}/cancel, and /admin/bookings/{id}/override-status in linkauto-backend/tests/contract/test_us2_booking_contract.py
+- [x] T031 [P] [US2] Add integration tests for RN02, RN03, RN04, penalty window, first-write-wins, and `IntegrityError` to 409 mapping in linkauto-backend/tests/integration/test_us2_booking_rules.py
 
 ### Implementation for User Story 2
 
-- [ ] T032 [P] [US2] Create Slot and booking_slots persistence models in linkauto-backend/app/models/slot.py and linkauto-backend/app/models/booking_slot.py
-- [ ] T033 [P] [US2] Create Booking and StudentPenalty models in linkauto-backend/app/models/booking.py
-- [ ] T058 [US2] Add database constraints for RN03 slot uniqueness and booking slot consistency in linkauto-backend/alembic/versions/0002_booking_constraints.py
-- [ ] T034 [US2] Implement slot service with 1h invariant and non-overlap checks in linkauto-backend/app/services/slot_service.py
-- [ ] T035 [US2] Implement booking service (create/list/detail/confirm/cancel) with atomic reservation in linkauto-backend/app/services/booking_service.py
-- [ ] T059 [US2] Implement `IntegrityError` handling mapped to standardized 409 conflict envelope in linkauto-backend/app/api/v1/slots.py and linkauto-backend/app/api/v1/bookings.py
-- [ ] T036 [US2] Implement booking timeout and +2h completion jobs with admin override hooks in linkauto-backend/app/jobs/booking_jobs.py
-- [ ] T037 [US2] Implement slots and bookings API endpoints in linkauto-backend/app/api/v1/slots.py and linkauto-backend/app/api/v1/bookings.py
-- [ ] T060 [US2] Implement admin booking override endpoint and service in linkauto-backend/app/api/v1/admin_bookings.py and linkauto-backend/app/services/admin_booking_service.py
-- [ ] T038 [US2] Implement approved-only geosearch service with SQLite fallback and PostGIS-ready strategy in linkauto-backend/app/services/instructor_search_service.py
-- [ ] T039 [US2] Implement instructor search endpoint in linkauto-backend/app/api/v1/instructor_search.py
-- [ ] T040 [US2] Implement frontend search and booking flows in linkauto-frontend/src/pages/SearchPage.jsx, linkauto-frontend/src/pages/LessonDetails.jsx, and linkauto-frontend/src/pages/MyLessons.jsx
-- [ ] T041 [US2] Add booking cascade regression suite to protect downstream stories from Booking core changes in linkauto-backend/tests/integration/test_booking_cascade_regression.py
+- [x] T032 [P] [US2] Create Slot and booking_slots persistence models in linkauto-backend/app/models/slot.py and linkauto-backend/app/models/booking_slot.py
+- [x] T033 [P] [US2] Create Booking and StudentPenalty models in linkauto-backend/app/models/booking.py
+- [x] T058 [US2] Add database constraints for RN03 slot uniqueness and booking slot consistency in linkauto-backend/alembic/versions/0002_booking_constraints.py
+- [x] T034 [US2] Implement slot service with 1h invariant and non-overlap checks in linkauto-backend/app/services/slot_service.py
+- [x] T035 [US2] Implement booking service (create/list/detail/confirm/cancel) with atomic reservation in linkauto-backend/app/services/booking_service.py
+- [x] T059 [US2] Implement `IntegrityError` handling mapped to standardized 409 conflict envelope in linkauto-backend/app/api/v1/slots.py and linkauto-backend/app/api/v1/bookings.py
+- [x] T036 [US2] Implement booking timeout and +2h completion jobs with admin override hooks in linkauto-backend/app/jobs/booking_jobs.py
+- [x] T037 [US2] Implement slots and bookings API endpoints in linkauto-backend/app/api/v1/slots.py and linkauto-backend/app/api/v1/bookings.py
+- [x] T060 [US2] Implement admin booking override endpoint and service in linkauto-backend/app/api/v1/admin_bookings.py and linkauto-backend/app/services/admin_booking_service.py
+- [x] T038 [US2] Implement approved-only geosearch service with SQLite fallback and PostGIS-ready strategy in linkauto-backend/app/services/instructor_search_service.py
+- [x] T039 [US2] Implement instructor search endpoint in linkauto-backend/app/api/v1/instructor_search.py
+- [x] T040 [US2] Implement frontend search and booking flows in linkauto-frontend/src/pages/SearchPage.jsx, linkauto-frontend/src/pages/LessonDetails.jsx, and linkauto-frontend/src/pages/MyLessons.jsx
+- [x] T041 [US2] Add booking cascade regression suite to protect downstream stories from Booking core changes in linkauto-backend/tests/integration/test_booking_cascade_regression.py
 
 **Checkpoint**: US2 stable and independently testable; Booking core considered stable baseline for dependent flows.
 
@@ -121,17 +121,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T042 [P] [US3] Add contract tests for /bookings/{id}/messages, /bookings/{id}/reviews, and /instructors/{id}/reviews in linkauto-backend/tests/contract/test_us3_message_review_contract.py
-- [ ] T043 [P] [US3] Add integration tests for message timeline, SES triggers, and review gating in linkauto-backend/tests/integration/test_us3_message_review_flow.py
+- [x] T042 [P] [US3] Add contract tests for /bookings/{id}/messages, /bookings/{id}/reviews, and /instructors/{id}/reviews in linkauto-backend/tests/contract/test_us3_message_review_contract.py
+- [x] T043 [P] [US3] Add integration tests for message timeline, SES triggers, and review gating in linkauto-backend/tests/integration/test_us3_message_review_flow.py
 
 ### Implementation for User Story 3
 
-- [ ] T044 [P] [US3] Create BookingMessage and Review models in linkauto-backend/app/models/booking_message.py and linkauto-backend/app/models/review.py
-- [ ] T045 [US3] Implement booking message thread service and pagination in linkauto-backend/app/services/booking_message_service.py
-- [ ] T046 [US3] Implement message thread API endpoints in linkauto-backend/app/api/v1/booking_messages.py
-- [ ] T047 [US3] Implement review service with REALIZADA gate and uniqueness checks in linkauto-backend/app/services/review_service.py
-- [ ] T048 [US3] Implement review create/list endpoints for booking and instructor profile in linkauto-backend/app/api/v1/reviews.py
-- [ ] T049 [US3] Implement event-driven SES handlers for booking/message/review notifications in linkauto-backend/app/services/notification_handlers.py
+- [x] T044 [P] [US3] Create BookingMessage and Review models in linkauto-backend/app/models/booking_message.py and linkauto-backend/app/models/review.py
+- [x] T045 [US3] Implement booking message thread service and pagination in linkauto-backend/app/services/booking_message_service.py
+- [x] T046 [US3] Implement message thread API endpoints in linkauto-backend/app/api/v1/booking_messages.py
+- [x] T047 [US3] Implement review service with REALIZADA gate and uniqueness checks in linkauto-backend/app/services/review_service.py
+- [x] T048 [US3] Implement review create/list endpoints for booking and instructor profile in linkauto-backend/app/api/v1/reviews.py
+- [x] T049 [US3] Implement event-driven SES handlers for booking/message/review notifications in linkauto-backend/app/services/notification_handlers.py
 - [ ] T050 [US3] Implement frontend booking thread and post-lesson rating UX in linkauto-frontend/src/components/RatingModal.jsx, linkauto-frontend/src/components/ConfirmationModal.jsx, and linkauto-frontend/src/pages/LessonDetails.jsx
 
 **Checkpoint**: US3 stable and independently testable.
@@ -147,8 +147,8 @@
 - [ ] T053 Harden structured logging and trace IDs for booking-critical flows in linkauto-backend/app/core/logging.py
 - [ ] T054 Validate constitutional guardrails and record evidence in specs/001-user-booking-domains/compliance.md
 - [ ] T055 Run full backend and frontend verification suites via linkauto-backend/tests and linkauto-frontend/tests and document result in specs/001-user-booking-domains/quickstart.md
-- [ ] T061 [P] Add contract tests for ISO 8601 UTC serialization in booking/slot/message envelopes in linkauto-backend/tests/contract/test_datetime_utc_contract.py
-- [ ] T062 [P] Implement shared UTC datetime serialization helpers and schema adapters in linkauto-backend/app/schemas/datetime.py and linkauto-backend/app/schemas/common.py
+- [x] T061 [P] Add contract tests for ISO 8601 UTC serialization in booking/slot/message envelopes in linkauto-backend/tests/contract/test_datetime_utc_contract.py
+- [x] T062 [P] Implement shared UTC datetime serialization helpers and schema adapters in linkauto-backend/app/schemas/datetime.py and linkauto-backend/app/schemas/common.py
 
 ---
 
