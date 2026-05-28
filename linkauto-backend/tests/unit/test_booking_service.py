@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from app.domain.booking import BookingStatus
-from app.models.booking import Booking, CancelledBy
 from app.models.slot import Slot, SlotStatus
 from app.models.user import (
     DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
@@ -127,3 +126,64 @@ class TestBookingServiceCancel:
         assert cancelled.status == BookingStatus.CANCELADA.value
         from app.services.penalty_service import PenaltyService
         assert PenaltyService(db_session).is_penalized("stu-001") is True
+
+
+class TestBookingServiceNotifications:
+    def test_create_booking_dispatches_notification(self, db_session):
+        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        gateway = InMemoryEmailGateway()
+        notification_svc = NotificationService(email_gateway=gateway)
+
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001")
+        service = BookingService(db_session, notification_service=notification_svc)
+
+        service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+
+        # Verify new pending booking notification sent to instructor
+        assert len(gateway.sent_messages) == 1
+        email = gateway.sent_messages[0]
+        assert email["recipients"] == ["inst@test.com"]
+        assert "pendente" in email["body"]
+
+    def test_confirm_booking_dispatches_notification(self, db_session):
+        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        gateway = InMemoryEmailGateway()
+        notification_svc = NotificationService(email_gateway=gateway)
+
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001")
+        service = BookingService(db_session, notification_service=notification_svc)
+
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+        gateway.sent_messages.clear() # Clear create_booking notification
+
+        service.confirm_booking(booking.id, "inst-001")
+
+        # Verify confirmation notification sent to student
+        assert len(gateway.sent_messages) == 1
+        email = gateway.sent_messages[0]
+        assert email["recipients"] == ["stu@test.com"]
+        assert "confirmada" in email["body"]
+
+    def test_cancel_booking_dispatches_notification(self, db_session):
+        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        gateway = InMemoryEmailGateway()
+        notification_svc = NotificationService(email_gateway=gateway)
+
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001", base_offset_hours=48)
+        service = BookingService(db_session, notification_service=notification_svc)
+
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+        service.confirm_booking(booking.id, "inst-001")
+        gateway.sent_messages.clear()
+
+        service.cancel_booking(booking.id, "stu-001", "ALUNO", reason="Preciso cancelar")
+
+        # Verify cancel notification sent to instructor
+        assert len(gateway.sent_messages) == 1
+        email = gateway.sent_messages[0]
+        assert email["recipients"] == ["inst@test.com"]
+        assert "cancelado" in email["body"]
+        assert "Preciso cancelar" in email["body"]

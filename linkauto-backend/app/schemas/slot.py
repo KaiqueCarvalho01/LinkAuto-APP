@@ -4,10 +4,12 @@ from datetime import datetime, timedelta, timezone
 
 from pydantic import BaseModel, field_validator, model_validator
 
+from app.schemas.datetime import UtcDateTime
+
 
 class SlotCreateRequest(BaseModel):
-    starts_at: datetime
-    ends_at: datetime
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
 
     @field_validator("starts_at")
     @classmethod
@@ -28,8 +30,8 @@ class SlotCreateRequest(BaseModel):
 class SlotResource(BaseModel):
     id: str
     instructor_id: str
-    starts_at: datetime
-    ends_at: datetime
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
     status: str
 
     model_config = {"from_attributes": True}

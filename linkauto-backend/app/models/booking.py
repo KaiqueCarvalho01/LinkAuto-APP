@@ -35,6 +35,7 @@ class Booking(AuditUUIDBase):
     )
     cancelled_by: Mapped[str | None] = mapped_column(String(20), nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reminder_sent: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     slots = relationship("BookingSlot", back_populates="booking", cascade="all, delete-orphan")
 

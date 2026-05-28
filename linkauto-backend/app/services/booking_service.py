@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
+from app.models.user import User
 from app.services.penalty_service import PenaltyService
+from app.services.notification_service import NotificationService, NotificationPayload, NotificationEvent
 
 CANCELLATION_NOTICE_HOURS = 24
 
@@ -21,9 +23,14 @@ class PenalizedStudentError(ValueError):
 
 
 class BookingService:
-    def __init__(self, db: Session):
+    def __init__(
+        self,
+        db: Session,
+        notification_service: NotificationService | None = None,
+    ) -> None:
         self._db = db
         self._penalty = PenaltyService(db)
+        self._notification_service = notification_service
 
     def create_booking(
         self,
@@ -92,6 +99,18 @@ class BookingService:
             self._db.add(link)
         self._db.flush()
 
+        # FR-021: trigger email notification to instructor
+        instructor_user = self._db.query(User).filter(User.id == instructor_id).first()
+        if instructor_user and self._notification_service:
+            self._notification_service.dispatch(
+                NotificationPayload(
+                    event=NotificationEvent.NEW_PENDING_BOOKING,
+                    subject="Nova reserva pendente",
+                    body=f"Você tem um novo agendamento pendente criado pelo aluno {student_id}.",
+                    recipients=[instructor_user.email],
+                )
+            )
+
         return booking
 
     def confirm_booking(self, booking_id: str, instructor_id: str) -> Booking:
@@ -105,6 +124,19 @@ class BookingService:
         booking.status = new_status.value
         booking.confirmed_at = datetime.now(timezone.utc)
         self._db.flush()
+
+        # FR-021: trigger email notification to student
+        student_user = self._db.query(User).filter(User.id == booking.student_id).first()
+        if student_user and self._notification_service:
+            self._notification_service.dispatch(
+                NotificationPayload(
+                    event=NotificationEvent.BOOKING_CONFIRMED,
+                    subject="Sua aula foi confirmada",
+                    body=f"Sua solicitação de agendamento {booking_id} foi confirmada pelo instrutor {instructor_id}.",
+                    recipients=[student_user.email],
+                )
+            )
+
         return booking
 
     def cancel_booking(
@@ -150,6 +182,35 @@ class BookingService:
                     )
 
         self._db.flush()
+
+        # FR-021: trigger email notification to student and/or instructor
+        recipients = []
+        if cancelled_by == CancelledBy.ALUNO.value:
+            instructor_user = self._db.query(User).filter(User.id == booking.instructor_id).first()
+            if instructor_user:
+                recipients.append(instructor_user.email)
+        elif cancelled_by == CancelledBy.INSTRUTOR.value:
+            student_user = self._db.query(User).filter(User.id == booking.student_id).first()
+            if student_user:
+                recipients.append(student_user.email)
+        else: # SISTEMA (timeouts)
+            student_user = self._db.query(User).filter(User.id == booking.student_id).first()
+            instructor_user = self._db.query(User).filter(User.id == booking.instructor_id).first()
+            if student_user:
+                recipients.append(student_user.email)
+            if instructor_user:
+                recipients.append(instructor_user.email)
+
+        if recipients and self._notification_service:
+            self._notification_service.dispatch(
+                NotificationPayload(
+                    event=NotificationEvent.BOOKING_CANCELLED,
+                    subject="Sua aula foi cancelada",
+                    body=f"O agendamento {booking_id} foi cancelado por {cancelled_by}. Motivo: {reason or ''}",
+                    recipients=recipients,
+                )
+            )
+
         return booking
 
     def get_booking(self, booking_id: str) -> Booking | None:

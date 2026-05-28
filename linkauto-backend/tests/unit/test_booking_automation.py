@@ -63,3 +63,28 @@ class TestBookingAutomationPort:
         db_session.refresh(booking)
         assert booking.status == BookingStatus.REALIZADA.value
         assert result.processed == 1
+
+
+    def test_lesson_reminder_cron_triggers(self, db_session):
+        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        gateway = InMemoryEmailGateway()
+        notification_svc = NotificationService(email_gateway=gateway)
+
+        booking = _seed_full_booking(db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=24, booking_id="book-reminder")
+        
+        port = SqlAlchemyBookingAutomationPort(db_session)
+        scheduler = BookingScheduler(port, notification_service=notification_svc)
+
+        result = scheduler.run_lesson_reminders()
+
+        db_session.refresh(booking)
+        assert booking.reminder_sent is True
+        assert result.processed == 1
+        
+        # Verify emails sent to both student and instructor
+        assert len(gateway.sent_messages) == 1
+        email = gateway.sent_messages[0]
+        # Should contain both recipients
+        assert "autostu@t.com" in email["recipients"]
+        assert "autoinst@t.com" in email["recipients"]
+        assert "Lembrete" in email["subject"]

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from app.models.slot import Slot, SlotStatus
-from app.models.booking import Booking, BookingSlot, StudentPenalty, CancelledBy
+from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.domain.booking import BookingStatus
 
 

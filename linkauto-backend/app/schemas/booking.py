@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
 
 from pydantic import BaseModel, field_validator
+
+from app.schemas.datetime import UtcDateTime
 
 
 class BookingCreateRequest(BaseModel):
@@ -55,9 +56,9 @@ class BookingResource(BaseModel):
     location_description: str | None = None
     latitude: float | None = None
     longitude: float | None = None
-    created_at: datetime
-    confirmed_at: datetime | None = None
-    cancelled_at: datetime | None = None
+    created_at: UtcDateTime
+    confirmed_at: UtcDateTime | None = None
+    cancelled_at: UtcDateTime | None = None
     cancelled_by: str | None = None
     cancellation_reason: str | None = None
 

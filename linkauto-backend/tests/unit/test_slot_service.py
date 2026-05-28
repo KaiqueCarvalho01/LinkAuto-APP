@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.models.slot import Slot, SlotStatus
+from app.models.slot import SlotStatus
 from app.models.user import InstructorProfile, User, UserRole, DetranStatus
 from app.services.slot_service import SlotService, SlotOverlapError
 

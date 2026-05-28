@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from app.domain.booking import BookingStatus, BookingTransitionError, transition_booking
-from app.models.booking import Booking
 from app.models.slot import Slot, SlotStatus
 from app.models.user import (
     DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
