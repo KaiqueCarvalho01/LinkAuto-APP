@@ -50,7 +50,7 @@ Referencias principais:
 | Phase 1 - Setup | Concluida |
 | Phase 2 - Foundational | Concluida |
 | Phase 3 - US1 | Concluida |
-| Phase 4 - US2 | Pendente |
+| Phase 4 - US2 | Concluída |
 | Phase 5 - US3 | Pendente |
 | Phase 6 - Polish | Pendente |
 
@@ -234,11 +234,10 @@ Coberturas relevantes ja presentes:
 
 ## Roadmap imediato
 
-Itens das proximas fases:
+Itens das próximas fases:
 
-- US2: slots, booking, penalties, conflitos e override administrativo de booking
-- US3: mensagens por booking, reviews apos REALIZADA e eventos de notificacao completos
-- Polish: hardening, regressao em cascata no Booking core e validacao final
+- US3: mensagens por agendamento, reviews após REALIZADA e eventos de notificação completos
+- Polish: hardening, regressão em cascata no Booking core e validação final
 
 Regra de execucao por dependencia:
 
