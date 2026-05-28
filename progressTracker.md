@@ -11,7 +11,7 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 | Phase 1 - Setup | Concluída | T001-T006 finalizadas |
 | Phase 2 - Foundational | Concluída | T007-T017 finalizadas e validadas |
 | Phase 3 - US1 | Concluída | T018-T029 + T056/T057 finalizadas |
-| Phase 4 - US2 | Em andamento | Frontend US2 preview concluído; infraestrutura DEV/e2e iniciada |
+| Phase 4 - US2 | Em andamento | Frontend US2 preview e base backend (modelos, schemas, serviços) concluídos; implementando rotas |
 | Phase 5 - US3 | Pendente | Bloqueada por dependência |
 | Phase 6 - Polish | Pendente | Bloqueada por dependência |
 
@@ -106,3 +106,23 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - `README.md`
   - `docs/README.en.md`
   - `specs/001-user-booking-domains/quickstart.md`
+
+### Iteração 6 (US2 Backend - Fundação, Modelos e Serviços de Booking)
+
+- Criada branch de isolamento de desenvolvimento `feature/us2-booking-scheduling`.
+- Implementada infraestrutura de banco de dados e testes integrados para US2:
+  - Definida dependência FastAPI `get_db()` usando sessões síncronas do SQLAlchemy 2.0 (`app/core/database.py`).
+  - Desenvolvidas fixtures transacionais isoladas (`tests/conftest_db.py`, `tests/conftest.py`) com rollback automático para testes com banco SQLite em memória.
+- Implementada modelagem de dados sintonizada com PostgreSQL / SQLite com integridade referencial:
+  - Novos modelos ORM mapeados: `Slot` (status DISPONIVEL/RESERVADO/BLOQUEADO), `Booking` (status PENDENTE/CONFIRMADA/REALIZADA/CANCELADA), tabela de associação única `BookingSlot` e `StudentPenalty` (`app/models/slot.py`, `app/models/booking.py`).
+  - Adicionada migration Alembic `0002_booking_constraints.py` para as quatro novas tabelas, com índices compostos otimizados para busca e performance.
+- Implementados schemas Pydantic blindados contra Mass Assignment (Task 4) com validações robustas:
+  - Validação estrita de duração de **exatamente 1 hora** para slots individuais (`app/schemas/slot.py`).
+  - Validação de limite mínimo de **2 slots consecutivos** para solicitações de reserva (`app/schemas/booking.py`).
+  - Schemas administrativos estritos blindando transições de status apenas para estados terminais.
+- Implementados serviços de negócio com as regras especificadas e validações em profundidade (Defense in Depth):
+  - **`SlotService`:** Garante criação, listagem e exclusão segura de slots com checagem de sobreposição por instrutor.
+  - **`PenaltyService`:** Valida bloqueios ativos e aplica suspensão de 7 dias conforme a regra **RN04**.
+  - **`BookingService`:** Gerencia o ciclo de vida das reservas. Valida restrições geográficas futuras, consecutividade de slots, integridade de instrutor, bloqueio preventivo de alunos penalizados, transições de estado robustas e aplicação de penalidade caso o cancelamento ocorra a menos de 24 horas da aula (**RN04**).
+- Cobertura de testes unitários expandida em TDD (RED-GREEN): 22 novos testes passando com sucesso, totalizando 45 testes unitários e de integração verdes e validados.
+
