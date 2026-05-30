@@ -54,7 +54,12 @@ def seed_dev_data(session: Session) -> None:
             is_active=True,
         )
         session.add(admin_user)
-        session.flush()
+    else:
+        # Force updates to ensure credentials and roles are always synchronized in dev
+        admin_user.password_hash = hash_password("password123")
+        admin_user.roles = [UserRole.ADMIN.value]
+        admin_user.is_active = True
+    session.flush()
 
     # 2. Student user
     student_user = session.query(User).filter_by(email="aluno@linkauto.com.br").first()
@@ -77,6 +82,11 @@ def seed_dev_data(session: Session) -> None:
             license_type=LicenseType.EM_PROCESSO,
         )
         session.add(student_profile)
+    else:
+        # Force updates to ensure credentials are synchronized in dev
+        student_user.password_hash = hash_password("password123")
+        student_user.roles = [UserRole.ALUNO.value]
+        student_user.is_active = True
 
     # 3. Instructor 1: Camila Rocha
     inst1_user = session.query(User).filter_by(email="camila@linkauto.com.br").first()
