@@ -7,10 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import api_router
 from app.core import get_settings
 from app.core.dev_db import initialize_sqlite_dev_database
+from app.core.logging import CorrelationIDMiddleware, setup_logging
 from app.schemas.common import error_response
 
 
 def create_app() -> FastAPI:
+    setup_logging()
     settings = get_settings()
 
     @asynccontextmanager
@@ -19,6 +21,7 @@ def create_app() -> FastAPI:
         yield
 
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
+    app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
