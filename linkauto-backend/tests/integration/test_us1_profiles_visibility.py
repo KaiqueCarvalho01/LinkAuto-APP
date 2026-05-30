@@ -57,8 +57,15 @@ def test_multi_role_profile_updates_keep_other_profile_intact():
 
 
 def test_non_approved_instructor_hidden_from_public_list_until_admin_approval():
+    from app.services.us1_store import get_identity_store
+    from app.core.security import hash_password
+
     instructor = _register_user("hidden-instructor@example.com", ["INSTRUTOR"])
-    _register_user("admin@example.com", ["ADMIN"])
+    get_identity_store().create_user(
+        email="admin@example.com",
+        password_hash=hash_password("strong-password"),
+        roles=["ADMIN"]
+    )
 
     admin_login = _login("admin@example.com")
     admin_headers = {"Authorization": f"Bearer {admin_login.json()['data']['access_token']}"}

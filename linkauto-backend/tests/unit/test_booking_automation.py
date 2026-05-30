@@ -88,3 +88,44 @@ class TestBookingAutomationPort:
         assert "autostu@t.com" in email["recipients"]
         assert "autoinst@t.com" in email["recipients"]
         assert "Lembrete" in email["subject"]
+
+
+class FailingBookingAutomationPort:
+    def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
+        return ["book-failed", "book-success"]
+
+    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
+        if booking_id == "book-failed":
+            raise RuntimeError("Database connection timed out for this item")
+        return
+
+    def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
+        return []
+
+    def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
+        return []
+
+    def mark_reminder_sent(self, booking_id: str) -> None:
+        pass
+
+    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
+        return None, None
+
+
+def test_scheduler_pending_timeout_resilience_per_item():
+    """
+    D13 - P2: Resiliência per-item no scheduler.
+    Garante que se uma transição de booking falhar, o lote continue sendo processado
+    para os próximos itens, retornando contadores adequados de processados e falhos.
+    """
+    port = FailingBookingAutomationPort()
+    scheduler = BookingScheduler(port)
+    
+    result = scheduler.run_pending_timeout()
+    
+    # Deve reportar 1 processado com sucesso, 1 falhado
+    assert result.processed == 1
+    assert result.failed == 1
+    assert result.booking_ids == ["book-success"]
+    assert result.failed_booking_ids == ["book-failed"]
+
