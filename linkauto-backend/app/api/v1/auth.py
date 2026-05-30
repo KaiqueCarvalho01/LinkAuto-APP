@@ -8,6 +8,8 @@ from app.services.auth_service import AuthService
 from app.services.dependencies import get_auth_service, get_profile_service
 from app.services.profile_service import ProfileService
 from app.schemas.common import success_response
+from app.core.security_logger import log_auth_success, log_auth_failure
+from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,7 +44,9 @@ def _set_refresh_cookie(
 
 
 @router.post("/register")
+@limiter.limit("5/minute")
 def register(
+    request: Request,
     payload: RegisterRequest,
     auth_service: AuthService = Depends(get_auth_service),
     profile_service: ProfileService = Depends(get_profile_service),
@@ -58,15 +62,19 @@ def register(
 
 
 @router.post("/login")
+@limiter.limit("10/minute")
 def login(
     payload: LoginRequest,
     request: Request,
     auth_service: AuthService = Depends(get_auth_service),
     settings: Settings = Depends(get_settings),
 ) -> Response:
+    client_ip = request.client.host if request.client else "unknown"
     try:
         tokens = auth_service.login(email=payload.email, password=payload.password)
+        log_auth_success(email=payload.email, ip=client_ip)
     except ValueError as exc:
+        log_auth_failure(email=payload.email, ip=client_ip)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "UNAUTHORIZED", "message": str(exc)},
@@ -84,6 +92,7 @@ def login(
 
 
 @router.post("/refresh")
+@limiter.limit("20/minute")
 def refresh(
     request: Request,
     refresh_token: str | None = Cookie(default=None),
@@ -115,7 +124,9 @@ def refresh(
 
 
 @router.post("/password-reset")
+@limiter.limit("3/minute")
 def password_reset(
+    request: Request,
     payload: PasswordResetRequest,
     auth_service: AuthService = Depends(get_auth_service),
 ) -> Response:

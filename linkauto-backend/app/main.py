@@ -3,11 +3,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
 
 from app.api import api_router
 from app.core import get_settings
 from app.core.dev_db import initialize_sqlite_dev_database
 from app.core.logging import CorrelationIDMiddleware, setup_logging
+from app.core.middleware import SecurityHeadersMiddleware
+from app.core.rate_limit import limiter
 from app.schemas.common import error_response
 
 
@@ -21,7 +25,10 @@ def create_app() -> FastAPI:
         yield
 
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
+    app.state.limiter = limiter
     app.add_middleware(CorrelationIDMiddleware)
+    app.add_middleware(SlowAPIMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
@@ -30,6 +37,14 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(api_router, prefix=settings.api_v1_prefix)
+
+    @app.exception_handler(RateLimitExceeded)
+    async def rate_limit_exceeded_handler(_: Request, exc: RateLimitExceeded):
+        return error_response(
+            code="RATE_LIMIT_EXCEEDED",
+            message="Too many requests. Please try again later.",
+            status_code=429,
+        )
 
     @app.exception_handler(HTTPException)
     async def handle_http_exception(_: Request, exc: HTTPException):
