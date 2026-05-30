@@ -50,44 +50,38 @@ Primary references:
 | Phase 1 - Setup | Completed |
 | Phase 2 - Foundational | Completed |
 | Phase 3 - US1 | Completed |
-| Phase 4 - US2 | Pending |
-| Phase 5 - US3 | Pending |
-| Phase 6 - Polish | Pending |
+| Phase 4 - US2 | Completed |
+| Phase 5 - US3 | Completed |
+| Phase 6 - Polish | Completed |
 
 ### What is already implemented
 
 Backend:
 
-- FastAPI with versioned router under /api/v1 and healthcheck at /health
-- Standard success/error envelopes and validation error handling
-- JWT access/refresh, RBAC, and HttpOnly/Secure/SameSite refresh cookie
-- Full US1 flow: register, login, profile, approved public instructor listing
-- Admin instructor approval/rejection endpoints
-- Credential upload with 10MB limit and MIME whitelist (PDF/JPEG/PNG)
-- Notification v1 event catalog (in-memory gateway in current runtime)
+- **Foundational Infrastructure (Phase 1-2):** Versioned routing under `/api/v1`, standard envelopes, SQLite support, robust JWT access/refresh, and high-security RBAC.
+- **US1 (Register, Login & Admin):** Complete signup/login workflow, credential upload with security validations, and admin approval/rejection dashboard.
+- **US2 (Booking & Slots):** Slot management (1h slots), request consecutive slots (minimum 2), state machine for booking transitions, and automatic 7-day penalty for cancellation under 24h of the lesson start time.
+- **US3 (Chat, Reviews & Notifications):** Cronologically ordered booking messages, mutual reviews for realized lessons with atomic instructor rating recaps (`rating_avg`/`rating_count`), UTC ISO 8601 serializations ("Z"), automated 24h lesson reminder cron, and a catalog of 8 e-mail event notifications.
+- **Phase 6 (Polish & Hardening):** SlowAPI rate-limiting on authentication endpoints (login, register, reset, refresh), HTTP security headers middleware, magic bytes binary signature validations, production fail-fast configuration, isolated and resilient gateway exception handling, and structured security auditing logs with Trace/Correlation IDs.
 
 Frontend:
 
-- React 19 + Vite with session and role-based protected routes
-- Connected login, profile, and admin instructor validation views
-- HTTP client with credentials, bearer token support, and normalized error handling
+- React 19 + Vite with session and role-protected routing.
+- Integrated flows for Login, map-based (Leaflet) search and list of approved instructors, booking slot picker with consecutive slot guards, lesson dashboard with status timelines, and admin validation boards.
+- HTTP client with credentials support, bearer tokens, and standardized error handling.
 
-> [!NOTE]
-> Current US1 runtime uses an in-memory store (IdentityStore), suitable for contract and integration flow validation.
-> US2/US3 phases complete persistent Booking-centric behavior end-to-end.
+## Runtime Endpoints
 
-## Contract vs runtime
+All endpoints described in the OpenAPI contract are 100% operational in the LinkAuto runtime:
 
-The OpenAPI contract already defines slots, booking, messaging, and review endpoints.
-The currently operational runtime endpoints are:
-
-- /health
-- /api/v1/foundation/*
-- /api/v1/auth/*
-- /api/v1/users/me
-- /api/v1/users/public-instructors
-- /api/v1/admin/instructors*
-- /api/v1/instructors/{id}/documents
+- **Foundation:** `/health`, `/api/v1/foundation/ping`
+- **Auth:** `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/password-reset`
+- **Users & Profiles:** `/api/v1/users/me`, `/api/v1/users/public-instructors`
+- **Slots:** `/api/v1/slots`, `/api/v1/slots/instructor/{id}`
+- **Bookings:** `/api/v1/bookings`, `/api/v1/bookings/{id}/cancel`
+- **Messages & Reviews:** `/api/v1/bookings/{id}/messages`, `/api/v1/bookings/{id}/reviews`
+- **Admin Validation:** `/api/v1/admin/instructors/pending`, `/api/v1/admin/instructors/{id}/approve`, `/api/v1/admin/instructors/{id}/reject`
+- **Jobs Cron:** `/api/v1/jobs/booking-reminder`, `/api/v1/jobs/booking-timeout`, `/api/v1/jobs/booking-completion`
 
 ## Architecture and stack
 
@@ -231,15 +225,3 @@ Current notable coverage includes:
 - Booking domain state machine
 - Upload validation (MIME/10MB)
 - Approved instructor visibility behavior
-
-## Immediate roadmap
-
-Next phases:
-
-- US2: slots, booking lifecycle, penalties, conflict behavior, admin booking override
-- US3: booking-thread messages, review creation after REALIZADA, full notification events
-- Polish: hardening, Booking core cascade regression, final validation
-
-Dependency chain enforced by implementation flow:
-
-User -> Profile -> Slot -> Booking -> BookingMessage -> Review
