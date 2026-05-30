@@ -143,8 +143,8 @@
 **Purpose**: Final hardening, observability, compliance evidence, and demo readiness.
 
 - [ ] T051 [P] Update demo and operational docs for phase stability gates in specs/001-user-booking-domains/quickstart.md and README.md
-- [ ] T052 [P] Add end-to-end happy-path smoke test for instructor-admin-student flow in linkauto-backend/tests/integration/test_e2e_happy_path.py
-- [ ] T053 Harden structured logging and trace IDs for booking-critical flows in linkauto-backend/app/core/logging.py
+- [x] T052 [P] Add end-to-end happy-path smoke test for instructor-admin-student flow in linkauto-backend/tests/integration/test_e2e_happy_path.py
+- [x] T053 Harden structured logging and trace IDs for booking-critical flows in linkauto-backend/app/core/logging.py
 - [ ] T054 Validate constitutional guardrails and record evidence in specs/001-user-booking-domains/compliance.md
 - [ ] T055 Run full backend and frontend verification suites via linkauto-backend/tests and linkauto-frontend/tests and document result in specs/001-user-booking-domains/quickstart.md
 - [x] T061 [P] Add contract tests for ISO 8601 UTC serialization in booking/slot/message envelopes in linkauto-backend/tests/contract/test_datetime_utc_contract.py
