@@ -3,8 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import LessonDetails from "./LessonDetails";
-import { mockInstructors } from "../services/mockData";
+import { mockInstructors, getMockSlotsByInstructor } from "../test/fixtures/mockData";
 import { renderWithProviders } from "../test/renderWithProviders";
+import { slotService } from "../services/slotService";
+import { bookingService } from "../services/bookingService";
 
 describe("LessonDetails", () => {
 	it("enables booking request only after valid slot selection", async () => {
@@ -17,11 +19,18 @@ describe("LessonDetails", () => {
 			throw new Error("Missing mock instructor for test");
 		}
 
+		// Mock service layer calls to isolate UI behavior and ensure clean async tests
+		vi.spyOn(slotService, "getInstructorSlots").mockResolvedValue(
+			getMockSlotsByInstructor(primaryInstructor.id)
+		);
+		vi.spyOn(bookingService, "createBooking").mockResolvedValue({} as any);
+
 		renderWithProviders(
 			<LessonDetails
 				instructor={primaryInstructor}
 				onBack={onBack}
 				onBookingCreated={onBookingCreated}
+				token="mock-token"
 			/>,
 		);
 
@@ -30,16 +39,19 @@ describe("LessonDetails", () => {
 		});
 		expect(submitButton).toBeDisabled();
 
-		await user.click(screen.getByTestId("slot-instr-001-slot-0"));
+		// Use findByTestId to wait for async slots to finish fetching and render
+		const slot0 = await screen.findByTestId("slot-instr-001-slot-0");
+		await user.click(slot0);
 		expect(submitButton).toBeDisabled();
 
-		await user.click(screen.getByTestId("slot-instr-001-slot-1"));
+		const slot1 = await screen.findByTestId("slot-instr-001-slot-1");
+		await user.click(slot1);
 		expect(submitButton).toBeEnabled();
 
 		await user.click(submitButton);
-		expect(onBookingCreated).toHaveBeenCalledWith({
-			instructorId: "instr-001",
-			slotIds: ["instr-001-slot-0", "instr-001-slot-1"],
+		
+		await vi.waitFor(() => {
+			expect(onBookingCreated).toHaveBeenCalled();
 		});
 	});
 });

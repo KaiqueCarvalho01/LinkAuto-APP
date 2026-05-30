@@ -1,25 +1,28 @@
 export interface InstructorSummary {
-	id: string;
-	fullName: string;
-	city: string;
-	neighborhood: string;
-	rating: number;
-	reviewsCount: number;
-	distanceKm: number;
-	hourlyRate: number;
-	detranApproved: boolean;
-	specialties: string[];
-	radiusKm: number;
-	coordinates: {
-		lat: number;
-		lng: number;
-	};
+  id: string;
+  fullName: string;
+  city: string;
+  neighborhood: string;
+  rating: number;
+  reviewsCount: number;
+  distanceKm: number;
+  hourlyRate: number;
+  detranApproved: boolean;
+  specialties: string[];
+  radiusKm: number;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface InstructorSearchParams {
-	query: string;
-	city: string;
-	specialty: string;
-	radiusKm: number;
-	minRating: number;
+  latitude?: number | undefined;
+  longitude?: number | undefined;
+  radiusKm?: number | undefined;
+  minRating?: number | undefined;
+  maxPrice?: number | undefined;
+  specialty?: string | undefined;
+  query?: string | undefined;
+  city?: string | undefined;
 }

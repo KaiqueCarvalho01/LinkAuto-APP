@@ -4,6 +4,7 @@ from __future__ import annotations
 from pydantic import BaseModel, field_validator
 
 from app.schemas.datetime import UtcDateTime
+from app.schemas.slot import SlotResource
 
 
 class BookingCreateRequest(BaseModel):
@@ -48,6 +49,15 @@ class BookingAdminOverrideRequest(BaseModel):
         return v
 
 
+class BookingSlotResource(BaseModel):
+    id: str
+    booking_id: str
+    slot_id: str
+    slot: SlotResource
+
+    model_config = {"from_attributes": True}
+
+
 class BookingResource(BaseModel):
     id: str
     student_id: str
@@ -61,5 +71,6 @@ class BookingResource(BaseModel):
     cancelled_at: UtcDateTime | None = None
     cancelled_by: str | None = None
     cancellation_reason: str | None = None
+    slots: list[BookingSlotResource] = []
 
     model_config = {"from_attributes": True}

@@ -56,6 +56,7 @@ class BookingSlot(AuditUUIDBase):
     )
 
     booking = relationship("Booking", back_populates="slots")
+    slot = relationship("Slot", lazy="joined")
 
     __table_args__ = (
         Index("ix_booking_slots_unique", "booking_id", "slot_id", unique=True),

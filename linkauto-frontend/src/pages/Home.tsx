@@ -12,12 +12,13 @@ import {
 	Badge,
 	Circle,
 } from "@chakra-ui/react";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { InstructorMap } from "../components/InstructorMap";
 import { InfoSections } from "../components/landing/InfoSections";
 import { Testimonials } from "../components/landing/Testimonials";
 import { FAQ } from "../components/landing/FAQ";
-import { getMockInstructors } from "../services/mockData";
+import { instructorService } from "../services/instructorService";
+import type { InstructorSummary } from "../types/instructor";
 
 interface HomeProps {
 	readonly isAuthenticated: boolean;
@@ -55,7 +56,23 @@ export default function Home({
 	onOpenSearch,
 }: HomeProps) {
 	const [selectedId, setSelectedId] = useState<string | undefined>();
-	const instructors = useMemo(() => getMockInstructors(), []);
+	const [instructors, setInstructors] = useState<InstructorSummary[]>([]);
+
+	useEffect(() => {
+		let active = true;
+		instructorService.getPublicInstructors()
+			.then((data) => {
+				if (active) {
+					setInstructors(data);
+				}
+			})
+			.catch((err) => {
+				console.error("Error loading public instructors:", err);
+			});
+		return () => {
+			active = false;
+		};
+	}, []);
 
 	return (
 		<Stack minH="100vh" gap={0} bg="bg.canvas">

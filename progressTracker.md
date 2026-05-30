@@ -14,6 +14,7 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 | Phase 4 - US2 | Concluída | Backend e Frontend US2 completos, com todos os testes validados (67 testes verdes) |
 | Phase 5 - US3 | Concluída | Mensagens, avaliações, lembrete 24h e 8 tipos de notificações de e-mail (94 testes verdes) |
 | Phase 6 - Polish | Concluída | Polimento e hardening completos, 13 itens de segurança e qualidade validados com 112 testes verdes e Ruff 100% |
+| Phase 7 - Frontend Integration | Concluída | Integração completa com API real do backend, 100% livre de mocks de produção, typecheck TS limpo com exactOptionalPropertyTypes e 89 testes verdes do Vitest |
 
 ## Iterações
 
@@ -183,3 +184,20 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - **D10 (Testes de Abuso & Cobertura):** Desenvolvido `tests/security/test_abuse_scenarios.py` cobrindo 100% das regras e rate limits, com fixture global autouse em `tests/conftest.py` para resetar o estado do limiter garantindo estrito isolamento.
 - **Garantia de Qualidade e Testes:**
   - Rodada a suíte completa de testes: todos os **112 testes verdes** e Uruff 100% em conformidade com PEP 8.
+
+### Iteração 12 (Fase 7 - Integração de Frontend Completa e Verde)
+
+- **Integração de Ponta a Ponta com a API do Backend:**
+  - Conectadas todas as páginas da aplicação (`SearchPage`, `MyLessons`, `LessonDetails`, `Profile`, `Home`) à API de produção do backend (FastAPI + SQLite3).
+  - Removido o uso de mocks de dados em produção, mapeando o arquivo `mockData.ts` exclusivamente em `src/test/fixtures/` para a suíte de testes.
+  - Implementada a service layer no frontend (`instructorService`, `slotService`, `bookingService`, `profileService`, `messageService`, `reviewService`) com mapeadores (mappers) de objetos robustos convertendo tipos `snake_case` do backend FastAPI em `camelCase` e tratando potenciais valores nulos para strings vazias para melhor UX e controle no React.
+  - Adicionado suporte a geolocalização nativa via GPS com fallback resiliente para dropdown manual de cidades contendo coordenadas geográficas centrais reais da microrregião de Mogi Mirim.
+  - Desenvolvido interceptor de refresh de token silencioso em `src/services/httpClient.ts` in case of `401 Unauthorized` errors using HTTPOnly cookie, connected to `SessionProvider` in `sessionStore.tsx`.
+  - Adicionado script de seed automático de dados de alta fidelidade no startup de desenvolvimento do backend (`app/core/dev_db.py`) semeando admin, aluno de teste, 3 instrutores credenciados com fotos reais e histórico rico de slots/aulas avaliadas.
+- **Resiliência e Correção Estrita do TypeScript:**
+  - Garantida total conformidade com as regras estritas do TypeScript no `tsconfig.json` (`exactOptionalPropertyTypes: true` e `noUncheckedIndexedAccess: true`), tipando explicitamente as propriedades opcionais como `| undefined` nas interfaces e estados do Profile, SearchPage e LessonDetails.
+  - Implementado mecanismo de cleanup com flag `active` no `useEffect` de carregamento de slots de `LessonDetails.tsx` para evitar vazamentos de estado em testes do Vitest que causavam o erro de ambiente desmontado `ReferenceError: window is not defined`.
+- **Garantia de Qualidade e Suíte de Testes:**
+  - Ajustadas as expectativas de testes unitários em `ScaffoldPages.test.tsx` e `LessonDetails.test.tsx` para se manterem fiéis às novas assinaturas e layouts de UI baseados em perfis.
+  - Rodada a suíte completa de testes de frontend: todos os **89 testes do Vitest passando com 100% de sucesso**.
+  - Executado o `npm run typecheck` completando com **sucesso absoluto e zero erros**.

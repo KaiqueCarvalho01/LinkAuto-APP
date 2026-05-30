@@ -45,8 +45,6 @@ import { useSessionStore } from "../state/sessionStore";
 import type { InstructorSummary } from "../types/instructor";
 import type {
 	DashboardRequest,
-	ProfileUserData,
-	UiRole,
 	UserAccount,
 } from "../types/session";
 
@@ -87,17 +85,7 @@ const applyColorMode = (mode: ThemeMode) => {
 	root.style.colorScheme = mode;
 };
 
-const toUiRole = (roles: string[]): UiRole => {
-	if (roles.includes("ADMIN")) {
-		return "admin";
-	}
 
-	if (roles.includes("INSTRUTOR")) {
-		return "instructor";
-	}
-
-	return "student";
-};
 
 function ProtectedRoute({ children }: RouteGuardProps) {
 	const { isAuthenticated } = useSessionStore();
@@ -243,22 +231,21 @@ function ProfileRoute() {
 		};
 	}, [session?.accessToken, session?.user]);
 
-	const role = toUiRole(profile?.roles ?? []);
-	const userData: ProfileUserData = {
-		name:
-			profile?.student_profile?.full_name ||
-			profile?.instructor_profile?.full_name ||
-			"Conta LinkAuto",
-		email: profile?.email || "usuario@linkauto.app",
-		role,
-	};
+
+
+
+	const mergedSession = session ? { ...session, user: profile ?? session.user } : null;
 
 	return (
 		<Profile
-			userData={userData}
+			session={mergedSession}
+			token={session?.accessToken}
 			onLogout={() => {
 				signOut();
 				navigate("/login", { replace: true });
+			}}
+			onProfileUpdated={(updatedUser) => {
+				applyProfile(updatedUser);
 			}}
 			onNavigateToSearch={() => navigate("/search")}
 			onNavigateToBookings={() => navigate("/my-lessons")}
@@ -286,10 +273,12 @@ function BookingDetailsRoute() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const state = location.state as { instructor?: InstructorSummary } | null;
+	const { session } = useSessionStore();
 
 	return (
 		<LessonDetails
 			instructor={state?.instructor}
+			token={session?.accessToken}
 			onBack={() => navigate("/search")}
 			onBookingCreated={() => {
 				navigate("/my-lessons", { replace: true });
@@ -300,8 +289,9 @@ function BookingDetailsRoute() {
 
 function MyLessonsRoute() {
 	const navigate = useNavigate();
+	const { session } = useSessionStore();
 
-	return <MyLessons onNewBooking={() => navigate("/search")} />;
+	return <MyLessons token={session?.accessToken} onNewBooking={() => navigate("/search")} />;
 }
 
 function AdminInstructorDashboardRoute() {

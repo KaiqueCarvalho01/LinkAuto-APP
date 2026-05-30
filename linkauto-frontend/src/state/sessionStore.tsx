@@ -4,12 +4,13 @@ import {
 	useContext,
 	useMemo,
 	useState,
+	useEffect,
 	type ReactNode,
 } from "react";
 
 import type { ApiSuccessEnvelope } from "../types/api";
 import type { AuthLoginResponse, SessionData, SignInInput, UserAccount } from "../types/session";
-import { httpClient } from "../services/httpClient";
+import { httpClient, setOnTokenRefreshed, setOnAuthFailure } from "../services/httpClient";
 
 const SESSION_STORAGE_KEY = "linkauto.session.v1";
 
@@ -136,6 +137,20 @@ export function SessionProvider({ children }: SessionProviderProps) {
 	const signOut = useCallback(() => {
 		clearSession();
 	}, [clearSession]);
+
+	useEffect(() => {
+		setOnTokenRefreshed((newToken) => {
+			setSession((prev) => {
+				if (!prev) return null;
+				const next = { ...prev, accessToken: newToken };
+				persistSession(next);
+				return next;
+			});
+		});
+		setOnAuthFailure(() => {
+			signOut();
+		});
+	}, [signOut]);
 
 	const value = useMemo<SessionContextValue>(
 		() => ({

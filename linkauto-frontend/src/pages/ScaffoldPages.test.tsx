@@ -73,6 +73,7 @@ describe("Scaffold Pages", () => {
 					radiusKm: 5,
 					coordinates: { lat: 0, lng: 0 },
 				}}
+				token="test"
 				onBack={vi.fn()}
 				onBookingCreated={vi.fn()}
 			/>,
@@ -83,20 +84,23 @@ describe("Scaffold Pages", () => {
 	});
 
 	it("renders MyLessons page", () => {
-		renderWithProviders(<MyLessons onNewBooking={vi.fn()} />);
+		renderWithProviders(<MyLessons token="test" onNewBooking={vi.fn()} />);
 		expect(screen.getByText(/Meus agendamentos/i)).toBeInTheDocument();
 	});
 
 	it("renders Profile page", () => {
 		renderWithProviders(
 			<Profile
+				session={null}
+				token="test"
 				onLogout={vi.fn()}
+				onProfileUpdated={vi.fn()}
 				onNavigateToSearch={vi.fn()}
 				onNavigateToBookings={vi.fn()}
 				onNavigateToVehicles={vi.fn()}
 			/>,
 		);
-		expect(screen.getByText(/Conta LinkAuto/i)).toBeInTheDocument();
+		expect(screen.getByText(/Conta Aluno/i)).toBeInTheDocument();
 	});
 
 	it("renders SearchPage page", () => {

@@ -12,7 +12,7 @@ import { RatingStars } from "../RatingStars";
 import {
 	studentTestimonials,
 	instructorTestimonials,
-} from "../../services/mockTestimonials";
+} from "../../services/staticContent";
 
 export function Testimonials() {
 	return (

@@ -185,8 +185,40 @@
 - coverage_pct: 100% (Line), 100% (Branch) ✅
 - governance_validation: passed ✅
 
+### Iteracao 19 - Frontend API Integration & Polish (FE-API-Integration)
+
+#### What was delivered (Iteracao 19)
+- Efetuada a integração do frontend com a API real do backend para todas as páginas operacionais (SearchPage, MyLessons, LessonDetails, Profile, Home), removendo mocks de dados operacionais locais.
+- Criada a camada de tipos TypeScript em `/src/types/api.types.ts` correspondente aos schemas snake_case do backend FastAPI.
+- Implementada a camada de serviços (instructorService, slotService, bookingService, profileService) com mapeadores robustos (mappers) de snake_case para camelCase e tratamento de nulos/padrões para 100% de segurança de tipos.
+- Garantido suporte a geolocalização nativa via GPS e fallback via dropdown manual de cidades com coordenadas reais centradas na microrregião de Mogi Mirim.
+- Resolvida a conformidade estrita do compilador TypeScript (`exactOptionalPropertyTypes: true` e `noUncheckedIndexedAccess: true`), com ajustes nas interfaces e states de formulários do Profile, SearchPage e LessonDetails.
+- Implementada proteção contra desmontagem assíncrona com cleanup de flag ativa no `useEffect` de carregamento de slots em `LessonDetails.tsx` para evitar vazamentos de estado em testes do Vitest.
+
+#### Where it was delivered (Iteracao 19)
+- `src/types/api.types.ts`
+- `src/types/instructor.ts`
+- `src/types/booking.ts`
+- `src/types/session.ts`
+- `src/services/profileService.ts`
+- `src/services/bookingService.ts`
+- `src/pages/Profile.tsx`
+- `src/pages/SearchPage.tsx`
+- `src/pages/LessonDetails.tsx`
+- `src/pages/LessonDetails.test.tsx`
+- `src/pages/ScaffoldPages.test.tsx`
+- `src/app/router.tsx`
+
+#### How it was validated (Iteracao 19)
+- cycle_id: iteration-012
+- red_command: `npm run typecheck` (28 erros de TS) ❌
+- green_command: `npm run typecheck` (0 erros) e `npm run test` (89 testes passando) ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+
 ## Riscos e Observacoes Gerais
 
+- **Iteracao 19**: A integração de ponta a ponta com a API do backend foi concluída com sucesso. O frontend está 100% livre de mocks de dados operacionais (usando apenas fixtures estáticas isoladas em testes), e a conformidade estrita do TypeScript (incluindo exactOptionalPropertyTypes) foi plenamente restabelecida.
 - **Iteracao 18**: Instructor pages now include interactive tools (Simulator) and animated cards. UX improved with transitions.
 - **Iteracao 17**: Student pages now have full content and visual consistency with the platform. No backend changes required.
 - **Iteracao 16**: Register page layout and accessibility match Login page standards. Integration with sessionStore via signUp method implemented. Form validation for matching passwords included.
