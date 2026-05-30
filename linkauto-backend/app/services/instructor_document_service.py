@@ -11,6 +11,12 @@ from app.services.us1_store import IdentityStore
 ALLOWED_MIME_TYPES = {"application/pdf", "image/jpeg", "image/png"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 
+MAGIC_BYTES = {
+    "application/pdf": [b"%PDF"],
+    "image/jpeg": [b"\xff\xd8\xff"],
+    "image/png": [b"\x89PNG\r\n\x1a\n"]
+}
+
 
 class DocumentValidationError(ValueError):
     pass
@@ -43,6 +49,17 @@ class InstructorDocumentService:
         content = await upload.read()
         if len(content) > MAX_FILE_SIZE_BYTES:
             raise DocumentTooLargeError("File exceeds 10MB limit.")
+
+        # D06: Validar Magic Bytes para evitar MIME spoofing
+        mime = upload.content_type
+        if mime in MAGIC_BYTES:
+            signatures = MAGIC_BYTES[mime]
+            matched = any(content.startswith(sig) for sig in signatures)
+            if not matched:
+                raise DocumentValidationError(
+                    f"INVALID_FILE_CONTENT: File content does not match declared MIME type '{mime}'."
+                )
+
         return content
 
     def _build_object_url(self, instructor_id: str, filename: str) -> str:
