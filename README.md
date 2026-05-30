@@ -51,43 +51,41 @@ Referencias principais:
 | Phase 2 - Foundational | Concluida |
 | Phase 3 - US1 | Concluida |
 | Phase 4 - US2 | Concluída |
-| Phase 5 - US3 | Pendente |
-| Phase 6 - Polish | Pendente |
+| Phase 5 - US3 | Concluída |
+| Phase 6 - Polish | Concluída |
 
 ### O que ja esta implementado
 
 Backend:
 
-- FastAPI com roteamento versionado em /api/v1 e healthcheck em /health
-- Envelopes padronizados de sucesso/erro e tratamento de validacao
-- JWT access/refresh, RBAC e refresh token em cookie HttpOnly/Secure/SameSite
-- Fluxo US1 completo: registro, login, profile, listagem publica de instrutores aprovados
-- Painel admin para aprovar/rejeitar instrutores
-- Upload de documentos com limite de 10MB e whitelist MIME (PDF/JPEG/PNG)
-- Catalogo de notificacoes v1 (gateway em memoria no estado atual)
+- **Infraestrutura Fundacional (Phase 1-2):** FastAPI versionado (/api/v1), envelopes comuns, banco SQLite, JWT access/refresh e RBAC de alta segurança.
+- **US1 (Cadastro, Login & Admin):** Fluxo completo de cadastro, login, uploads de documentos com limites e aprovação/rejeição pelo Admin.
+- **US2 (Booking & Slots):** Gerenciamento e listagem de slots de 1h, solicitação de agendamentos consecutivos (mínimo 2 slots), máquina de estados de agendamentos e penalidade automática de 7 dias para cancelamentos a menos de 24h da aula.
+- **US3 (Chat, Reviews & Notificações):** Chat cronológico por agendamento, avaliações mútuas para reservas realizadas com atualização atômica de reputação dos instrutores, serialização estrita de data ISO 8601 UTC ("Z"), cron de lembrete de aula 24h e catálogo de 8 notificações de e-mail integradas ao ciclo de vida.
+- **Phase 6 (Polish & Hardening):** Rate-limiting por IP (SlowAPI) no login/registro, injeção de HTTP Security Headers, validação por Magic Bytes (assinaturas binárias hexadecimais), fail-fast de configuração em produção, isolamento resiliente de rede de email/cron e logs estruturados de auditoria de segurança com Trace IDs.
 
 Frontend:
 
-- React 19 + Vite com rotas protegidas por sessao e papel
-- Fluxos conectados para login, profile e painel admin de validacao de instrutores
-- Cliente HTTP com cookies, bearer token e tratamento de erro padronizado
+- React 19 + Vite com rotas protegidas por sessão e papel de usuário.
+- Fluxos integrados de Login, Busca com mapa interativo (Leaflet) e lista de instrutores aprovados, Agendamento com seletor de slots consecutivos, Gerenciamento de aulas com timelines de status, e painéis de Admin.
+- Cliente HTTP com cookies seguros, bearer token e tratamento padronizado.
 
 > [!NOTE]
 > O runtime atual de US1 utiliza store em memoria (IdentityStore), adequado para validacao de contratos e testes de fluxo.
 > As fases US2/US3 completam persistencia e regras de Booking end-to-end.
 
-## Contrato vs runtime
+## Endpoints do Runtime
 
-O contrato OpenAPI ja descreve endpoints de slots, booking, mensagens e reviews.
-No runtime atual, os endpoints operacionais sao:
+Todos os endpoints descritos no contrato OpenAPI estão 100% operacionais no runtime do LinkAuto:
 
-- /health
-- /api/v1/foundation/*
-- /api/v1/auth/*
-- /api/v1/users/me
-- /api/v1/users/public-instructors
-- /api/v1/admin/instructors*
-- /api/v1/instructors/{id}/documents
+- **Foundation:** `/health`, `/api/v1/foundation/ping`
+- **Auth:** `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/password-reset`
+- **Users & Profiles:** `/api/v1/users/me`, `/api/v1/users/public-instructors`
+- **Slots:** `/api/v1/slots`, `/api/v1/slots/instructor/{id}`
+- **Bookings:** `/api/v1/bookings`, `/api/v1/bookings/{id}/cancel`
+- **Messages & Reviews:** `/api/v1/bookings/{id}/messages`, `/api/v1/bookings/{id}/reviews`
+- **Admin Validation:** `/api/v1/admin/instructors/pending`, `/api/v1/admin/instructors/{id}/approve`, `/api/v1/admin/instructors/{id}/reject`
+- **Jobs Cron:** `/api/v1/jobs/booking-reminder`, `/api/v1/jobs/booking-timeout`, `/api/v1/jobs/booking-completion`
 
 ## Arquitetura e stack
 
