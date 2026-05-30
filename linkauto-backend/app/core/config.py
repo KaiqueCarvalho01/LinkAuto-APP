@@ -1,7 +1,10 @@
 from functools import lru_cache
+import logging
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger("app.core.config")
 
 
 class Settings(BaseSettings):
@@ -27,6 +30,21 @@ class Settings(BaseSettings):
     ses_from_email: str | None = Field(default=None, alias="SES_FROM_EMAIL")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> "Settings":
+        if self.app_env.lower() == "production":
+            if self.jwt_secret == "change-me":
+                raise ValueError("JWT_SECRET cannot be 'change-me' in production environment.")
+            if self.reset_sqlite_on_startup:
+                raise ValueError("RESET_SQLITE_ON_STARTUP cannot be True in production environment.")
+            
+            # CORS checks
+            if "localhost" in self.cors_origins.lower() or "127.0.0.1" in self.cors_origins:
+                logger.warning(
+                    f"Localhost detected in CORS_ORIGINS ({self.cors_origins}) in production environment!"
+                )
+        return self
 
     @property
     def cors_origin_list(self) -> list[str]:

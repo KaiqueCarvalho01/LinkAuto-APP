@@ -39,16 +39,16 @@ class InMemorySlotReservationStore:
 
 
 class SqlAlchemySlotReservationStore:
+    _TABLE_NAME: str = "slots"
+
     def __init__(
         self,
         session: Session,
         *,
-        table_name: str = "slots",
         available_status: str = "DISPONIVEL",
         reserved_status: str = "RESERVADO",
     ) -> None:
         self._session = session
-        self._table_name = table_name
         self._available_status = available_status
         self._reserved_status = reserved_status
 
@@ -61,7 +61,7 @@ class SqlAlchemySlotReservationStore:
         try:
             statement = text(
                 f"""
-                UPDATE {self._table_name}
+                UPDATE {self._TABLE_NAME}
                 SET status = :reserved_status
                 WHERE id IN :slot_ids
                   AND status = :available_status

@@ -158,11 +158,13 @@ class BookingService:
         booking.cancelled_by = cancelled_by
         booking.cancellation_reason = reason
 
-        # Release reserved slots back to DISPONIVEL
-        for link in booking.slots:
-            slot = self._db.query(Slot).filter(Slot.id == link.slot_id).first()
-            if slot and slot.status == SlotStatus.RESERVADO.value:
-                slot.status = SlotStatus.DISPONIVEL.value
+        # Release reserved slots back to DISPONIVEL (D12: O(1) Batch Query Optimization)
+        slot_ids = [link.slot_id for link in booking.slots]
+        if slot_ids:
+            slots = self._db.query(Slot).filter(Slot.id.in_(slot_ids)).all()
+            for slot in slots:
+                if slot.status == SlotStatus.RESERVADO.value:
+                    slot.status = SlotStatus.DISPONIVEL.value
 
         # RN04: penalty if student cancels within 24h of first slot
         if cancelled_by == CancelledBy.ALUNO.value:

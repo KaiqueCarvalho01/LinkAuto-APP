@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import logging
 from typing import Protocol
 
 import boto3
 
 from app.core import Settings
+
+logger = logging.getLogger("app.services.notification_service")
 
 
 class NotificationEvent(str, Enum):
@@ -88,14 +91,30 @@ class NotificationService:
         self._email_gateway = email_gateway
 
     def dispatch(self, payload: NotificationPayload) -> NotificationDispatchResult:
-        message_id = self._email_gateway.send(
-            subject=payload.subject,
-            body=payload.body,
-            recipients=payload.recipients,
-        )
-        return NotificationDispatchResult(
-            event=payload.event,
-            recipients=payload.recipients,
-            delivered=True,
-            provider_message_id=message_id,
-        )
+        try:
+            message_id = self._email_gateway.send(
+                subject=payload.subject,
+                body=payload.body,
+                recipients=payload.recipients,
+            )
+            return NotificationDispatchResult(
+                event=payload.event,
+                recipients=payload.recipients,
+                delivered=True,
+                provider_message_id=message_id,
+            )
+        except Exception as exc:
+            logger.warning(
+                f"Failed to dispatch notification [event={payload.event.value}]: {str(exc)}",
+                extra={
+                    "event": "notification.dispatch.failure",
+                    "notification_event": payload.event.value,
+                    "error": str(exc)
+                }
+            )
+            return NotificationDispatchResult(
+                event=payload.event,
+                recipients=payload.recipients,
+                delivered=False,
+                provider_message_id=None,
+            )

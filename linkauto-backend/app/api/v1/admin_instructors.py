@@ -7,6 +7,7 @@ from app.api.deps import AuthenticatedUser, require_roles
 from app.services.admin_validation_service import AdminValidationService
 from app.services.dependencies import get_admin_validation_service
 from app.schemas.common import success_response
+from app.core.security_logger import log_admin_action
 
 router = APIRouter(prefix="/admin/instructors", tags=["admin-instructors"])
 
@@ -38,6 +39,11 @@ def approve_instructor(
 ) -> Response:
     try:
         result = service.approve(instructor_id=instructor_id, admin_id=admin_user.user_id)
+        log_admin_action(
+            admin_id=admin_user.user_id,
+            action="approve_instructor",
+            target_id=instructor_id
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -58,6 +64,11 @@ def reject_instructor(
             instructor_id=instructor_id,
             admin_id=admin_user.user_id,
             reason=payload.reason,
+        )
+        log_admin_action(
+            admin_id=admin_user.user_id,
+            action="reject_instructor",
+            target_id=instructor_id
         )
     except ValueError as exc:
         raise HTTPException(

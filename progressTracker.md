@@ -13,7 +13,7 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 | Phase 3 - US1 | Concluída | T018-T029 + T056/T057 finalizadas |
 | Phase 4 - US2 | Concluída | Backend e Frontend US2 completos, com todos os testes validados (67 testes verdes) |
 | Phase 5 - US3 | Concluída | Mensagens, avaliações, lembrete 24h e 8 tipos de notificações de e-mail (94 testes verdes) |
-| Phase 6 - Polish | Em andamento | Polimento e validação de regressão finalizada no backend |
+| Phase 6 - Polish | Concluída | Polimento e hardening completos, 13 itens de segurança e qualidade validados com 112 testes verdes e Ruff 100% |
 
 ## Iterações
 
@@ -155,3 +155,31 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 - Validada a conformidade de linter com Ruff (`ruff check .`), limpando todas as importações e dependências não utilizadas.
 - Feito o hardening de segurança conforme as diretrizes do `docs/SECURITY_TECHNIQUES.md`.
 
+### Iteração 10 (Fase 6 - Hardening de Logging e Teste E2E de Integração Feliz)
+
+- **Hardening de Segurança e Traceabilidade (T053):**
+  - Implementado mecanismo assíncrono `correlation_id_ctx` usando `contextvars` (`app/core/logging.py`) para rastrear requisições sem vazamento de contexto.
+  - Desenvolvido `CorrelationIDMiddleware` registrando o cabeçalho `X-Correlation-ID` em todas as respostas de API para rastreabilidade externa (OWASP A09).
+  - Configurado o logger raiz e handlers do Uvicorn com `CorrelationIDFilter` para injetar automaticamente o Trace ID nos logs estruturados.
+- **Teste E2E de Integração (T052):**
+  - Desenvolvido o teste `tests/integration/test_e2e_happy_path.py` simulando com sucesso toda a jornada de ponta a ponta (cadastro e login de aluno/instrutor ➔ aprovação do instrutor pelo admin ➔ agendamento atômico e confirmação ➔ conciliação cron de conclusão ➔ chat de mensagens ➔ avaliações mútuas e recálculo da média).
+- **Garantia de Qualidade e Testes:**
+  - Validados todos os **95 testes verdes** e linter Ruff 100% limpo.
+
+### Iteração 11 (Fase 6 - Polimento & Hardening Completo do Backend)
+
+- **Hardening de Segurança e Resiliência (TDD):**
+  - **D01 (Bloqueio de ADMIN público):** Adicionado validador no `RegisterRequest` e validação no `AuthService` impedindo registro público de admins, com testes unitários/integração.
+  - **D03 (Mass Assignment no Profile PATCH):** Blindado o schema `UserMePatchRequest` encapsulando schemas aninhados e fechados (`StudentProfilePatch`, `InstructorProfilePatch`) usando `extra="forbid"`, ocultando `detran_status`, `rating_avg` e `rating_count`.
+  - **D04 (Security Headers Middleware):** Middleware customizado injetando `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` e `Cache-Control` nas respostas de API.
+  - **D05 (Configuração Segura Fail-Fast):** Implementado `@model_validator` na classe `Settings` para abortar a inicialização do app se senhas padrões ou resets automáticos forem usados em produção, emitindo warnings em caso de localhost no CORS.
+  - **D06 (Magic Bytes nos Uploads):** Validador por assinaturas hexadecimais no `InstructorDocumentService` verificando os primeiros bytes de PDFs, JPEGs e PNGs para evitar spoofing de MIME.
+  - **D11 (Resiliência do NotificationService):** Tratamento de falhas de rede no gateway de email com isolamento completo e logging `WARNING`, impedindo interrupção das transações principais de negócio.
+  - **D08 (SQL Hardening no BookingLockStore):** Removido `table_name` dinâmico do construtor, fixando a constante estática `_TABLE_NAME = "slots"` nas queries SQL.
+  - **D12 (Otimização de Queries N+1):** Otimizado `cancel_booking()` no `BookingService` para usar cláusula `IN` batch, reduzindo as consultas de O(n) para O(1).
+  - **D13 (Resiliência per-item no Scheduler):** Adicionado try/except individual no lote do scheduler para garantir o processamento contínuo de itens saudáveis mesmo sob falhas isoladas, retornando contadores estruturados.
+  - **D07 (Logging Estruturado de Eventos de Segurança):** Implementado mascaramento de tokens e logs de auditoria detalhados no `/login`, aprovações e rejeições administrativas.
+  - **D09 (Rate Limiting com SlowAPI):** Implementado rate-limiting em memória por IP com SlowAPI e SlowAPIMiddleware, limitando login (10/min), registro (5/min), refresh (20/min) e reset (3/min), com handler formatado de erro `429 Too Many Requests` (`RATE_LIMIT_EXCEEDED`).
+  - **D10 (Testes de Abuso & Cobertura):** Desenvolvido `tests/security/test_abuse_scenarios.py` cobrindo 100% das regras e rate limits, com fixture global autouse em `tests/conftest.py` para resetar o estado do limiter garantindo estrito isolamento.
+- **Garantia de Qualidade e Testes:**
+  - Rodada a suíte completa de testes: todos os **112 testes verdes** e Uruff 100% em conformidade com PEP 8.
