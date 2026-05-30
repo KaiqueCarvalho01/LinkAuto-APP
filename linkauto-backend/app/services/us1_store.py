@@ -118,11 +118,100 @@ class IdentityStore:
     def get_user_by_email(self, email: str) -> UserRecord | None:
         user_id = self._email_to_id.get(email.strip().lower())
         if not user_id:
-            return None
+            user_id = self._load_user_from_db_by_email(email)
+            if not user_id:
+                return None
         return self._users.get(user_id)
 
     def get_user(self, user_id: str) -> UserRecord | None:
-        return self._users.get(user_id)
+        user = self._users.get(user_id)
+        if not user:
+            user = self._load_user_from_db_by_id(user_id)
+        return user
+
+    def _load_user_from_db_by_email(self, email: str) -> str | None:
+        from app.core.database import SessionLocal
+        from app.models.user import User as DbUser
+
+        db = SessionLocal()
+        try:
+            db_user = db.query(DbUser).filter_by(email=email.strip().lower()).first()
+            if db_user:
+                self._sync_db_user_to_memory(db_user)
+                return db_user.id
+        except Exception:
+            pass
+        finally:
+            db.close()
+        return None
+
+    def _load_user_from_db_by_id(self, user_id: str) -> UserRecord | None:
+        from app.core.database import SessionLocal
+        from app.models.user import User as DbUser
+
+        db = SessionLocal()
+        try:
+            db_user = db.query(DbUser).filter_by(id=user_id).first()
+            if db_user:
+                return self._sync_db_user_to_memory(db_user)
+        except Exception:
+            pass
+        finally:
+            db.close()
+        return None
+
+    def _sync_db_user_to_memory(self, db_user) -> UserRecord:
+        from app.models.user import LicenseType
+        from app.models import DetranStatus
+
+        with self._lock:
+            # StudentProfile map
+            student_profile = None
+            if db_user.student_profile:
+                student_profile = {
+                    "full_name": db_user.student_profile.full_name,
+                    "phone": db_user.student_profile.phone,
+                    "city": db_user.student_profile.city,
+                    "state": db_user.student_profile.state,
+                    "license_type": db_user.student_profile.license_type.value if db_user.student_profile.license_type else LicenseType.NENHUMA.value,
+                    "avatar_url": db_user.student_profile.avatar_url,
+                }
+
+            # InstructorProfile map
+            instructor_profile = None
+            if db_user.instructor_profile:
+                instructor_profile = {
+                    "full_name": db_user.instructor_profile.full_name,
+                    "phone": db_user.instructor_profile.phone,
+                    "city": db_user.instructor_profile.city,
+                    "state": db_user.instructor_profile.state,
+                    "bio": db_user.instructor_profile.bio,
+                    "specialties": db_user.instructor_profile.specialties,
+                    "price_per_hour": float(db_user.instructor_profile.price_per_hour) if db_user.instructor_profile.price_per_hour is not None else None,
+                    "avatar_url": db_user.instructor_profile.avatar_url,
+                    "detran_status": db_user.instructor_profile.detran_status.value if db_user.instructor_profile.detran_status else DetranStatus.PENDENTE.value,
+                    "action_radius_km": db_user.instructor_profile.action_radius_km,
+                    "latitude": db_user.instructor_profile.latitude,
+                    "longitude": db_user.instructor_profile.longitude,
+                    "rating_avg": db_user.instructor_profile.rating_avg,
+                    "rating_count": db_user.instructor_profile.rating_count,
+                    "is_active": db_user.instructor_profile.is_active,
+                }
+
+            user = UserRecord(
+                id=db_user.id,
+                email=db_user.email,
+                password_hash=db_user.password_hash,
+                roles=db_user.roles,
+                is_active=db_user.is_active,
+                created_at=db_user.created_at,
+                updated_at=db_user.updated_at,
+                student_profile=student_profile,
+                instructor_profile=instructor_profile,
+            )
+            self._users[user.id] = user
+            self._email_to_id[user.email] = user.id
+            return user
 
     def update_profile(self, user_id: str, payload: dict) -> UserRecord:
         user = self.get_user(user_id)
