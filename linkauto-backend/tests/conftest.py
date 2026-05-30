@@ -1,5 +1,6 @@
 import pytest
 
+from tests.conftest_db import *  # noqa: F401, F403
 from app.services.us1_store import get_identity_store
 
 

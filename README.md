@@ -13,6 +13,7 @@ Navegacao rapida:
 - [Status atual](#status-atual)
 - [Como executar](#como-executar-localmente)
 - [Qualidade e testes](#qualidade-e-testes)
+- [Seguranca](docs/SECURITY_TECHNIQUES.md)
 
 ![LinkAuto Banner](docs/images/LinkAuto-banner.webp)
 
@@ -38,6 +39,7 @@ Referencias principais:
 - [specs/001-user-booking-domains/plan.md](specs/001-user-booking-domains/plan.md)
 - [specs/001-user-booking-domains/tasks.md](specs/001-user-booking-domains/tasks.md)
 - [specs/001-user-booking-domains/contracts/api-v1-openapi.yaml](specs/001-user-booking-domains/contracts/api-v1-openapi.yaml)
+- [docs/SECURITY_TECHNIQUES.md](docs/SECURITY_TECHNIQUES.md)
 
 ## Status atual
 
@@ -48,7 +50,7 @@ Referencias principais:
 | Phase 1 - Setup | Concluida |
 | Phase 2 - Foundational | Concluida |
 | Phase 3 - US1 | Concluida |
-| Phase 4 - US2 | Pendente |
+| Phase 4 - US2 | Concluída |
 | Phase 5 - US3 | Pendente |
 | Phase 6 - Polish | Pendente |
 
@@ -232,11 +234,10 @@ Coberturas relevantes ja presentes:
 
 ## Roadmap imediato
 
-Itens das proximas fases:
+Itens das próximas fases:
 
-- US2: slots, booking, penalties, conflitos e override administrativo de booking
-- US3: mensagens por booking, reviews apos REALIZADA e eventos de notificacao completos
-- Polish: hardening, regressao em cascata no Booking core e validacao final
+- US3: mensagens por agendamento, reviews após REALIZADA e eventos de notificação completos
+- Polish: hardening, regressão em cascata no Booking core e validação final
 
 Regra de execucao por dependencia:
 
