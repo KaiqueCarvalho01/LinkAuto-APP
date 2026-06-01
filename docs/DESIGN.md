@@ -1,8 +1,8 @@
 # DESIGN.md — LinkAuto
 
 > Design system reference para o frontend do LinkAuto.
-> Stack: React + Vite + Tailwind CSS 4 + Chakra UI + Leaflet
-> Consumido pelo agente "Expert React Frontend Engineer" e pelo Copilot Agent Mode.
+> Stack: React 19 + Vite + Tailwind CSS 4 + Chakra UI v3 + Leaflet + Zustand + Vitest
+> Consumido pelo agente Gemini e engenheiros do LinkAuto.
 
 ---
 
@@ -258,29 +258,33 @@ Grid de botões de horário para seleção de slots:
 O tema Chakra é estendido em `src/theme/index.ts` com dois `colorScheme` próprios do LinkAuto:
 
 ```ts
-// src/theme/index.ts
-import { extendTheme } from '@chakra-ui/react'
+// src/theme/system.ts
+import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
-const theme = extendTheme({
-  colors: {
-    laBlue: {
-      50:  '#EBF4FC',
-      100: '#D6E8F7',
-      500: '#1A6DB5',
-      600: '#165E9C',
-      700: '#124E87',
-    },
-    laGreen: {
-      50:  '#EAF6EF',
-      100: '#D4EFE0',
-      500: '#3EAA5B',
-      600: '#35924D',
-      700: '#2C7D42',
+const config = defineConfig({
+  theme: {
+    tokens: {
+      colors: {
+        laBlue: {
+          50: { value: "#EBF4FC" },
+          100: { value: "#D6E8F7" },
+          500: { value: "#1A6DB5" },
+          600: { value: "#165E9C" },
+          700: { value: "#124E87" },
+        },
+        laGreen: {
+          50: { value: "#EAF6EF" },
+          100: { value: "#D4EFE0" },
+          500: { value: "#3EAA5B" },
+          600: { value: "#35924D" },
+          700: { value: "#2C7D42" },
+        },
+      },
     },
   },
-})
+});
 
-export default theme
+export const appSystem = createSystem(defaultConfig, config);
 ```
 
 | Variante Chakra | Uso | Props |
@@ -412,40 +416,41 @@ Banner de alerta dentro de `/bookings/new` quando `student.is_blocked = true`:
 
 ---
 
-## 11. Diretrizes para o Agente Frontend
+## 11. Diretrizes para o Desenvolvimento do Frontend
 
-> Instruções específicas para o agente **"Expert React Frontend Engineer"** e Copilot Agent Mode.
+> Instruções específicas e governança de desenvolvimento de novas telas e funcionalidades do LinkAuto.
 
-### O que o agente DEVE fazer
+### O que o Desenvolvedor / IA DEVE fazer
 
-- Usar `className` com tokens Tailwind `la-*` definidos no `@theme` apenas para layout/espaçamento — estilização de componentes UI via props Chakra
-- Usar **DM Sans** em todo texto UI (configurado no tema Chakra via `fonts.heading` e `fonts.body`)
-- Criar componentes wrappers em `/components/` estendendo Chakra — nunca sobrescrever o tema global com `sx` arbitrário
-- Aplicar `transition` via prop Chakra nos elementos interativos (hover, focus, active)
-- Mobile-first: usar o array syntax do Chakra para responsive (`fontSize={['sm', 'md']}`) ou Tailwind `sm:`/`md:` para layout
-- Usar Lucide React para ícones; wrappear com `<Icon as={NomeDaIcon}>` do Chakra quando precisar de alinhamento consistente
-- Polls de mensagens: `useEffect` com `setInterval` de 10s (sem WebSocket)
-- Leaflet: sempre importar CSS via `import 'leaflet/dist/leaflet.css'` no componente de mapa
+- Usar `className` com tokens Tailwind `la-*` ou espaçamentos/layouts padrão apenas para a estrutura — toda a estilização visual de componentes UI (textos, painéis, cores) deve ser feita usando as props nativas do Chakra UI v3.
+- Usar **DM Sans** em todo texto UI (configurado no tema Chakra v3 via `fonts.heading` e `fonts.body` em `system.ts`).
+- Criar e estender componentes no padrão **Chakra UI v3 Composition API** (ex.: `*.Root`, `*.Trigger`, `*.Content`, `*.CloseTrigger`).
+- Sempre adotar **Tokens Semânticos** (ex.: `text.primary`, `surface.canvas`, `brand.solid`) ao invés de cores hexadecimais explícitas, garantindo que o dark mode nativo funcione automaticamente.
+- Usar Lucide React para ícones, integrando-os de forma harmoniosa com o Chakra UI.
+- Empregar o hook `useColorMode` do Chakra v3 e o `<ThemeProvider>` configurado no `router.tsx` e `main.tsx` para alternância de temas.
+- Criar e evoluir as regras de estado global exclusivamente no store **Zustand** (`sessionStore`).
+- Implementar **Test-Driven Development (TDD)** usando a suíte ativa de Vitest + React Testing Library antes de qualquer refatoração.
 
-### O que o agente NÃO deve fazer
+### O que NÃO deve ser feito
 
-- Usar `style={{}}` inline para cores ou tipografia
-- Criar variantes de botão fora do padrão definido na seção 5.7
-- Usar `window.localStorage` para estado de auth — usar o store Zustand
-- Usar fontes do sistema (`font-sans` padrão do Tailwind sem override)
-- Adicionar dependências de UI além de Chakra UI + Lucide React + Leaflet sem aprovação
-- Modificar tokens de cor sem atualizar este documento
+- Usar `style={{}}` inline para cores, tipografias ou espaçamentos.
+- Criar ou injetar variáveis globais fora do `theme/system.ts`.
+- Tentar injetar pacotes CSS adicionais sem a devida validação do Tech Lead.
+- Sobrescrever manualmente elementos internos de tema com seletores de classe rígidos do CSS.
+- Utilizar mocks hardcoded nas páginas quando existirem endpoints operacionais prontos no backend da aplicação.
 
-### Skills e Agentes Recomendados (VS Code / GitHub Copilot)
+### Governança de Skills, Agentes & MCP Tools Recomendadas
 
-| Agente / Skill | Uso no LinkAuto |
-|---|---|
-| **Expert React Frontend Engineer** | Refatoração de componentes, polimento visual, responsividade |
-| **Copilot Agent Mode** (SDD Spec Kit) | Implementação de tasks completas seguindo `speckit.tasks` |
-| **GitHub Copilot Edits** | Ajustes rápidos de estilo em múltiplos arquivos simultaneamente |
-| **ESLint + Prettier** (configurar no workspace) | Lint automático de JSX e Tailwind class order |
-| **Tailwind CSS IntelliSense** (extensão VS Code) | Autocomplete dos tokens `la-*` definidos via `@theme` |
-| **Zod Schema Generator** | Geração de schemas Pydantic ↔ Zod a partir do `data-model.md` |
+Consulte o documento completo [FRONTEND_RECOMMENDATIONS.md](file:///home/gabrieldnsilva/projects/LinkAuto-APP/docs/FRONTEND_RECOMMENDATIONS.md) para detalhes de instalação e uso no LinkAuto.
+
+| Recurso | Tipo | Função no LinkAuto |
+| :--- | :--- | :--- |
+| `@frontend-design` / `@web-design-guidelines` | **Skill** | Fidelidade estética mobile-first e padrões premium baseados no `DESIGN.md`. |
+| `@test-driven-development` | **Skill** | Orientação do ciclo TDD Red-Green-Refactor com Vitest. |
+| `@ui-a11y` / `@wcag-audit-patterns` | **Skill** | Auditoria e correções de acessibilidade para navegação acessível. |
+| `@context7-mcp` (`context7`) | **MCP Tool** | Consultas ao vivo de documentação técnica oficial das APIs do **Chakra UI v3** e **Tailwind CSS 4** para evitar código depreciado. |
+| `research` | **Agent** | Investigação de contratos de API e modelos Pydantic no backend. |
+| `self` | **Agent** | Subagente isolado para refatoração e testes de componentes específicos. |
 
 ---
 

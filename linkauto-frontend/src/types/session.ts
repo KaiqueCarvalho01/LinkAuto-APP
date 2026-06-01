@@ -2,16 +2,31 @@ export type UserRole = "ALUNO" | "INSTRUTOR" | "ADMIN";
 
 export interface StudentProfile {
 	full_name?: string;
+	phone?: string;
 	city?: string;
+	state?: string;
 	license_type?: string;
+	avatar_url?: string;
 	[key: string]: unknown;
 }
 
 export interface InstructorProfile {
 	full_name?: string;
+	phone?: string;
 	city?: string;
+	state?: string;
+	neighborhood?: string;
 	detran_status?: string;
 	bio?: string;
+	specialties?: string[];
+	price_per_hour?: number;
+	avatar_url?: string;
+	action_radius_km?: number;
+	latitude?: number | undefined;
+	longitude?: number | undefined;
+	rating_avg?: number;
+	rating_count?: number;
+	is_active?: boolean;
 	[key: string]: unknown;
 }
 
@@ -59,4 +74,5 @@ export interface DashboardRequest {
 	time: string;
 	studentName?: string;
 	neighborhood?: string;
+	specialties?: string[];
 }

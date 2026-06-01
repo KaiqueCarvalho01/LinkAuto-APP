@@ -185,8 +185,76 @@
 - coverage_pct: 100% (Line), 100% (Branch) ✅
 - governance_validation: passed ✅
 
+### Iteracao 19 - Frontend API Integration & Polish (FE-API-Integration)
+
+#### What was delivered (Iteracao 19)
+- Efetuada a integração do frontend com a API real do backend para todas as páginas operacionais (SearchPage, MyLessons, LessonDetails, Profile, Home), removendo mocks de dados operacionais locais.
+- Criada a camada de tipos TypeScript em `/src/types/api.types.ts` correspondente aos schemas snake_case do backend FastAPI.
+- Implementada a camada de serviços (instructorService, slotService, bookingService, profileService) com mapeadores robustos (mappers) de snake_case para camelCase e tratamento de nulos/padrões para 100% de segurança de tipos.
+- Garantido suporte a geolocalização nativa via GPS e fallback via dropdown manual de cidades com coordenadas reais centradas na microrregião de Mogi Mirim.
+- Resolvida a conformidade estrita do compilador TypeScript (`exactOptionalPropertyTypes: true` e `noUncheckedIndexedAccess: true`), com ajustes nas interfaces e states de formulários do Profile, SearchPage e LessonDetails.
+- Implementada proteção contra desmontagem assíncrona com cleanup de flag ativa no `useEffect` de carregamento de slots em `LessonDetails.tsx` para evitar vazamentos de estado em testes do Vitest.
+
+#### Where it was delivered (Iteracao 19)
+- `src/types/api.types.ts`
+- `src/types/instructor.ts`
+- `src/types/booking.ts`
+- `src/types/session.ts`
+- `src/services/profileService.ts`
+- `src/services/bookingService.ts`
+- `src/pages/Profile.tsx`
+- `src/pages/SearchPage.tsx`
+- `src/pages/LessonDetails.tsx`
+- `src/pages/LessonDetails.test.tsx`
+- `src/pages/ScaffoldPages.test.tsx`
+- `src/app/router.tsx`
+
+#### How it was validated (Iteracao 19)
+- cycle_id: iteration-012
+- red_command: `npm run typecheck` (28 erros de TS) ❌
+- green_command: `npm run typecheck` (0 erros) e `npm run test` (89 testes passando) ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+
+### Iteracao 20 - Frontend Improvements & Polish (FE-Improvements-10-Issues)
+
+#### What was delivered (Iteracao 20)
+- **Correção de 10 Issues Críticas do Frontend:** Implementação de um ciclo completo de refatoração para 10 problemas identificados no uso manual da plataforma.
+- **Navegação & Rotas:** Correção de links órfãos e rotas quebradas no `ProfileSidebar` (`/agendamentos` -> `/my-lessons`, `/buscar` -> `/search`) e label correto no CTA da Home ("Ver instrutores disponíveis" -> `/search`).
+- **Modernização de Feedbacks & UX:** Substituição completa do `confirm()` e `alert()` nativos no cancelamento de aulas em `MyLessons.tsx` por uma confirmação inline interativa, com tratamento de erros visual na tela e reset correto de estado de carregamento de rede.
+- **Typewriter & Hero Section Polish:** Implementação de animação de typewriter elegante e dinâmica para as frases contextuais do hero na `Home.tsx` com destaque em gradiente premium para a marca "LinkAuto." e cursor interativo por CSS Keyframes.
+- **Preview de Mapa de Demonstração:** Fallback automático no mapa de geolocalização da Home para renderizar marcadores de demonstração (`mockInstructors` em Mogi Mirim) com badge flutuante "Modo Demonstração" quando a lista real de instrutores do banco retornar vazia, garantindo impacto visual.
+- **Perfil Enriquecido & Completude:** Adicionado input de tags dinâmicas para especialidades do instrutor no `Profile.tsx` e visualização em chips. Implementado o cálculo e o indicador de barra de progresso da Completude do Perfil com base no preenchimento de campos obrigatórios.
+- **Segurança & Recuperação:** Criação da página pública de recuperação de senha `PasswordReset.tsx` com layout premium split-screen, formulário de email e tratamento de erros integrado ao backend.
+- **Dashboards & Menus por Role:** Ocultação de abas exclusivas de alunos para instrutores no `Profile.tsx` e criação da rota de dashboard do instrutor `/instructor/dashboard`.
+- **Enriquecimento do Painel Administrativo:** Cards de estatísticas administrativas com contagem real no `InstructorDashboard.tsx` quando acessado por administratores, exibindo também chips de especialidades dos instrutores na lista de aprovações pendentes.
+- **Footer Polish:** Resolução de todos os links mortos e 404 do Footer, redirecionando para rotas corretas ou links âncora seguros (`#` com tooltip de "Em breve").
+
+#### Where it was delivered (Iteracao 20)
+- `src/pages/Home.tsx`
+- `src/pages/MyLessons.tsx`
+- `src/pages/MyLessons.test.tsx`
+- `src/pages/Profile.tsx`
+- `src/pages/PasswordReset.tsx`
+- `src/pages/PasswordReset.test.tsx`
+- `src/pages/InstructorDashboard.tsx`
+- `src/app/router.tsx`
+- `src/components/Footer.tsx`
+- `src/components/Footer.test.tsx`
+- `src/components/ProfileSidebar.tsx`
+- `src/types/session.ts`
+
+#### How it was validated (Iteracao 20)
+- cycle_id: iteration-013
+- red_command: `npm run test` (testes unitários do MyLessons falhando) ❌
+- green_command: `npm run typecheck` (0 erros) e `npm run lint` (0 warnings) e `npm run test` (todos os 94 testes passando com 100% de sucesso) ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+
 ## Riscos e Observacoes Gerais
 
+- **Iteracao 20**: Refatoração maciça do frontend resolvendo 10 problemas de usabilidade, navegabilidade e segurança de tipos em rotas e formulários. Cobertura estrita de TypeScript restabelecida sem erros, eslint validado com 0 warnings nos arquivos modificados, e 100% de aprovação na suíte de testes (94 testes verdes). Documentação de solicitações de API para o backend gerada com sucesso em `docs/BACKEND_ENDPOINT_REQUESTS.md`.
+- **Iteracao 19**: A integração de ponta a ponta com a API do backend foi concluída com sucesso. O frontend está 100% livre de mocks de dados operacionais (usando apenas fixtures estáticas isoladas em testes), e a conformidade estrita do TypeScript (incluindo exactOptionalPropertyTypes) foi plenamente restabelecida.
 - **Iteracao 18**: Instructor pages now include interactive tools (Simulator) and animated cards. UX improved with transitions.
 - **Iteracao 17**: Student pages now have full content and visual consistency with the platform. No backend changes required.
 - **Iteracao 16**: Register page layout and accessibility match Login page standards. Integration with sessionStore via signUp method implemented. Form validation for matching passwords included.

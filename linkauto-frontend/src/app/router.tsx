@@ -1,7 +1,6 @@
 import {
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useMemo,
 	useState,
 	type ReactNode,
@@ -33,6 +32,7 @@ import About from "../pages/About";
 import Contact from "../pages/Contact";
 import Notifications from "../pages/Notifications";
 import Help from "../pages/Help";
+import PasswordReset from "../pages/PasswordReset";
 import AuditLog from "../pages/admin/AuditLog";
 import FirstLicense from "../pages/students/FirstLicense";
 import LicensedDrivers from "../pages/students/LicensedDrivers";
@@ -45,8 +45,6 @@ import { useSessionStore } from "../state/sessionStore";
 import type { InstructorSummary } from "../types/instructor";
 import type {
 	DashboardRequest,
-	ProfileUserData,
-	UiRole,
 	UserAccount,
 } from "../types/session";
 
@@ -87,17 +85,7 @@ const applyColorMode = (mode: ThemeMode) => {
 	root.style.colorScheme = mode;
 };
 
-const toUiRole = (roles: string[]): UiRole => {
-	if (roles.includes("ADMIN")) {
-		return "admin";
-	}
 
-	if (roles.includes("INSTRUTOR")) {
-		return "instructor";
-	}
-
-	return "student";
-};
 
 function ProtectedRoute({ children }: RouteGuardProps) {
 	const { isAuthenticated } = useSessionStore();
@@ -212,9 +200,9 @@ function ProfileRoute() {
 		session?.user ?? null,
 	);
 
-	const applyProfile = useEffectEvent((nextProfile: UserAccount) => {
+	const applyProfile = useCallback((nextProfile: UserAccount) => {
 		setProfile(nextProfile);
-	});
+	}, []);
 
 	useEffect(() => {
 		let active = true;
@@ -241,24 +229,23 @@ function ProfileRoute() {
 		return () => {
 			active = false;
 		};
-	}, [session?.accessToken, session?.user]);
+	}, [session?.accessToken, session?.user, applyProfile]);
 
-	const role = toUiRole(profile?.roles ?? []);
-	const userData: ProfileUserData = {
-		name:
-			profile?.student_profile?.full_name ||
-			profile?.instructor_profile?.full_name ||
-			"Conta LinkAuto",
-		email: profile?.email || "usuario@linkauto.app",
-		role,
-	};
+
+
+
+	const mergedSession = session ? { ...session, user: profile ?? session.user } : null;
 
 	return (
 		<Profile
-			userData={userData}
+			session={mergedSession}
+			token={session?.accessToken}
 			onLogout={() => {
 				signOut();
 				navigate("/login", { replace: true });
+			}}
+			onProfileUpdated={(updatedUser) => {
+				applyProfile(updatedUser);
 			}}
 			onNavigateToSearch={() => navigate("/search")}
 			onNavigateToBookings={() => navigate("/my-lessons")}
@@ -286,10 +273,12 @@ function BookingDetailsRoute() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const state = location.state as { instructor?: InstructorSummary } | null;
+	const { session } = useSessionStore();
 
 	return (
 		<LessonDetails
 			instructor={state?.instructor}
+			token={session?.accessToken}
 			onBack={() => navigate("/search")}
 			onBookingCreated={() => {
 				navigate("/my-lessons", { replace: true });
@@ -300,8 +289,9 @@ function BookingDetailsRoute() {
 
 function MyLessonsRoute() {
 	const navigate = useNavigate();
+	const { session } = useSessionStore();
 
-	return <MyLessons onNewBooking={() => navigate("/search")} />;
+	return <MyLessons token={session?.accessToken} onNewBooking={() => navigate("/search")} />;
 }
 
 function AdminInstructorDashboardRoute() {
@@ -325,8 +315,10 @@ function AdminInstructorDashboardRoute() {
 			id: item.id,
 			name: item.instructor_profile?.full_name || item.email,
 			city: item.instructor_profile?.city || "Sem cidade",
+			neighborhood: item.instructor_profile?.neighborhood || "",
 			date: "Pendente",
-			time: "--",
+			time: "Revisão",
+			specialties: item.instructor_profile?.specialties || [],
 		}));
 		return mapped;
 	}, [token]);
@@ -385,6 +377,8 @@ function AdminInstructorDashboardRoute() {
 		setRequests(await loadPending());
 	};
 
+	const pendingCount = requests.length;
+
 	return (
 		<InstructorDashboard
 			instructorData={instructorData}
@@ -394,6 +388,29 @@ function AdminInstructorDashboardRoute() {
 			onViewStudents={() => undefined}
 			dashboardTitle="Administrative Panel"
 			pendingLabel="Pending Instructors"
+			isAdminDashboard={true}
+			pendingInstructors={pendingCount}
+			approvedInstructors={3}
+		/>
+	);
+}
+
+function InstructorDashboardRoute() {
+	const { session } = useSessionStore();
+	const instructorData = useMemo(
+		() => ({
+			name: session?.user?.instructor_profile?.full_name || session?.user?.email || "Instrutor",
+			rating: session?.user?.instructor_profile?.rating_avg || 5.0,
+		}),
+		[session?.user]
+	);
+
+	return (
+		<InstructorDashboard
+			instructorData={instructorData}
+			requests={[]}
+			dashboardTitle="Instructor Panel"
+			pendingLabel="Minhas Reservas"
 		/>
 	);
 }
@@ -553,6 +570,16 @@ export default function AppRouter() {
 					/>
 
 					<Route
+						path="/instructor/dashboard"
+						element={
+							<ProtectedRoute>
+								<RoleRoute roles={["INSTRUTOR"]}>
+									<InstructorDashboardRoute />
+								</RoleRoute>
+							</ProtectedRoute>
+						}
+					/>
+					<Route
 						path="/admin/instructors"
 						element={
 							<ProtectedRoute>
@@ -576,6 +603,7 @@ export default function AppRouter() {
 
 				<Route path="/login" element={<LoginRoute />} />
 				<Route path="/register" element={<RegisterRoute />} />
+				<Route path="/password-reset" element={<PasswordReset />} />
 
 				<Route path="/app" element={<RootRedirect />} />
 				<Route path="*" element={<RootRedirect />} />

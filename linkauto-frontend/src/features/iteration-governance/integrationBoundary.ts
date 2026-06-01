@@ -34,12 +34,15 @@ export function resolveIntegrationBoundary(
 		if (errors.length > 0) {
 			return { isValid: false, errors };
 		}
-		return {
+		const result: IntegrationBoundaryResult = {
 			isValid: true,
 			action: "USE_MOCK",
-			strategy: input.fallbackStrategy,
 			errors,
 		};
+		if (input.fallbackStrategy) {
+			result.strategy = input.fallbackStrategy;
+		}
+		return result;
 	}
 
 	if (input.contractStatus === "CONTRACTED") {
@@ -51,12 +54,15 @@ export function resolveIntegrationBoundary(
 		if (errors.length > 0) {
 			return { isValid: false, errors };
 		}
-		return {
+		const result: IntegrationBoundaryResult = {
 			isValid: true,
 			action: "USE_CONTRACT",
-			reference: input.endpointReference,
 			errors,
 		};
+		if (input.endpointReference) {
+			result.reference = input.endpointReference;
+		}
+		return result;
 	}
 
 	errors.push("contractStatus must be CONTRACTED or NOT_CONTRACTED");

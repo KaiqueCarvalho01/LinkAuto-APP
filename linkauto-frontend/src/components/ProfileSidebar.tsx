@@ -83,7 +83,7 @@ export function ProfileSidebar({ open, onOpenChange }: ProfileSidebarProps) {
 					justifyContent="flex-start"
 					w="full"
 					gap={3}>
-					<RouterLink to="/agendamentos">
+					<RouterLink to="/my-lessons">
 						<Calendar size={20} /> Minhas Aulas
 					</RouterLink>
 				</Button>
@@ -93,7 +93,7 @@ export function ProfileSidebar({ open, onOpenChange }: ProfileSidebarProps) {
 					justifyContent="flex-start"
 					w="full"
 					gap={3}>
-					<RouterLink to="/buscar">
+					<RouterLink to="/search">
 						<Search size={20} /> Buscar Instrutor
 					</RouterLink>
 				</Button>

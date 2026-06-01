@@ -176,7 +176,10 @@ class BookingService:
                 .first()
             )
             if first_slot:
-                time_until_slot = first_slot.starts_at - now
+                first_slot_starts = first_slot.starts_at
+                if first_slot_starts.tzinfo is None:
+                    first_slot_starts = first_slot_starts.replace(tzinfo=timezone.utc)
+                time_until_slot = first_slot_starts - now
                 if time_until_slot < timedelta(hours=CANCELLATION_NOTICE_HOURS):
                     self._penalty.apply_penalty(
                         booking.student_id,

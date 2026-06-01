@@ -26,6 +26,20 @@ export class HttpClientError extends Error {
 	}
 }
 
+type TokenRefreshedCallback = (newAccessToken: string) => void;
+type AuthFailureCallback = () => void;
+
+let tokenRefreshedCallback: TokenRefreshedCallback | null = null;
+let authFailureCallback: AuthFailureCallback | null = null;
+
+export const setOnTokenRefreshed = (cb: TokenRefreshedCallback) => {
+	tokenRefreshedCallback = cb;
+};
+
+export const setOnAuthFailure = (cb: AuthFailureCallback) => {
+	authFailureCallback = cb;
+};
+
 const buildUrl = (path: string): string => {
 	const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 	return `${API_BASE_URL}${normalizedPath}`;
@@ -89,6 +103,38 @@ const request = async <TData>(
 
 	const payload = await parseResponse(response);
 	if (!response.ok) {
+		if (
+			response.status === 401 &&
+			!path.includes("/auth/refresh") &&
+			!path.includes("/auth/login")
+		) {
+			try {
+				const refreshPayload = await httpClient.post<{ access_token: string }>("/auth/refresh", {}, {
+					headers: { "Content-Type": "application/json" }
+				});
+				const newAccessToken = refreshPayload.data.access_token;
+				if (tokenRefreshedCallback) {
+					tokenRefreshedCallback(newAccessToken);
+				}
+
+				const nextInit = { ...requestInit };
+				nextInit.headers = {
+					...nextInit.headers,
+					Authorization: `Bearer ${newAccessToken}`,
+				};
+				const nextResponse = await fetch(buildUrl(path), nextInit);
+				const nextPayload = await parseResponse(nextResponse);
+				if (nextResponse.ok) {
+					return nextPayload as ApiSuccessEnvelope<TData>;
+				}
+			} catch (refreshErr) {
+				if (authFailureCallback) {
+					authFailureCallback();
+				}
+				throw refreshErr;
+			}
+		}
+
 		const typedPayload = isApiErrorEnvelope(payload) ? payload : null;
 		const fallback = `HTTP ${response.status}`;
 		const message = typedPayload?.error.message || fallback;

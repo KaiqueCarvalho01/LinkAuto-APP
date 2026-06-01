@@ -8,7 +8,7 @@ import * as sessionStore from "../state/sessionStore";
 
 // Mock the session store hook
 vi.mock("../state/sessionStore", async (importOriginal) => {
-	const actual = (await importOriginal()) as any;
+	const actual = (await importOriginal()) as typeof sessionStore;
 	return {
 		...actual,
 		useSessionStore: vi.fn(),
