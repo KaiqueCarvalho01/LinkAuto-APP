@@ -114,7 +114,7 @@ export function Footer() {
 							variant="plain"
 							color="inherit"
 							_hover={{ color: "brand.500", fontWeight: "600" }}>
-							<RouterLink to="/student/lessons">
+							<RouterLink to="/my-lessons">
 								Minhas Aulas
 							</RouterLink>
 						</Link>
@@ -127,7 +127,7 @@ export function Footer() {
 							variant="plain"
 							color="inherit"
 							_hover={{ color: "brand.500", fontWeight: "600" }}>
-							<RouterLink to="/instructors/register">
+							<RouterLink to="/register">
 								Cadastrar como Instrutor
 							</RouterLink>
 						</Link>
@@ -136,7 +136,7 @@ export function Footer() {
 							variant="plain"
 							color="inherit"
 							_hover={{ color: "brand.500", fontWeight: "600" }}>
-							<RouterLink to="/instructor/students">
+							<RouterLink to="/instructor/dashboard">
 								Painel do Instrutor
 							</RouterLink>
 						</Link>
@@ -145,7 +145,7 @@ export function Footer() {
 							variant="plain"
 							color="inherit"
 							_hover={{ color: "brand.500", fontWeight: "600" }}>
-							<RouterLink to="/instructor/vehicles">
+							<RouterLink to="/profile">
 								Meus Veículos
 							</RouterLink>
 						</Link>
@@ -168,11 +168,12 @@ export function Footer() {
 							<RouterLink to="/contact">Contato</RouterLink>
 						</Link>
 						<Link
-							asChild
 							variant="plain"
 							color="inherit"
-							_hover={{ color: "brand.500", fontWeight: "600" }}>
-							<RouterLink to="/terms">Termos de Uso</RouterLink>
+							_hover={{ color: "brand.500", fontWeight: "600" }}
+							href="#"
+							title="Em breve">
+							Termos de Uso
 						</Link>
 					</Stack>
 				</SimpleGrid>
@@ -189,18 +190,20 @@ export function Footer() {
 					</Text>
 					<HStack gap={6}>
 						<Link
-							asChild
 							variant="plain"
 							fontSize="xs"
-							_hover={{ color: "brand.500" }}>
-							<RouterLink to="/privacy">Privacidade</RouterLink>
+							_hover={{ color: "brand.500" }}
+							href="#"
+							title="Em breve">
+							Privacidade
 						</Link>
 						<Link
-							asChild
 							variant="plain"
 							fontSize="xs"
-							_hover={{ color: "brand.500" }}>
-							<RouterLink to="/cookies">Cookies</RouterLink>
+							_hover={{ color: "brand.500" }}
+							href="#"
+							title="Em breve">
+							Cookies
 						</Link>
 					</HStack>
 				</Stack>

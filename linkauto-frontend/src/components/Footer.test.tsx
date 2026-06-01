@@ -35,20 +35,20 @@ describe("Footer", () => {
 		).toHaveAttribute("href", "/search");
 		expect(
 			screen.getByRole("link", { name: /Minhas Aulas/i }),
-		).toHaveAttribute("href", "/student/lessons");
+		).toHaveAttribute("href", "/my-lessons");
 	});
 
 	it("should have the correct links under the Instrutores column", () => {
 		renderWithProviders(<Footer />);
 		expect(
 			screen.getByRole("link", { name: /Cadastrar como Instrutor/i }),
-		).toHaveAttribute("href", "/instructors/register");
+		).toHaveAttribute("href", "/register");
 		expect(
 			screen.getByRole("link", { name: /Painel do Instrutor/i }),
-		).toHaveAttribute("href", "/instructor/students");
+		).toHaveAttribute("href", "/instructor/dashboard");
 		expect(
 			screen.getByRole("link", { name: /Meus Veículos/i }),
-		).toHaveAttribute("href", "/instructor/vehicles");
+		).toHaveAttribute("href", "/profile");
 	});
 
 	it("should have the correct links under the Institucional column", () => {
@@ -60,6 +60,6 @@ describe("Footer", () => {
 		expect(screen.getAllByRole("link", { name: /Contato/i })[0]).toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /Termos de Uso/i }),
-		).toHaveAttribute("href", "/terms");
+		).toHaveAttribute("href", "#");
 	});
 });

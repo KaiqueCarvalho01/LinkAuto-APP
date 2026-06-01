@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Award, Calendar, Check, Clock, Star, Users, X } from "lucide-react";
-import { Box, Button, HStack, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, HStack, Stack, Text, Badge } from "@chakra-ui/react";
 
 import type { DashboardRequest } from "../types/session";
 
@@ -17,6 +17,9 @@ interface InstructorDashboardProps {
 	readonly onViewStudents?: () => void;
 	readonly dashboardTitle?: string;
 	readonly pendingLabel?: string;
+	readonly isAdminDashboard?: boolean;
+	readonly pendingInstructors?: number;
+	readonly approvedInstructors?: number;
 }
 
 export default function InstructorDashboard({
@@ -27,6 +30,9 @@ export default function InstructorDashboard({
 	onViewStudents,
 	dashboardTitle = "Painel do Instrutor",
 	pendingLabel = "Solicitacoes",
+	isAdminDashboard = false,
+	pendingInstructors = 0,
+	approvedInstructors = 0,
 }: InstructorDashboardProps) {
 	const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -109,52 +115,105 @@ export default function InstructorDashboard({
 						gap={3}
 						align="stretch"
 						flexWrap={{ base: "wrap", md: "nowrap" }}>
-						<Box
-							flex="1"
-							minW={{ base: "100%", md: "0" }}
-							bg="whiteAlpha.200"
-							borderRadius="2xl"
-							p={4}
-							border="1px solid"
-							borderColor="border.default">
-							<Text
-								color="text.secondary"
-								fontSize="xs"
-								textTransform="uppercase"
-								fontWeight="700">
-								Total de aulas
-							</Text>
-							<Text
-								color="text.primary"
-								fontWeight="900"
-								fontSize="2xl"
-								lineHeight="1">
-								42
-							</Text>
-						</Box>
-						<Box
-							flex="1"
-							minW={{ base: "100%", md: "0" }}
-							bg="whiteAlpha.200"
-							borderRadius="2xl"
-							p={4}
-							border="1px solid"
-							borderColor="border.default">
-							<Text
-								color="text.secondary"
-								fontSize="xs"
-								textTransform="uppercase"
-								fontWeight="700">
-								Horas ministradas
-							</Text>
-							<Text
-								color="text.primary"
-								fontWeight="900"
-								fontSize="2xl"
-								lineHeight="1">
-								84h
-							</Text>
-						</Box>
+						{isAdminDashboard ? (
+							<>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Instrutores Aprovados
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										{approvedInstructors}
+									</Text>
+								</Box>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Instrutores Pendentes
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										{pendingInstructors}
+									</Text>
+								</Box>
+							</>
+						) : (
+							<>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Total de aulas
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										0 <Text as="span" fontSize="xs" fontWeight="bold" color="whiteAlpha.700">(em breve)</Text>
+									</Text>
+								</Box>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Horas ministradas
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										0h <Text as="span" fontSize="xs" fontWeight="bold" color="whiteAlpha.700">(em breve)</Text>
+									</Text>
+								</Box>
+							</>
+						)}
 					</HStack>
 				</Stack>
 			</Box>
@@ -227,6 +286,16 @@ export default function InstructorDashboard({
 											</Text>
 										</Stack>
 									</HStack>
+
+									{request.specialties && request.specialties.length > 0 && (
+										<HStack flexWrap="wrap" gap={1.5} py={1}>
+											{request.specialties.map((spec) => (
+												<Badge key={spec} colorPalette="brand" variant="subtle" rounded="md" px={2} py={0.5} fontSize="2xs">
+													{spec}
+												</Badge>
+											))}
+										</HStack>
+									)}
 
 									<HStack
 										gap={4}
