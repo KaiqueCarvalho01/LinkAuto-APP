@@ -26,6 +26,7 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
   const [bookings, setBookings] = useState<BookingPreview[]>([]);
   const [loading, setLoading] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadBookings = useCallback(async () => {
@@ -49,21 +50,18 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
 
   const handleCancel = async (bookingId: string) => {
     if (!token) return;
-    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
-      return;
-    }
 
     setCancellingId(bookingId);
     setErrorMessage(null);
     try {
       await bookingService.cancelBooking(bookingId, token, "Cancelado pelo Aluno");
+      setConfirmCancelId(null);
       // Reload list
       await loadBookings();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error cancelling booking:", err);
-      const msg = err.message || "Erro ao cancelar aula. Tente novamente.";
+      const msg = err instanceof Error ? err.message : "Erro ao cancelar aula. Tente novamente.";
       setErrorMessage(msg);
-      alert(msg);
     } finally {
       setCancellingId(null);
     }
@@ -191,15 +189,38 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
 
                     {(booking.status === "PENDENTE" || booking.status === "CONFIRMADA") && (
                       <HStack justify="flex-end" pt={2} borderTop="1px solid" borderColor="border.subtle">
-                        <Button
-                          size="sm"
-                          colorPalette="red"
-                          variant="ghost"
-                          loading={cancellingId === booking.id}
-                          disabled={cancellingId !== null}
-                          onClick={() => handleCancel(booking.id)}>
-                          Cancelar Aula
-                        </Button>
+                        {confirmCancelId === booking.id ? (
+                          <HStack gap={2}>
+                            <Text fontSize="xs" color="text.muted" mr="auto">
+                              Tem certeza?
+                            </Text>
+                            <Button
+                              size="sm"
+                              colorPalette="red"
+                              variant="solid"
+                              loading={cancellingId === booking.id}
+                              onClick={() => handleCancel(booking.id)}>
+                              Sim, cancelar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={cancellingId !== null}
+                              onClick={() => setConfirmCancelId(null)}>
+                              Não
+                            </Button>
+                          </HStack>
+                        ) : (
+                          <Button
+                            size="sm"
+                            colorPalette="red"
+                            variant="ghost"
+                            loading={cancellingId === booking.id}
+                            disabled={cancellingId !== null}
+                            onClick={() => setConfirmCancelId(booking.id)}>
+                            Cancelar Aula
+                          </Button>
+                        )}
                       </HStack>
                     )}
                   </Stack>
