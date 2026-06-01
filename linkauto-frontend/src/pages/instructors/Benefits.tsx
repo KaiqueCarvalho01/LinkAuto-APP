@@ -1,3 +1,4 @@
+import { type ComponentType } from "react";
 import {
 	Box,
 	Button,
@@ -179,7 +180,7 @@ function ComparisonRow({ label, val1, val2 }: { label: string; val1: string; val
 	);
 }
 
-function SecurityFeature({ icon: LucideIcon, title, desc }: { icon: any; title: string; desc: string }) {
+function SecurityFeature({ icon: LucideIcon, title, desc }: { icon: ComponentType<{ size?: number }>; title: string; desc: string }) {
 	return (
 		<Stack align="center" gap={4} p={8}>
 			<Circle size={12} bg="surface.muted" color="brand.500">

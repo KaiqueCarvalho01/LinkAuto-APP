@@ -90,14 +90,15 @@ export default function LessonDetails({
       }, token);
       
       onBookingCreated();
-    } catch (err: any) {
-      console.error("Error creating booking:", err);
-      if (err.status === 403 && err.payload?.error?.code === "STUDENT_PENALIZED") {
+    } catch (err: unknown) {
+      const error = err as { status?: number; payload?: { error?: { code?: string } }; message?: string };
+      console.error("Error creating booking:", error);
+      if (error.status === 403 && error.payload?.error?.code === "STUDENT_PENALIZED") {
         setErrorMessage("Sua conta está penalizada e temporariamente impedida de agendar novas aulas.");
-      } else if (err.status === 422 && err.payload?.error?.code === "SLOT_VALIDATION") {
+      } else if (error.status === 422 && error.payload?.error?.code === "SLOT_VALIDATION") {
         setErrorMessage("Os horários selecionados são inválidos ou não são consecutivos.");
       } else {
-        setErrorMessage(err.message || "Erro ao solicitar agendamento. Tente novamente.");
+        setErrorMessage(error.message || "Erro ao solicitar agendamento. Tente novamente.");
       }
     } finally {
       setIsSubmitting(false);

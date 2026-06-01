@@ -109,7 +109,15 @@ export function Testimonials() {
 	);
 }
 
-function TestimonialCard({ testimonial }: { testimonial: any }) {
+interface Testimonial {
+	id: string;
+	name: string;
+	role: string;
+	rating: number;
+	text: string;
+}
+
+function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 	return (
 		<Box
 			bg="surface.panel"

@@ -7,6 +7,7 @@ import { mockInstructors, getMockSlotsByInstructor } from "../test/fixtures/mock
 import { renderWithProviders } from "../test/renderWithProviders";
 import { slotService } from "../services/slotService";
 import { bookingService } from "../services/bookingService";
+import type { BookingPreview } from "../types/booking";
 
 describe("LessonDetails", () => {
 	it("enables booking request only after valid slot selection", async () => {
@@ -23,7 +24,7 @@ describe("LessonDetails", () => {
 		vi.spyOn(slotService, "getInstructorSlots").mockResolvedValue(
 			getMockSlotsByInstructor(primaryInstructor.id)
 		);
-		vi.spyOn(bookingService, "createBooking").mockResolvedValue({} as any);
+		vi.spyOn(bookingService, "createBooking").mockResolvedValue({} as BookingPreview);
 
 		renderWithProviders(
 			<LessonDetails

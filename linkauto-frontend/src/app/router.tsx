@@ -1,7 +1,6 @@
 import {
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useMemo,
 	useState,
 	type ReactNode,
@@ -201,9 +200,9 @@ function ProfileRoute() {
 		session?.user ?? null,
 	);
 
-	const applyProfile = useEffectEvent((nextProfile: UserAccount) => {
+	const applyProfile = useCallback((nextProfile: UserAccount) => {
 		setProfile(nextProfile);
-	});
+	}, []);
 
 	useEffect(() => {
 		let active = true;
@@ -230,7 +229,7 @@ function ProfileRoute() {
 		return () => {
 			active = false;
 		};
-	}, [session?.accessToken, session?.user]);
+	}, [session?.accessToken, session?.user, applyProfile]);
 
 
 
