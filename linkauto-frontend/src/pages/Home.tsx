@@ -19,6 +19,7 @@ import { Testimonials } from "../components/landing/Testimonials";
 import { FAQ } from "../components/landing/FAQ";
 import { instructorService } from "../services/instructorService";
 import type { InstructorSummary } from "../types/instructor";
+import { mockInstructors } from "../test/fixtures/mockData";
 
 interface HomeProps {
 	readonly isAuthenticated: boolean;
@@ -50,6 +51,15 @@ const highlights = [
 	},
 ];
 
+const words = [
+	"conexão certa.",
+	"aula perfeita.",
+	"instrutor ideal.",
+	"primeira habilitação.",
+	"confiança ao volante.",
+	"LinkAuto."
+];
+
 export default function Home({
 	isAuthenticated,
 	onOpenLogin,
@@ -57,6 +67,45 @@ export default function Home({
 }: HomeProps) {
 	const [selectedId, setSelectedId] = useState<string | undefined>();
 	const [instructors, setInstructors] = useState<InstructorSummary[]>([]);
+
+	const [wordIndex, setWordIndex] = useState(0);
+	const [currentText, setCurrentText] = useState("");
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [typingSpeed, setTypingSpeed] = useState(150);
+
+	useEffect(() => {
+		let timer: ReturnType<typeof setTimeout>;
+		const fullWord = words[wordIndex] || "";
+		
+		const handleType = () => {
+			if (!isDeleting) {
+				setCurrentText(fullWord.slice(0, currentText.length + 1));
+				setTypingSpeed(100);
+				
+				if (currentText === fullWord) {
+					timer = setTimeout(() => {
+						setIsDeleting(true);
+					}, wordIndex === words.length - 1 ? 4000 : 1500);
+					return;
+				}
+			} else {
+				setCurrentText(fullWord.slice(0, currentText.length - 1));
+				setTypingSpeed(50);
+				
+				if (currentText === "") {
+					setIsDeleting(false);
+					setWordIndex((prev) => (prev + 1) % words.length);
+				}
+			}
+		};
+
+		timer = setTimeout(handleType, typingSpeed);
+		return () => clearTimeout(timer);
+	}, [currentText, isDeleting, wordIndex, typingSpeed]);
+
+	const isDemoMode = instructors.length === 0;
+	const displayInstructors = isDemoMode ? mockInstructors : instructors;
+	const isLastWord = words[wordIndex] === "LinkAuto.";
 
 	useEffect(() => {
 		let active = true;
@@ -128,9 +177,31 @@ export default function Home({
 									fontWeight="800"
 									letterSpacing="tight">
 									A liberdade de dirigir começa com a{" "}
-									<Text as="span" color="brand.500">
-										conexão certa.
+									<Text
+										as="span"
+										color={isLastWord ? "brand.500" : "brand.500"}
+										bgGradient={isLastWord ? "to-r" : undefined}
+										gradientFrom={isLastWord ? "brand.500" : undefined}
+										gradientTo={isLastWord ? "laBlue.600" : undefined}
+										bgClip={isLastWord ? "text" : undefined}
+										fontWeight={isLastWord ? "900" : "800"}>
+										{currentText}
 									</Text>
+									<Text
+										as="span"
+										borderRight="3px solid"
+										borderColor={isLastWord ? "brand.500" : "text.secondary"}
+										className="typewriter-cursor"
+										pl={0.5}
+									/>
+									<style>{`
+										@keyframes blink {
+											50% { border-color: transparent }
+										}
+										.typewriter-cursor {
+											animation: blink 0.75s step-end infinite;
+										}
+									`}</style>
 								</Heading>
 								<Text
 									fontSize={{ base: "lg", md: "xl" }}
@@ -172,7 +243,7 @@ export default function Home({
 										bg: "border.emphasized",
 									}}
 									onClick={onOpenSearch}>
-									Ver Busca Demo
+									Ver instrutores disponíveis
 								</Button>
 							</HStack>
 
@@ -201,7 +272,7 @@ export default function Home({
 							border="8px solid"
 							borderColor="surface.panel">
 							<InstructorMap
-								instructors={instructors}
+								instructors={displayInstructors}
 								selectedInstructorId={selectedId}
 								onSelect={(id) => setSelectedId(id)}
 								onBook={() => {
@@ -209,6 +280,23 @@ export default function Home({
 									onOpenSearch();
 								}}
 							/>
+
+							{isDemoMode && (
+								<Badge
+									position="absolute"
+									top={4}
+									right={4}
+									zIndex={10}
+									colorPalette="orange"
+									variant="solid"
+									borderRadius="full"
+									px={3}
+									py={1}
+									boxShadow="md"
+									fontWeight="bold">
+									Modo Demonstração
+								</Badge>
+							)}
 
 							{/* Floating Overlay for Map Interaction Hint */}
 						</Box>
