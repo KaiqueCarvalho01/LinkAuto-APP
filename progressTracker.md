@@ -201,3 +201,12 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - Ajustadas as expectativas de testes unitários em `ScaffoldPages.test.tsx` e `LessonDetails.test.tsx` para se manterem fiéis às novas assinaturas e layouts de UI baseados em perfis.
   - Rodada a suíte completa de testes de frontend: todos os **89 testes do Vitest passando com 100% de sucesso**.
   - Executado o `npm run typecheck` completando com **sucesso absoluto e zero erros**.
+
+### Iteração 13 (Fase 7 - Correção de Bug CORS/Erro 500 no Cancelamento de Reservas)
+
+- **Correção de Timezone Aware vs Naive no Backend (Erro 500 / CORS):**
+  - Identificado e resolvido o bug crítico de `TypeError: can't subtract offset-naive and offset-aware datetimes` no endpoint `PATCH /api/v1/bookings/{id}/cancel` em `app/services/booking_service.py` (L179).
+  - O SQLite no Python retorna datas naive datetime sem fuso horário, enquanto `datetime.now(timezone.utc)` gera uma data timezone-aware, provocando um erro interno 500 que ocultava o cabeçalho de CORS e impedia o cancelamento pelo aluno.
+  - Implementado fallback resiliente em `BookingService.cancel_booking()` garantindo que o `starts_at` do slot seja convertido em timezone-aware UTC se for naive, assegurando a compatibilidade perfeita do SQLite com PostgreSQL em produção.
+- **Garantia de Qualidade e Testes:**
+  - Rodada a suíte completa de testes unitários e de integração do backend: todos os **112 testes do pytest verdes**.
