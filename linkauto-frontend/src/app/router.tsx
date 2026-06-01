@@ -33,6 +33,7 @@ import About from "../pages/About";
 import Contact from "../pages/Contact";
 import Notifications from "../pages/Notifications";
 import Help from "../pages/Help";
+import PasswordReset from "../pages/PasswordReset";
 import AuditLog from "../pages/admin/AuditLog";
 import FirstLicense from "../pages/students/FirstLicense";
 import LicensedDrivers from "../pages/students/LicensedDrivers";
@@ -315,8 +316,10 @@ function AdminInstructorDashboardRoute() {
 			id: item.id,
 			name: item.instructor_profile?.full_name || item.email,
 			city: item.instructor_profile?.city || "Sem cidade",
+			neighborhood: item.instructor_profile?.neighborhood || "",
 			date: "Pendente",
-			time: "--",
+			time: "Revisão",
+			specialties: item.instructor_profile?.specialties || [],
 		}));
 		return mapped;
 	}, [token]);
@@ -375,6 +378,8 @@ function AdminInstructorDashboardRoute() {
 		setRequests(await loadPending());
 	};
 
+	const pendingCount = requests.length;
+
 	return (
 		<InstructorDashboard
 			instructorData={instructorData}
@@ -384,6 +389,29 @@ function AdminInstructorDashboardRoute() {
 			onViewStudents={() => undefined}
 			dashboardTitle="Administrative Panel"
 			pendingLabel="Pending Instructors"
+			isAdminDashboard={true}
+			pendingInstructors={pendingCount}
+			approvedInstructors={3}
+		/>
+	);
+}
+
+function InstructorDashboardRoute() {
+	const { session } = useSessionStore();
+	const instructorData = useMemo(
+		() => ({
+			name: session?.user?.instructor_profile?.full_name || session?.user?.email || "Instrutor",
+			rating: session?.user?.instructor_profile?.rating_avg || 5.0,
+		}),
+		[session?.user]
+	);
+
+	return (
+		<InstructorDashboard
+			instructorData={instructorData}
+			requests={[]}
+			dashboardTitle="Instructor Panel"
+			pendingLabel="Minhas Reservas"
 		/>
 	);
 }
@@ -543,6 +571,16 @@ export default function AppRouter() {
 					/>
 
 					<Route
+						path="/instructor/dashboard"
+						element={
+							<ProtectedRoute>
+								<RoleRoute roles={["INSTRUTOR"]}>
+									<InstructorDashboardRoute />
+								</RoleRoute>
+							</ProtectedRoute>
+						}
+					/>
+					<Route
 						path="/admin/instructors"
 						element={
 							<ProtectedRoute>
@@ -566,6 +604,7 @@ export default function AppRouter() {
 
 				<Route path="/login" element={<LoginRoute />} />
 				<Route path="/register" element={<RegisterRoute />} />
+				<Route path="/password-reset" element={<PasswordReset />} />
 
 				<Route path="/app" element={<RootRedirect />} />
 				<Route path="*" element={<RootRedirect />} />

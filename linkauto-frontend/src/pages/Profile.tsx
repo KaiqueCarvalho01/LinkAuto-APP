@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   Car,
@@ -25,6 +26,7 @@ import {
   chakra,
   Heading,
   SimpleGrid,
+  Badge,
 } from "@chakra-ui/react";
 
 import { profileService } from "../services/profileService";
@@ -59,7 +61,9 @@ export default function Profile({
 }: ProfileProps) {
   const user = session?.user;
   const isInstructor = user?.roles.includes("INSTRUTOR") ?? false;
+  const isStudent = user?.roles.includes("ALUNO") ?? false;
   const isAdmin = user?.roles.includes("ADMIN") ?? false;
+  const navigate = useNavigate();
 
   // Form State
   const [isEditing, setIsEditing] = useState(false);
@@ -97,10 +101,43 @@ export default function Profile({
   const [actionRadiusKm, setActionRadiusKm] = useState<string>(
     user?.instructor_profile?.action_radius_km?.toString() ?? "15"
   );
+  const [specialtiesText, setSpecialtiesText] = useState<string>(
+    user?.instructor_profile?.specialties?.join(", ") ?? ""
+  );
 
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const calculateCompleteness = () => {
+    if (isInstructor) {
+      const profile = user?.instructor_profile;
+      const fields = [
+        fullName.trim(),
+        phone.trim(),
+        city.trim(),
+        state.trim(),
+        bio.trim(),
+        profile?.specialties && profile.specialties.length > 0 ? "yes" : "",
+        pricePerHour && parseFloat(pricePerHour) > 0 ? "yes" : "",
+        actionRadiusKm && parseInt(actionRadiusKm, 10) > 0 ? "yes" : "",
+      ];
+      const filled = fields.filter(Boolean).length;
+      return Math.round((filled / fields.length) * 100);
+    } else {
+      const fields = [
+        fullName.trim(),
+        phone.trim(),
+        city.trim(),
+        state.trim(),
+        licenseType && licenseType !== "NENHUMA" ? "yes" : "",
+      ];
+      const filled = fields.filter(Boolean).length;
+      return Math.round((filled / fields.length) * 100);
+    }
+  };
+
+  const completeness = calculateCompleteness();
 
   const handleSaveProfile = async () => {
     if (!token) return;
@@ -120,6 +157,7 @@ export default function Profile({
             bio: bio.trim() !== "" ? bio : undefined,
             pricePerHour: pricePerHour.trim() !== "" ? parseFloat(pricePerHour) : undefined,
             actionRadiusKm: actionRadiusKm.trim() !== "" ? parseInt(actionRadiusKm, 10) : undefined,
+            specialties: specialtiesText.split(",").map((s) => s.trim()).filter(Boolean),
           },
           token
         );
@@ -139,9 +177,10 @@ export default function Profile({
       onProfileUpdated(updatedUser);
       setSuccessMsg("Perfil atualizado com sucesso!");
       setIsEditing(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error saving profile:", err);
-      setErrorMsg(err.message || "Erro ao salvar perfil. Tente novamente.");
+      const msg = err instanceof Error ? err.message : "Erro ao salvar perfil. Tente novamente.";
+      setErrorMsg(msg);
     } finally {
       setSaving(false);
     }
@@ -150,20 +189,24 @@ export default function Profile({
   const roleLabel = isAdmin ? "Administrador" : isInstructor ? "Instrutor" : "Aluno";
 
   const menuItems: MenuItem[] = [
-    {
-      id: "search",
-      icon: Compass,
-      label: "Buscar instrutores",
-      iconColor: "brand.600",
-      action: onNavigateToSearch,
-    },
-    {
-      id: "bookings",
-      icon: CalendarClock,
-      label: "Meus agendamentos",
-      iconColor: "brand.700",
-      action: onNavigateToBookings,
-    },
+    ...(isStudent
+      ? [
+          {
+            id: "search",
+            icon: Compass,
+            label: "Buscar instrutores",
+            iconColor: "brand.600",
+            action: onNavigateToSearch,
+          },
+          {
+            id: "bookings",
+            icon: CalendarClock,
+            label: "Meus agendamentos",
+            iconColor: "brand.700",
+            action: onNavigateToBookings,
+          },
+        ]
+      : []),
     ...(isInstructor
       ? [
           {
@@ -186,6 +229,7 @@ export default function Profile({
       icon: Shield,
       label: "Segurança e senha",
       iconColor: "laBlue.700",
+      action: () => navigate("/password-reset"),
     },
     {
       id: "plans",
@@ -231,7 +275,7 @@ export default function Profile({
             borderColor="text-foreground">
             <UserIcon size={26} className="text-foreground" />
           </Box>
-          <Stack gap={1}>
+          <Stack gap={1} flex="1">
             <Text
               color="text.primary"
               fontFamily="heading"
@@ -262,6 +306,26 @@ export default function Profile({
             </Box>
           </Stack>
         </HStack>
+
+        {/* Completude do Perfil */}
+        <Stack mt={6} gap={2} position="relative" zIndex={1}>
+          <HStack justify="space-between">
+            <Text color="text.primary" fontSize="xs" fontWeight="800">
+              Completude do Perfil
+            </Text>
+            <Text color="text.primary" fontSize="xs" fontWeight="800">
+              {completeness}%
+            </Text>
+          </HStack>
+          <Box w="100%" h="8px" bg="whiteAlpha.200" borderRadius="full" overflow="hidden">
+            <Box w={`${completeness}%`} h="100%" bg="laGreen.500" transition="width 0.5s ease" />
+          </Box>
+          {completeness < 100 && (
+            <Text color="whiteAlpha.800" fontSize="2xs" fontWeight="600" mt={1}>
+              ⚠️ Preencha todas as informações para aumentar sua relevância na plataforma.
+            </Text>
+          )}
+        </Stack>
       </Box>
 
       {successMsg && (
@@ -434,6 +498,24 @@ export default function Profile({
                   </Box>
                   <Box>
                     <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                      Especialidades (separadas por vírgula)
+                    </Text>
+                    <Input
+                      value={specialtiesText}
+                      onChange={(e) => setSpecialtiesText(e.target.value)}
+                      placeholder="Ex: Baliza, Rodovias, Reciclagem"
+                      color="text.primary"
+                    />
+                    <HStack flexWrap="wrap" gap={1} mt={2}>
+                      {specialtiesText.split(",").map((s) => s.trim()).filter(Boolean).map((spec) => (
+                        <Badge key={spec} colorPalette="brand" variant="subtle" rounded="md" px={2} py={0.5} fontSize="2xs">
+                          {spec}
+                        </Badge>
+                      ))}
+                    </HStack>
+                  </Box>
+                  <Box>
+                    <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
                       Biografia Profissional
                     </Text>
                     <Textarea
@@ -478,6 +560,20 @@ export default function Profile({
                     <Text color="text.muted">Raio de Atuação</Text>
                     <Text color="text.primary">{actionRadiusKm} km</Text>
                   </HStack>
+                  <Box borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
+                    <Text color="text.muted" mb={1.5}>Especialidades</Text>
+                    <HStack flexWrap="wrap" gap={1.5}>
+                      {user?.instructor_profile?.specialties && user.instructor_profile.specialties.length > 0 ? (
+                        user.instructor_profile.specialties.map((spec) => (
+                          <Badge key={spec} colorPalette="brand" variant="subtle" rounded="md" px={2} py={0.5}>
+                            {spec}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Text fontSize="xs" color="text.muted" fontWeight="500">Nenhuma especialidade cadastrada.</Text>
+                      )}
+                    </HStack>
+                  </Box>
                   <Box pt={1}>
                     <Text color="text.muted" mb={1}>Biografia</Text>
                     <Text
