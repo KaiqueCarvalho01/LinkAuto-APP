@@ -9,6 +9,7 @@ from app.api.v1 import (
     foundation,
     instructor_documents,
     instructor_search,
+    instructor_stats,
     reviews,
     slots,
     bookings,
@@ -22,6 +23,7 @@ api_v1_router.include_router(auth.router)
 api_v1_router.include_router(users.router)
 api_v1_router.include_router(admin_instructors.router)
 api_v1_router.include_router(admin_stats.router)
+api_v1_router.include_router(instructor_stats.router)
 api_v1_router.include_router(instructor_documents.router)
 api_v1_router.include_router(slots.router)
 api_v1_router.include_router(bookings.router)

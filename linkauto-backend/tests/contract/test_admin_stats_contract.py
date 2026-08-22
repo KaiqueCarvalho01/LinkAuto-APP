@@ -1,6 +1,6 @@
 from app.core.config import get_settings
 from app.core.security import create_access_token
-from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
+from app.models.user import DetranStatus, InstructorProfile, User, UserRole
 
 
 def _create_token_for(user_id: str, roles: list[str]) -> str:

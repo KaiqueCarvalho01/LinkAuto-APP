@@ -46,6 +46,7 @@ import type { InstructorSummary } from "../types/instructor";
 import type {
 	AdminStats,
 	DashboardRequest,
+	InstructorStats,
 	UserAccount,
 } from "../types/session";
 
@@ -437,6 +438,9 @@ function AdminInstructorDashboardRoute() {
 
 function InstructorDashboardRoute() {
 	const { session } = useSessionStore();
+	const token = session?.accessToken;
+	const [instructorStats, setInstructorStats] = useState<InstructorStats | undefined>();
+
 	const instructorData = useMemo(
 		() => ({
 			name: session?.user?.instructor_profile?.full_name || session?.user?.email || "Instrutor",
@@ -445,12 +449,50 @@ function InstructorDashboardRoute() {
 		[session?.user]
 	);
 
+	const loadInstructorStats = useCallback(async (): Promise<InstructorStats | undefined> => {
+		if (!token) return undefined;
+		try {
+			const res = await httpClient.get<{
+				total_lessons: number;
+				total_hours: number;
+				unique_students: number;
+				pending_bookings: number;
+			}>("/instructor/stats", { token });
+			if (res.data) {
+				return {
+					totalLessons: res.data.total_lessons,
+					totalHours: res.data.total_hours,
+					uniqueStudents: res.data.unique_students,
+					pendingBookings: res.data.pending_bookings,
+				};
+			}
+		} catch (err) {
+			console.error("Failed to load instructor stats:", err);
+		}
+		return undefined;
+	}, [token]);
+
+	useEffect(() => {
+		let active = true;
+
+		void loadInstructorStats().then((data) => {
+			if (active && data) {
+				setInstructorStats(data);
+			}
+		});
+
+		return () => {
+			active = false;
+		};
+	}, [loadInstructorStats]);
+
 	return (
 		<InstructorDashboard
 			instructorData={instructorData}
 			requests={[]}
 			dashboardTitle="Instructor Panel"
 			pendingLabel="Minhas Reservas"
+			instructorStats={instructorStats}
 		/>
 	);
 }

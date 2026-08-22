@@ -14,7 +14,6 @@ from app.models import (
     Base,
     Booking,
     BookingSlot,
-    CancelledBy,
     DetranStatus,
     InstructorProfile,
     LicenseType,
