@@ -251,8 +251,30 @@
 - coverage_pct: >= 80% ✅
 - governance_validation: passed ✅
 
+### Iteracao 21 - Integracao Full-Stack: Filtros Avancados de Busca e Dashboards de Estatisticas
+
+#### What was delivered (Iteracao 21)
+- Integrado seletor de ordenação multi-critério (`distância`, `melhor avaliação`, `menor preço`, `maior preço`) e filtro avançado de especialidades em `SearchPage.tsx` e `instructorService.ts`.
+- Tipagem rigorosa em `src/types/instructor.ts` e `src/types/session.ts` (`AdminStats`, `InstructorStats`, `InstructorSearchParams` com `exactOptionalPropertyTypes`).
+- Atualizado `InstructorDashboard.tsx` para renderizar métricas reais e dinâmicas nos painéis do Administrador (`adminStats`) e Instrutor (`instructorStats`).
+- Conectadas as rotas `AdminInstructorDashboardRoute` (`GET /api/v1/admin/stats`) e `InstructorDashboardRoute` (`GET /api/v1/instructor/stats`) em `router.tsx` para consumo em tempo real com token de autenticação.
+
+#### Where it was delivered (Iteracao 21)
+- `src/types/instructor.ts`
+- `src/types/session.ts`
+- `src/services/instructorService.ts`
+- `src/pages/SearchPage.tsx`
+- `src/pages/InstructorDashboard.tsx`
+- `src/app/router.tsx`
+
+#### How it was validated (Iteracao 21)
+- cycle_id: iteration-021
+- green_command: `npm run typecheck` (0 erros) e `npm run test` (94/94 testes passando com 100% de sucesso) ✅
+- coverage_pct: >= 80% ✅
+
 ## Riscos e Observacoes Gerais
 
+- **Iteracao 21**: Integração de ponta a ponta dos endpoints de filtros avançados e dashboards estatísticos entregue com sucesso, mantendo conformidade estrita com TypeScript (`exactOptionalPropertyTypes: true`) e Chakra UI v3.
 - **Iteracao 20**: Refatoração maciça do frontend resolvendo 10 problemas de usabilidade, navegabilidade e segurança de tipos em rotas e formulários. Cobertura estrita de TypeScript restabelecida sem erros, eslint validado com 0 warnings nos arquivos modificados, e 100% de aprovação na suíte de testes (94 testes verdes). Documentação de solicitações de API para o backend gerada com sucesso em `docs/BACKEND_ENDPOINT_REQUESTS.md`.
 - **Iteracao 19**: A integração de ponta a ponta com a API do backend foi concluída com sucesso. O frontend está 100% livre de mocks de dados operacionais (usando apenas fixtures estáticas isoladas em testes), e a conformidade estrita do TypeScript (incluindo exactOptionalPropertyTypes) foi plenamente restabelecida.
 - **Iteracao 18**: Instructor pages now include interactive tools (Simulator) and animated cards. UX improved with transitions.

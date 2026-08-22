@@ -227,3 +227,21 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - Sintaxe de compose validada com sucesso (`docker compose -f infra/docker-compose.yml config`).
   - Suítes de testes 100% validadas: **112 testes pytest verdes** no backend e **94 testes vitest verdes + typecheck TS limpo** no frontend.
 
+### Iteração 15 (Endpoints Full-Stack: Filtros Avançados de Busca & Dashboards de Estatísticas)
+
+- **Filtros Avançados e Ordenação de Instrutores (Slice 1):**
+  - Implementada filtragem por `specialties` (case-insensitive com correspondência de termos) e ordenação `sort_by` (`rating`, `price_asc`, `price_desc`, `distance`) no serviço `InstructorSearchService` e endpoint `GET /api/v1/instructors/search`.
+  - Integrado no frontend em `instructorService.ts` e `SearchPage.tsx` com novo seletor de ordenação Chakra UI v3.
+  - Testes: Adicionados `test_instructor_search_advanced.py` (unit) e `test_instructor_search_advanced_contract.py` (contract).
+- **Dashboard de Estatísticas Administrativas (Slice 2):**
+  - Implementado endpoint `GET /api/v1/admin/stats` restrito a administradores (`ADMIN`) com `AdminStatsService` agregando `total_instructors`, `pending_instructors`, `approved_instructors`, `rejected_instructors`, `total_students` e `total_bookings`.
+  - Integrado no frontend em `InstructorDashboard.tsx` e `AdminInstructorDashboardRoute` em `router.tsx` exibindo cards com dados em tempo real.
+  - Testes: Adicionados `test_admin_stats_service.py` (unit) e `test_admin_stats_contract.py` (contract).
+- **Dashboard de Estatísticas do Instrutor (Slice 3):**
+  - Implementado endpoint `GET /api/v1/instructor/stats` restrito a instrutores (`INSTRUTOR`) com `InstructorStatsService` agregando `total_lessons`, `total_hours`, `unique_students` e `pending_bookings`.
+  - Integrado no frontend em `InstructorDashboard.tsx` e `InstructorDashboardRoute` em `router.tsx` exibindo métricas ao vivo do instrutor.
+  - Testes: Adicionados `test_instructor_stats_service.py` (unit) e `test_instructor_stats_contract.py` (contract).
+- **Garantia de Qualidade e Suítes de Testes:**
+  - Backend: **128 testes pytest verdes (100% de aprovação)** e **Ruff lint 100% limpo**.
+  - Frontend: **94 testes Vitest verdes (100% de aprovação)** e **TypeScript `npm run typecheck` 100% limpo**.
+
