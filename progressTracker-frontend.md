@@ -301,8 +301,34 @@
 - green_command: `npm run typecheck` (0 erros) e `npm run test` (97/97 testes passando com 100% de sucesso) ✅
 - coverage_pct: >= 80% ✅
 
+### Iteracao 23 - Ocultacao de UUIDs Internos com Slugs Publicos e Remocao da Grade de Slots
+
+#### What was delivered (Iteracao 23)
+- Removida a grade de agendamento de horários (`SlotPicker`) e busca de slots da página `InstructorPublicProfilePage.tsx`, eliminando exposição de slots sem autenticação.
+- Adicionado CTA principal de agendamento *"Agendar Aula com este Instrutor"*, redirecionando para `/bookings/new` com estado contextual do instrutor ou `/login` com `returnUrl`.
+- Atualizado roteamento universal da aplicação (`SearchPage`, `InstructorCard`, `Profile`, `LessonDetails`, `MyLessons`) para navegar utilizando exclusivamente os slugs amigáveis e seguros dos perfis (ex: `/instructors/carlos-silva-mogi-mirim-8f2a` e `/students/juliana-costa-3e1b`).
+- Mapeado campo `slug` em `InstructorSummary`, `ApiInstructorSearchResult`, `ApiPublicInstructorProfile`, `ApiPublicStudentProfile`.
+- Atualizada suíte de testes de componentes `PublicProfiles.test.tsx` com 100% de aprovação.
+
+#### Where it was delivered (Iteracao 23)
+- `src/types/api.types.ts`
+- `src/types/instructor.ts`
+- `src/services/instructorService.ts`
+- `src/pages/InstructorPublicProfilePage.tsx`
+- `src/pages/StudentPublicProfilePage.tsx`
+- `src/pages/PublicProfiles.test.tsx`
+- `src/pages/SearchPage.tsx`
+- `src/pages/LessonDetails.tsx`
+- `src/app/router.tsx`
+
+#### How it was validated (Iteracao 23)
+- cycle_id: iteration-023
+- green_command: `npm run typecheck` (0 erros) e `npm run test` (97/97 testes passando com 100% de sucesso) ✅
+- coverage_pct: >= 80% ✅
+
 ## Riscos e Observacoes Gerais
 
+- **Iteracao 23**: Ocultação total de UUIDs internos em rotas públicas e respostas do frontend por meio de slugs seguros e amigáveis. Remoção da grade de slots do perfil público e redirecionamento seguro para agendamento.
 - **Iteracao 22**: Entrega de perfis públicos anônimos para instrutores e alunos com blindagem LGPD, agendamento desacoplado e roteamento universal em toda a aplicação. 97 testes verdes no Vitest e TypeScript strict validado.
 
 - **Iteracao 21**: Integração de ponta a ponta dos endpoints de filtros avançados e dashboards estatísticos entregue com sucesso, mantendo conformidade estrita com TypeScript (`exactOptionalPropertyTypes: true`) e Chakra UI v3.

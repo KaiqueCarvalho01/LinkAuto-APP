@@ -265,4 +265,23 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - Backend: **136 testes pytest verdes (100% de aprovação)** e **Ruff lint 100% limpo**.
   - Frontend: **97 testes Vitest verdes (100% de aprovação)** e **TypeScript `npm run typecheck` 100% limpo**.
 
+### Iteração 17 (Ocultação de UUIDs Internos via Slugs Públicos & Remoção de Slots de Perfis Públicos)
+
+- **Slugs Públicos e Ocultação Total de UUIDs no Backend (Slice 1):**
+  - Criado o gerador de slugs seguros e amigáveis `app/core/slug.py` com normalização ASCII e sufixo de entropia único (ex: `carlos-silva-mogi-mirim-8f2a`).
+  - Adicionada coluna indexada e única `slug` em `InstructorProfile` e `StudentProfile` (`app/models/user.py`).
+  - Criada migration Alembic `0004_profile_slugs.py` para as tabelas `instructor_profiles` e `student_profiles`.
+  - Atualizado `PublicProfileService` para buscar por `slug` e retornar os slugs públicos tanto para o perfil quanto para as referências de autores de reviews, garantindo que nenhum UUID interno seja exposto em contratos públicos.
+  - Atualizado endpoint `GET /api/v1/instructors/search` para expor o `slug` público.
+  - Testes: Atualizados `test_public_profile_service.py` e `test_public_profile_contract.py` com checagem estrita de não-vazamento de UUIDs internos.
+- **Remoção de Slots & Roteamento por Slugs no Frontend (Slice 2):**
+  - Removido `SlotPicker` e a busca de slots da página `InstructorPublicProfilePage.tsx`, eliminando exposição de horários sem autenticação.
+  - Implementado botão principal *"Agendar Aula com este Instrutor"* com redirecionamento contextual para `/bookings/new` ou `/login`.
+  - Atualizados `InstructorCard.tsx`, `SearchPage.tsx`, `Profile.tsx`, `MyLessons.tsx` e `LessonDetails.tsx` para utilizarem estritamente os slugs públicos nas rotas `/instructors/:slug` e `/students/:slug`.
+  - Atualizada suíte de testes de componentes `PublicProfiles.test.tsx`.
+- **Garantia de Qualidade e Suítes de Testes:**
+  - Backend: **136 testes pytest verdes (100% de aprovação)** e **Ruff lint 100% limpo**.
+  - Frontend: **97 testes Vitest verdes (100% de aprovação)** e **TypeScript `npm run typecheck` 100% limpo**.
+
+
 
