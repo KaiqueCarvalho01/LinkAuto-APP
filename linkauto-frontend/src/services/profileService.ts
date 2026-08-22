@@ -1,5 +1,9 @@
 import { httpClient } from "./httpClient";
-import type { ApiUserAccount } from "../types/api.types";
+import type {
+  ApiPublicInstructorProfile,
+  ApiPublicStudentProfile,
+  ApiUserAccount,
+} from "../types/api.types";
 import type { UserAccount } from "../types/session";
 
 export const mapApiUserToSessionUser = (api: ApiUserAccount): UserAccount => {
@@ -122,5 +126,23 @@ export const profileService = {
       token,
     });
     return mapApiUserToSessionUser(response.data);
+  },
+
+  fetchPublicInstructorProfile: async (
+    id: string
+  ): Promise<ApiPublicInstructorProfile> => {
+    const response = await httpClient.get<ApiPublicInstructorProfile>(
+      `/instructors/${id}/public`
+    );
+    return response.data;
+  },
+
+  fetchPublicStudentProfile: async (
+    id: string
+  ): Promise<ApiPublicStudentProfile> => {
+    const response = await httpClient.get<ApiPublicStudentProfile>(
+      `/students/${id}/public`
+    );
+    return response.data;
   },
 };

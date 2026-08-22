@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { ArrowLeft, Calendar, Clock3, TriangleAlert, AlertTriangle } from "lucide-react";
 import {
   Box,
@@ -151,9 +152,16 @@ export default function LessonDetails({
                 borderRadius="xl"
                 px={4}
                 py={3}>
-                <Text fontWeight="700" color="brand.emphasized">
-                  {instructor.fullName}
-                </Text>
+                <RouterLink
+                  to={`/instructors/${instructor.id}`}
+                  style={{ textDecoration: "none" }}>
+                  <Text
+                    fontWeight="700"
+                    color="brand.emphasized"
+                    _hover={{ textDecoration: "underline" }}>
+                    {instructor.fullName}
+                  </Text>
+                </RouterLink>
                 <RatingStars
                   rating={instructor.rating}
                   reviewsCount={instructor.reviewsCount}

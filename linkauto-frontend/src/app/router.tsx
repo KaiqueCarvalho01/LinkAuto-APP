@@ -40,6 +40,8 @@ import HowItWorksStudent from "../pages/students/HowItWorks";
 import HowItWorksInstructor from "../pages/instructors/HowItWorks";
 import Benefits from "../pages/instructors/Benefits";
 import Simulator from "../pages/instructors/Simulator";
+import InstructorPublicProfilePage from "../pages/InstructorPublicProfilePage";
+import StudentPublicProfilePage from "../pages/StudentPublicProfilePage";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
 import type { InstructorSummary } from "../types/instructor";
@@ -263,7 +265,13 @@ function SearchRoute() {
 	return (
 		<SearchPage
 			token={session?.accessToken}
-			onOpenProfile={() => navigate("/profile")}
+			onOpenProfile={(instructor) => {
+				if (instructor?.id) {
+					navigate(`/instructors/${instructor.id}`);
+				} else {
+					navigate("/profile");
+				}
+			}}
 			onStartBooking={(instructor) =>
 				navigate("/bookings/new", { state: { instructor } })
 			}
@@ -605,6 +613,14 @@ export default function AppRouter() {
 					<Route
 						path="/instructors/simulator"
 						element={<Simulator />}
+					/>
+					<Route
+						path="/instructors/:id"
+						element={<InstructorPublicProfilePage />}
+					/>
+					<Route
+						path="/students/:id"
+						element={<StudentPublicProfilePage />}
 					/>
 
 					{/* Protected search */}

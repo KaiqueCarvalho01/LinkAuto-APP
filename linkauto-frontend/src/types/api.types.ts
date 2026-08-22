@@ -99,3 +99,45 @@ export interface ApiReviewResource {
   created_at: string;
   updated_at: string;
 }
+
+export interface ApiPublicReviewAuthor {
+  id: string;
+  full_name: string;
+  avatar_url?: string | null | undefined;
+}
+
+export interface ApiPublicReviewItem {
+  id: string;
+  reviewer: ApiPublicReviewAuthor;
+  rating: number;
+  comment?: string | null | undefined;
+  created_at: string;
+}
+
+export interface ApiPublicInstructorProfile {
+  id: string;
+  full_name: string;
+  avatar_url?: string | null | undefined;
+  city?: string | null | undefined;
+  state?: string | null | undefined;
+  bio?: string | null | undefined;
+  specialties: string[];
+  price_per_hour?: number | null | undefined;
+  rating_avg: number;
+  rating_count: number;
+  detran_approved: boolean;
+  reviews: ApiPublicReviewItem[];
+}
+
+export interface ApiPublicStudentProfile {
+  id: string;
+  full_name: string;
+  avatar_url?: string | null | undefined;
+  city?: string | null | undefined;
+  state?: string | null | undefined;
+  license_type?: string | null | undefined;
+  rating_avg: number;
+  rating_count: number;
+  completed_lessons_count: number;
+  reviews: ApiPublicReviewItem[];
+}

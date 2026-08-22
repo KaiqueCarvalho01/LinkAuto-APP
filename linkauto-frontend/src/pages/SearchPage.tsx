@@ -24,7 +24,7 @@ import type {
 
 interface SearchPageProps {
   readonly token: string | undefined;
-  readonly onOpenProfile: () => void;
+  readonly onOpenProfile: (instructor?: InstructorSummary) => void;
   readonly onStartBooking: (instructor: InstructorSummary) => void;
 }
 
@@ -355,7 +355,7 @@ export default function SearchPage({
                         selectedInstructor?.id
                       }
                       onOpenProfile={() =>
-                        onOpenProfile()
+                        onOpenProfile(instructor)
                       }
                       onBook={onStartBooking}
                     />

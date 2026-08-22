@@ -1,5 +1,6 @@
 import { Calendar, CircleSlash2, Plus, UserCircle2, AlertTriangle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Button,
@@ -152,11 +153,16 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
                       justify="space-between"
                       align="start">
                       <Stack gap={1}>
-                        <Text
-                          fontWeight="700"
-                          color="text.primary">
-                          {booking.instructor.fullName}
-                        </Text>
+                        <RouterLink
+                          to={`/instructors/${booking.instructor.id}`}
+                          style={{ textDecoration: "none" }}>
+                          <Text
+                            fontWeight="700"
+                            color="text.primary"
+                            _hover={{ color: "brand.solid", textDecoration: "underline" }}>
+                            {booking.instructor.fullName}
+                          </Text>
+                        </RouterLink>
                         <Text
                           color="text.muted"
                           fontSize="sm"

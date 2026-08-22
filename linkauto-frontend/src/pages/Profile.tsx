@@ -13,6 +13,7 @@ import {
   Save,
   CheckCircle,
   AlertTriangle,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -219,6 +220,18 @@ export default function Profile({
         ]
       : []),
     {
+      id: "public-profile",
+      icon: ExternalLink,
+      label: "Visualizar meu perfil público",
+      iconColor: "brand.solid",
+      action: () => {
+        if (user?.id) {
+          const target = isInstructor ? `/instructors/${user.id}` : `/students/${user.id}`;
+          navigate(target);
+        }
+      },
+    },
+    {
       id: "notifications",
       icon: Bell,
       label: "Notificações (Em breve)",
@@ -286,24 +299,42 @@ export default function Profile({
             <Text color="text.muted" fontWeight="600" fontSize="sm">
               {user?.email}
             </Text>
-            <Box
-              mt={1}
-              alignSelf="start"
-              px={3}
-              py={1}
-              borderRadius="full"
-              bg="whiteAlpha.250"
-              border="1px solid"
-              borderColor="border.emphasized">
-              <Text
-                color="text.muted"
-                fontSize="2xs"
-                fontWeight="800"
-                letterSpacing="0.14em"
-                textTransform="uppercase">
-                Conta {roleLabel}
-              </Text>
-            </Box>
+            <HStack mt={1} gap={2} align="center" flexWrap="wrap">
+              <Box
+                px={3}
+                py={1}
+                borderRadius="full"
+                bg="whiteAlpha.250"
+                border="1px solid"
+                borderColor="border.emphasized">
+                <Text
+                  color="text.muted"
+                  fontSize="2xs"
+                  fontWeight="800"
+                  letterSpacing="0.14em"
+                  textTransform="uppercase">
+                  Conta {roleLabel}
+                </Text>
+              </Box>
+              {user?.id && (
+                <Button
+                  size="xs"
+                  variant="outline"
+                  borderColor="border.emphasized"
+                  bg="whiteAlpha.250"
+                  color="text.primary"
+                  _hover={{ bg: "whiteAlpha.350" }}
+                  onClick={() => {
+                    const target = isInstructor
+                      ? `/instructors/${user.id}`
+                      : `/students/${user.id}`;
+                    navigate(target);
+                  }}>
+                  <ExternalLink size={12} />
+                  Ver perfil público
+                </Button>
+              )}
+            </HStack>
           </Stack>
         </HStack>
 
