@@ -43,6 +43,13 @@ class TestInstructorSearchAdvancedContract:
         assert data[0]["full_name"] == "Ana Rodovia"
         assert data[1]["full_name"] == "Carlos Baliza"
 
+        # Verify zero UUID leakage in public search response
+        assert "user_id" not in data[0]
+        assert "id" in data[0]
+        assert "slug" in data[0]
+        assert "c-inst-1" not in str(data)
+        assert "c-inst-2" not in str(data)
+
     def test_search_with_multiple_specialties(self, client, db_session):
         _seed_contract_instructors(db_session)
 
@@ -52,3 +59,4 @@ class TestInstructorSearchAdvancedContract:
         assert resp.status_code == 200
         data = resp.json()["data"]
         assert len(data) >= 1
+        assert "user_id" not in data[0]

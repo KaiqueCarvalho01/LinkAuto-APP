@@ -33,9 +33,10 @@ export const mapApiInstructorToSummary = (
       ? calculateDistance(userLat, userLng, api.latitude, api.longitude)
       : 0.0;
 
+  const publicSlug = api.slug || api.id || (api.user_id as string);
   return {
-    id: api.user_id,
-    slug: api.slug ?? api.user_id,
+    id: publicSlug,
+    slug: publicSlug,
     fullName: api.full_name,
     city: api.city,
     neighborhood: api.state || "SP",

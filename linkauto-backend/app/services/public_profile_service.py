@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.slug import generate_profile_slug
@@ -60,14 +59,12 @@ class PublicProfileService:
         fallback_slug = f"usuario-{reviewer_id[:8]}"
         return PublicReviewAuthor(id=fallback_slug, slug=fallback_slug, full_name=name, avatar_url=None)
 
-    def get_public_instructor(self, identifier: str) -> PublicInstructorProfileResponse:
+    def get_public_instructor(self, slug: str) -> PublicInstructorProfileResponse:
+        # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
         prof = (
             self._db.query(InstructorProfile)
             .filter(
-                or_(
-                    InstructorProfile.slug == identifier,
-                    InstructorProfile.user_id == identifier,
-                ),
+                InstructorProfile.slug == slug,
                 InstructorProfile.detran_status == DetranStatus.APROVADO.value,
                 InstructorProfile.is_active.is_(True),
             )
@@ -83,8 +80,6 @@ class PublicProfileService:
         )
         if not user:
             raise ValueError("Instructor not found or not approved")
-
-        slug = self._ensure_instructor_slug(prof)
 
         raw_reviews = (
             self._db.query(Review)
@@ -112,8 +107,8 @@ class PublicProfileService:
             )
 
         return PublicInstructorProfileResponse(
-            id=slug,
-            slug=slug,
+            id=prof.slug,
+            slug=prof.slug,
             full_name=prof.full_name or "Instrutor",
             avatar_url=prof.avatar_url,
             city=prof.city,
@@ -127,15 +122,11 @@ class PublicProfileService:
             reviews=review_items,
         )
 
-    def get_public_student(self, identifier: str) -> PublicStudentProfileResponse:
+    def get_public_student(self, slug: str) -> PublicStudentProfileResponse:
+        # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
         prof = (
             self._db.query(StudentProfile)
-            .filter(
-                or_(
-                    StudentProfile.slug == identifier,
-                    StudentProfile.user_id == identifier,
-                )
-            )
+            .filter(StudentProfile.slug == slug)
             .first()
         )
         if not prof:
@@ -148,8 +139,6 @@ class PublicProfileService:
         )
         if not user:
             raise ValueError("Student not found")
-
-        slug = self._ensure_student_slug(prof)
 
         completed_lessons = (
             self._db.query(Booking)
@@ -188,8 +177,8 @@ class PublicProfileService:
         rating_avg = round(total_rating / rating_count, 1) if rating_count > 0 else 5.0
 
         return PublicStudentProfileResponse(
-            id=slug,
-            slug=slug,
+            id=prof.slug,
+            slug=prof.slug,
             full_name=prof.full_name or "Aluno",
             avatar_url=prof.avatar_url,
             city=prof.city,

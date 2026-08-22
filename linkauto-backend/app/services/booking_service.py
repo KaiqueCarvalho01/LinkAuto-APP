@@ -45,6 +45,11 @@ class BookingService:
         if self._penalty.is_penalized(student_id):
             raise PenalizedStudentError("Student is currently penalized and cannot create bookings")
 
+        # Resolve instructor slug if necessary
+        from app.models.user import InstructorProfile
+        inst_prof = self._db.query(InstructorProfile).filter(InstructorProfile.slug == instructor_id).first()
+        effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
+
         # RN02: minimum 2 slots
         if len(slot_ids) < 2:
             raise SlotValidationError("Booking requires minimum 2 consecutive slots (RN02)")
@@ -61,7 +66,7 @@ class BookingService:
             raise SlotValidationError("One or more slot IDs not found")
 
         # All slots must belong to same instructor
-        if not all(s.instructor_id == instructor_id for s in slots):
+        if not all(s.instructor_id == effective_instructor_id for s in slots):
             raise SlotValidationError("All slots must belong to the specified instructor")
 
         # All slots must be available
@@ -84,7 +89,7 @@ class BookingService:
         # Create booking
         booking = Booking(
             student_id=student_id,
-            instructor_id=instructor_id,
+            instructor_id=effective_instructor_id,
             status=BookingStatus.PENDENTE.value,
             location_description=location_description,
             latitude=latitude,

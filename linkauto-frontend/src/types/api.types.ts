@@ -37,8 +37,9 @@ export interface ApiUserAccount {
 }
 
 export interface ApiInstructorSearchResult {
-  user_id: string;
-  slug?: string | undefined;
+  id: string;
+  slug: string;
+  user_id?: string | undefined;
   full_name: string;
   city: string;
   state: string;

@@ -172,3 +172,14 @@ class TestPublicProfileContract:
 
         resp = client.get("/api/v1/students/invalid-student-slug/public")
         assert resp.status_code == 404
+
+    def test_get_public_profile_rejects_raw_uuid_with_404(self, client, db_session):
+        _seed_contract_profiles(db_session)
+
+        # Attempt to access using internal instructor UUID instead of slug -> MUST BE 404
+        resp_inst = client.get("/api/v1/instructors/inst-contract-uuid-1/public")
+        assert resp_inst.status_code == 404
+
+        # Attempt to access using internal student UUID instead of slug -> MUST BE 404
+        resp_stud = client.get("/api/v1/students/stud-contract-uuid-1/public")
+        assert resp_stud.status_code == 404

@@ -74,6 +74,7 @@ def seed_dev_data(session: Session) -> None:
 
         student_profile = StudentProfile(
             user_id=student_user.id,
+            slug="gabriel-silva-mogi-mirim-1a2b",
             full_name="Gabriel Silva",
             phone="19999998888",
             city="Mogi Mirim",
@@ -82,10 +83,12 @@ def seed_dev_data(session: Session) -> None:
         )
         session.add(student_profile)
     else:
-        # Force updates to ensure credentials are synchronized in dev
+        # Force updates to ensure credentials and slug are synchronized in dev
         student_user.password_hash = hash_password("password123")
         student_user.roles = [UserRole.ALUNO.value]
         student_user.is_active = True
+        if student_user.student_profile and not student_user.student_profile.slug:
+            student_user.student_profile.slug = "gabriel-silva-mogi-mirim-1a2b"
 
     # 3. Instructor 1: Camila Rocha
     inst1_user = session.query(User).filter_by(email="camila@linkauto.com.br").first()
@@ -101,6 +104,7 @@ def seed_dev_data(session: Session) -> None:
 
         inst1_profile = InstructorProfile(
             user_id=inst1_user.id,
+            slug="camila-rocha-mogi-mirim-8f2a",
             full_name="Camila Rocha",
             phone="19999997777",
             city="Mogi Mirim",
@@ -117,6 +121,9 @@ def seed_dev_data(session: Session) -> None:
             is_active=True,
         )
         session.add(inst1_profile)
+    else:
+        if inst1_user.instructor_profile and not inst1_user.instructor_profile.slug:
+            inst1_user.instructor_profile.slug = "camila-rocha-mogi-mirim-8f2a"
 
     # 4. Instructor 2: Rafael Mendes
     inst2_user = session.query(User).filter_by(email="rafael@linkauto.com.br").first()
@@ -132,6 +139,7 @@ def seed_dev_data(session: Session) -> None:
 
         inst2_profile = InstructorProfile(
             user_id=inst2_user.id,
+            slug="rafael-mendes-mogi-guacu-3c1d",
             full_name="Rafael Mendes",
             phone="19999996666",
             city="Mogi Guaçu",
@@ -148,6 +156,9 @@ def seed_dev_data(session: Session) -> None:
             is_active=True,
         )
         session.add(inst2_profile)
+    else:
+        if inst2_user.instructor_profile and not inst2_user.instructor_profile.slug:
+            inst2_user.instructor_profile.slug = "rafael-mendes-mogi-guacu-3c1d"
 
     # 5. Instructor 3: Fernanda Siqueira
     inst3_user = session.query(User).filter_by(email="fernanda@linkauto.com.br").first()
@@ -163,6 +174,7 @@ def seed_dev_data(session: Session) -> None:
 
         inst3_profile = InstructorProfile(
             user_id=inst3_user.id,
+            slug="fernanda-siqueira-estiva-gerbi-9e4b",
             full_name="Fernanda Siqueira",
             phone="19999995555",
             city="Estiva Gerbi",
@@ -179,6 +191,9 @@ def seed_dev_data(session: Session) -> None:
             is_active=True,
         )
         session.add(inst3_profile)
+    else:
+        if inst3_user.instructor_profile and not inst3_user.instructor_profile.slug:
+            inst3_user.instructor_profile.slug = "fernanda-siqueira-estiva-gerbi-9e4b"
 
     session.flush()
 

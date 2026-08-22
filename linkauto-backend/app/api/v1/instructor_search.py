@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.slug import generate_profile_slug
 from app.schemas.common import success_response
 from app.services.instructor_search_service import InstructorSearchService
 
@@ -37,10 +38,17 @@ def search_instructors(
         specialties=cleaned_specialties if cleaned_specialties else None,
         sort_by=sort_by,
     )
+
+    def _resolve_slug(p) -> str:
+        if not p.slug:
+            p.slug = generate_profile_slug(p.full_name, p.city, default_prefix="instrutor")
+            db.flush()
+        return p.slug
+
     data = [
         {
-            "user_id": p.user_id,
-            "slug": p.slug or p.user_id,
+            "id": _resolve_slug(p),
+            "slug": _resolve_slug(p),
             "full_name": p.full_name,
             "city": p.city,
             "state": p.state,

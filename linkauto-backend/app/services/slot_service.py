@@ -54,7 +54,12 @@ class SlotService:
         instructor_id: str,
         status: SlotStatus | None = None,
     ) -> list[Slot]:
-        query = self._db.query(Slot).filter(Slot.instructor_id == instructor_id)
+        from app.models.user import InstructorProfile
+
+        prof = self._db.query(InstructorProfile).filter(InstructorProfile.slug == instructor_id).first()
+        effective_id = prof.user_id if prof else instructor_id
+
+        query = self._db.query(Slot).filter(Slot.instructor_id == effective_id)
         if status:
             query = query.filter(Slot.status == status.value)
         return query.order_by(Slot.starts_at).all()
