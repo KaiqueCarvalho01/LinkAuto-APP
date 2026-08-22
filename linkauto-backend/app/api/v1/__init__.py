@@ -10,6 +10,7 @@ from app.api.v1 import (
     instructor_documents,
     instructor_search,
     instructor_stats,
+    public_profiles,
     reviews,
     slots,
     bookings,
@@ -29,6 +30,7 @@ api_v1_router.include_router(slots.router)
 api_v1_router.include_router(bookings.router)
 api_v1_router.include_router(admin_bookings.router)
 api_v1_router.include_router(instructor_search.router)
+api_v1_router.include_router(public_profiles.router)
 api_v1_router.include_router(booking_messages.router)
 api_v1_router.include_router(reviews.router)
 api_v1_router.include_router(booking_jobs.router)

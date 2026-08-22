@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base AS development
 
 COPY pyproject.toml README.md ./
+COPY app ./app
 RUN pip install -e ".[dev]"
 
 COPY . .
@@ -32,9 +33,9 @@ WORKDIR /app
 RUN useradd -m -u 1000 appuser
 
 COPY pyproject.toml README.md ./
+COPY app ./app
 RUN pip install .
 
-COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini ./alembic.ini
 
