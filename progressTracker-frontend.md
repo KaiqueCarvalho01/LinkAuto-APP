@@ -272,7 +272,38 @@
 - green_command: `npm run typecheck` (0 erros) e `npm run test` (94/94 testes passando com 100% de sucesso) ✅
 - coverage_pct: >= 80% ✅
 
+### Iteracao 22 - Perfis Publicos, Roteamento Dinamico e Integracao Geral de Navegacao
+
+#### What was delivered (Iteracao 22)
+- Criadas as páginas públicas `InstructorPublicProfilePage.tsx` e `StudentPublicProfilePage.tsx` utilizando componentes Chakra UI v3, semântica de tokens, timeline de avaliações mútuas e seletor `SlotPicker`.
+- Adicionadas interfaces `ApiPublicInstructorProfile`, `ApiPublicStudentProfile`, `ApiPublicReviewItem` em `src/types/api.types.ts` e métodos `fetchPublicInstructorProfile` / `fetchPublicStudentProfile` em `src/services/profileService.ts`.
+- Registradas rotas públicas acessíveis anônima e dinamicamente: `/instructors/:id` e `/students/:id` no `router.tsx`.
+- Conectados os links de perfil em toda a plataforma:
+  - `SearchPage.tsx` / `InstructorCard.tsx`: Botão "Ver perfil" navega diretamente para `/instructors/${id}`.
+  - `Profile.tsx`: Botão "Ver perfil público" no hero header e item correspondente no menu de ações.
+  - `LessonDetails.tsx` e `MyLessons.tsx`: Nomes de instrutores e contrapartes tornados links clicáveis para seus respectivos perfis públicos.
+- Suíte de testes unitários e de integração de componentes criada em `src/pages/PublicProfiles.test.tsx`.
+
+#### Where it was delivered (Iteracao 22)
+- `src/types/api.types.ts`
+- `src/services/profileService.ts`
+- `src/pages/InstructorPublicProfilePage.tsx`
+- `src/pages/StudentPublicProfilePage.tsx`
+- `src/pages/PublicProfiles.test.tsx`
+- `src/pages/SearchPage.tsx`
+- `src/pages/Profile.tsx`
+- `src/pages/LessonDetails.tsx`
+- `src/pages/MyLessons.tsx`
+- `src/app/router.tsx`
+
+#### How it was validated (Iteracao 22)
+- cycle_id: iteration-022
+- green_command: `npm run typecheck` (0 erros) e `npm run test` (97/97 testes passando com 100% de sucesso) ✅
+- coverage_pct: >= 80% ✅
+
 ## Riscos e Observacoes Gerais
+
+- **Iteracao 22**: Entrega de perfis públicos anônimos para instrutores e alunos com blindagem LGPD, agendamento desacoplado e roteamento universal em toda a aplicação. 97 testes verdes no Vitest e TypeScript strict validado.
 
 - **Iteracao 21**: Integração de ponta a ponta dos endpoints de filtros avançados e dashboards estatísticos entregue com sucesso, mantendo conformidade estrita com TypeScript (`exactOptionalPropertyTypes: true`) e Chakra UI v3.
 - **Iteracao 20**: Refatoração maciça do frontend resolvendo 10 problemas de usabilidade, navegabilidade e segurança de tipos em rotas e formulários. Cobertura estrita de TypeScript restabelecida sem erros, eslint validado com 0 warnings nos arquivos modificados, e 100% de aprovação na suíte de testes (94 testes verdes). Documentação de solicitações de API para o backend gerada com sucesso em `docs/BACKEND_ENDPOINT_REQUESTS.md`.

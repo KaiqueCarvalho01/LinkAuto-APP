@@ -245,3 +245,24 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - Backend: **128 testes pytest verdes (100% de aprovação)** e **Ruff lint 100% limpo**.
   - Frontend: **94 testes Vitest verdes (100% de aprovação)** e **TypeScript `npm run typecheck` 100% limpo**.
 
+### Iteração 16 (Perfis Públicos & Roteamento Dinâmico com Blindagem LGPD)
+
+- **Endpoints Públicos e Blindagem de Dados LGPD no Backend (Slice 1):**
+  - Implementados endpoints REST anônimos `GET /api/v1/instructors/{id}/public` e `GET /api/v1/students/{id}/public` (`app/api/v1/public_profiles.py`).
+  - Desenvolvido `PublicProfileService` (`app/services/public_profile_service.py`) com sanitização estrita de PII (ocultação total de `email`, `phone`, `password_hash`, `cpf`, dados bancários e status de penalidade).
+  - Aplicada regra de visibilidade **RN01**: instrutores pendentes ou inativos retornam estritamente `404 Not Found`.
+  - Agregação de avaliações públicas mútuas (`Review`) com resolução de autor e contagem de aulas realizadas (`Booking`).
+  - Testes: Adicionados `test_public_profile_service.py` (unit) e `test_public_profile_contract.py` (contract).
+- **Páginas de Perfil Público e Roteamento no Frontend (Slice 2):**
+  - Criadas as páginas públicas `InstructorPublicProfilePage.tsx` e `StudentPublicProfilePage.tsx` com Chakra UI v3, badges semânticos, timeline de feedback e seletor de horários interativo `SlotPicker`.
+  - Criados métodos `fetchPublicInstructorProfile` e `fetchPublicStudentProfile` em `profileService.ts`.
+  - Registradas as rotas dinâmicas `/instructors/:id` e `/students/:id` no `router.tsx`.
+- **Integração de Navegação e Desacoplamento da Rota `/profile` (Slice 3):**
+  - Atualizado `InstructorCard.tsx` e `SearchPage.tsx` para direcionar o botão "Ver perfil" para `/instructors/${id}`.
+  - Atualizado `Profile.tsx` (configurações privadas) adicionando atalho "Visualizar meu perfil público".
+  - Conectados links navegáveis em `LessonDetails.tsx` e `MyLessons.tsx` para os perfis públicos de instrutores e alunos.
+- **Garantia de Qualidade e Suítes de Testes:**
+  - Backend: **136 testes pytest verdes (100% de aprovação)** e **Ruff lint 100% limpo**.
+  - Frontend: **97 testes Vitest verdes (100% de aprovação)** e **TypeScript `npm run typecheck` 100% limpo**.
+
+
