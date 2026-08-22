@@ -44,6 +44,7 @@ import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
 import type { InstructorSummary } from "../types/instructor";
 import type {
+	AdminStats,
 	DashboardRequest,
 	UserAccount,
 } from "../types/session";
@@ -298,6 +299,7 @@ function AdminInstructorDashboardRoute() {
 	const { session } = useSessionStore();
 	const token = session?.accessToken;
 	const [requests, setRequests] = useState<DashboardRequest[]>([]);
+	const [adminStats, setAdminStats] = useState<AdminStats | undefined>();
 
 	const loadPending = useCallback(async (): Promise<DashboardRequest[]> => {
 		if (!token) {
@@ -323,6 +325,33 @@ function AdminInstructorDashboardRoute() {
 		return mapped;
 	}, [token]);
 
+	const loadStats = useCallback(async (): Promise<AdminStats | undefined> => {
+		if (!token) return undefined;
+		try {
+			const res = await httpClient.get<{
+				total_instructors: number;
+				pending_instructors: number;
+				approved_instructors: number;
+				rejected_instructors: number;
+				total_students: number;
+				total_bookings: number;
+			}>("/admin/stats", { token });
+			if (res.data) {
+				return {
+					totalInstructors: res.data.total_instructors,
+					pendingInstructors: res.data.pending_instructors,
+					approvedInstructors: res.data.approved_instructors,
+					rejectedInstructors: res.data.rejected_instructors,
+					totalStudents: res.data.total_students,
+					totalBookings: res.data.total_bookings,
+				};
+			}
+		} catch (err) {
+			console.error("Failed to load admin stats:", err);
+		}
+		return undefined;
+	}, [token]);
+
 	useEffect(() => {
 		let active = true;
 
@@ -338,10 +367,16 @@ function AdminInstructorDashboardRoute() {
 				}
 			});
 
+		void loadStats().then((data) => {
+			if (active && data) {
+				setAdminStats(data);
+			}
+		});
+
 		return () => {
 			active = false;
 		};
-	}, [loadPending]);
+	}, [loadPending, loadStats]);
 
 	const instructorData = useMemo(
 		() => ({
@@ -362,6 +397,8 @@ function AdminInstructorDashboardRoute() {
 			{ token },
 		);
 		setRequests(await loadPending());
+		const updatedStats = await loadStats();
+		if (updatedStats) setAdminStats(updatedStats);
 	};
 
 	const reject = async (instructorId: string) => {
@@ -375,6 +412,8 @@ function AdminInstructorDashboardRoute() {
 			{ token },
 		);
 		setRequests(await loadPending());
+		const updatedStats = await loadStats();
+		if (updatedStats) setAdminStats(updatedStats);
 	};
 
 	const pendingCount = requests.length;
@@ -390,7 +429,8 @@ function AdminInstructorDashboardRoute() {
 			pendingLabel="Pending Instructors"
 			isAdminDashboard={true}
 			pendingInstructors={pendingCount}
-			approvedInstructors={3}
+			approvedInstructors={adminStats?.approvedInstructors ?? 0}
+			adminStats={adminStats}
 		/>
 	);
 }

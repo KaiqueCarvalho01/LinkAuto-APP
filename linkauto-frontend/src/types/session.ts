@@ -76,3 +76,19 @@ export interface DashboardRequest {
 	neighborhood?: string;
 	specialties?: string[];
 }
+
+export interface AdminStats {
+	totalInstructors: number;
+	pendingInstructors: number;
+	approvedInstructors: number;
+	rejectedInstructors: number;
+	totalStudents: number;
+	totalBookings: number;
+}
+
+export interface InstructorStats {
+	totalLessons: number;
+	totalHours: number;
+	uniqueStudents: number;
+	pendingBookings: number;
+}

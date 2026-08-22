@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Award, Calendar, Check, Clock, Star, Users, X } from "lucide-react";
 import { Box, Button, HStack, Stack, Text, Badge } from "@chakra-ui/react";
 
-import type { DashboardRequest } from "../types/session";
+import type { AdminStats, DashboardRequest, InstructorStats } from "../types/session";
 
 interface InstructorData {
 	readonly name: string;
@@ -20,6 +20,8 @@ interface InstructorDashboardProps {
 	readonly isAdminDashboard?: boolean;
 	readonly pendingInstructors?: number;
 	readonly approvedInstructors?: number;
+	readonly adminStats?: AdminStats | undefined;
+	readonly instructorStats?: InstructorStats | undefined;
 }
 
 export default function InstructorDashboard({
@@ -33,6 +35,8 @@ export default function InstructorDashboard({
 	isAdminDashboard = false,
 	pendingInstructors = 0,
 	approvedInstructors = 0,
+	adminStats,
+	instructorStats,
 }: InstructorDashboardProps) {
 	const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -137,7 +141,7 @@ export default function InstructorDashboard({
 										fontWeight="900"
 										fontSize="2xl"
 										lineHeight="1">
-										{approvedInstructors}
+										{adminStats?.approvedInstructors ?? approvedInstructors}
 									</Text>
 								</Box>
 								<Box
@@ -160,7 +164,53 @@ export default function InstructorDashboard({
 										fontWeight="900"
 										fontSize="2xl"
 										lineHeight="1">
-										{pendingInstructors}
+										{adminStats?.pendingInstructors ?? pendingInstructors}
+									</Text>
+								</Box>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Alunos Cadastrados
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										{adminStats?.totalStudents ?? 0}
+									</Text>
+								</Box>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Total de Reservas
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										{adminStats?.totalBookings ?? 0}
 									</Text>
 								</Box>
 							</>
@@ -179,14 +229,14 @@ export default function InstructorDashboard({
 										fontSize="xs"
 										textTransform="uppercase"
 										fontWeight="700">
-										Total de aulas
+										Aulas Ministradas
 									</Text>
 									<Text
 										color="text.primary"
 										fontWeight="900"
 										fontSize="2xl"
 										lineHeight="1">
-										0 <Text as="span" fontSize="xs" fontWeight="bold" color="whiteAlpha.700">(em breve)</Text>
+										{instructorStats?.totalLessons ?? 0}
 									</Text>
 								</Box>
 								<Box
@@ -202,14 +252,60 @@ export default function InstructorDashboard({
 										fontSize="xs"
 										textTransform="uppercase"
 										fontWeight="700">
-										Horas ministradas
+										Horas Ministradas
 									</Text>
 									<Text
 										color="text.primary"
 										fontWeight="900"
 										fontSize="2xl"
 										lineHeight="1">
-										0h <Text as="span" fontSize="xs" fontWeight="bold" color="whiteAlpha.700">(em breve)</Text>
+										{instructorStats?.totalHours ?? 0}h
+									</Text>
+								</Box>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Alunos Únicos
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										{instructorStats?.uniqueStudents ?? 0}
+									</Text>
+								</Box>
+								<Box
+									flex="1"
+									minW={{ base: "100%", md: "0" }}
+									bg="whiteAlpha.200"
+									borderRadius="2xl"
+									p={4}
+									border="1px solid"
+									borderColor="border.default">
+									<Text
+										color="text.secondary"
+										fontSize="xs"
+										textTransform="uppercase"
+										fontWeight="700">
+										Reservas Pendentes
+									</Text>
+									<Text
+										color="text.primary"
+										fontWeight="900"
+										fontSize="2xl"
+										lineHeight="1">
+										{instructorStats?.pendingBookings ?? 0}
 									</Text>
 								</Box>
 							</>
