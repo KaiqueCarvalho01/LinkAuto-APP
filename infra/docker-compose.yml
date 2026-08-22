@@ -1,28 +1,61 @@
 services:
   backend:
-    image: python:3.11-slim
+    build:
+      context: ../linkauto-backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: linkauto-backend
+    restart: unless-stopped
     working_dir: /workspace
     volumes:
       - ../linkauto-backend:/workspace
+      - /workspace/.venv
     env_file:
       - ../linkauto-backend/.env.example
-    command: >
-      sh -c "pip install --no-cache-dir -e . &&
-      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   frontend:
-    image: node:20-alpine
+    build:
+      context: ../linkauto-frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: linkauto-frontend
+    restart: unless-stopped
     working_dir: /workspace
     volumes:
       - ../linkauto-frontend:/workspace
+      - /workspace/node_modules
     env_file:
       - ../linkauto-frontend/.env.example
-    command: >
-      sh -c "npm install &&
-      npm run dev -- --host 0.0.0.0 --port 5173"
     ports:
       - "5173:5173"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+
+  # Optional PostgreSQL + PostGIS service (Activated with --profile postgres)
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: linkauto-postgres
+    profiles:
+      - postgres
+      - prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_dev_password
+      POSTGRES_DB: linkauto
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

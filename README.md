@@ -116,21 +116,24 @@ Diagramas disponiveis:
 
 ## Como executar localmente
 
-### Opcao A (recomendada): Docker Compose
+### Opcao A (recomendada): Docker Compose 🐳
+
+Para iniciar todo o ecossistema (Backend + Frontend + Banco de dados) em segundo plano com um único comando:
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-No ambiente de desenvolvimento, o backend agora reinicializa o SQLite local a cada startup (`RESET_SQLITE_ON_STARTUP=true`), recriando o arquivo `app.db` e o schema base automaticamente.
+> [!TIP]
+> 📖 Para uma lista detalhada de comandos Docker, resolução de problemas, execução de testes via container e guia para usuários não-técnicos, consulte o **[Guia Completo de Infraestrutura & Docker (infra/README.md)](infra/README.md)**.
 
-Servicos:
+Serviços disponíveis:
 
-- Frontend: [http://localhost:5173](http://localhost:5173)
-- Backend API: [http://localhost:8000](http://localhost:8000)
-- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+- 🌐 **Frontend (Web App):** [http://localhost:5173](http://localhost:5173)
+- 🔌 **Backend API (Swagger Docs):** [http://localhost:8000/docs](http://localhost:8000/docs)
+- 🩺 **Healthcheck da API:** [http://localhost:8000/health](http://localhost:8000/health)
 
-### Opcao B: Backend e frontend separados
+### Opcao B: Backend e frontend separados (Ambiente Nativo)
 
 Backend:
 

@@ -12,6 +12,7 @@ import { RatingStars } from "../RatingStars";
 import {
 	studentTestimonials,
 	instructorTestimonials,
+	type Testimonial,
 } from "../../services/staticContent";
 
 export function Testimonials() {
@@ -107,14 +108,6 @@ export function Testimonials() {
 			</Container>
 		</Box>
 	);
-}
-
-interface Testimonial {
-	id: string;
-	name: string;
-	role: string;
-	rating: number;
-	text: string;
 }
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {

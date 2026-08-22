@@ -113,8 +113,36 @@ export default function SearchPage({
   }, [coords, radiusKm, specialty, minRating, maxPrice, token]);
 
   useEffect(() => {
-    void loadInstructors();
-  }, [loadInstructors]);
+    let isMounted = true;
+    setLoading(true);
+    const params: InstructorSearchParams = {
+      latitude: coords.lat,
+      longitude: coords.lng,
+      radiusKm,
+      specialty,
+      minRating: minRating > 0 ? minRating : undefined,
+      maxPrice: maxPrice.trim() !== "" ? parseFloat(maxPrice) : undefined,
+    };
+
+    instructorService.searchInstructors(params, token)
+      .then((results) => {
+        if (isMounted) {
+          setInstructors(results);
+          setSelectedInstructorId((current) => current ?? results[0]?.id);
+        }
+      })
+      .catch((err) => {
+        console.error("Error searching instructors:", err);
+        if (isMounted) setInstructors([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [coords, radiusKm, specialty, minRating, maxPrice, token]);
 
   const selectedInstructor =
     instructors.find((item) => item.id === selectedInstructorId) ??

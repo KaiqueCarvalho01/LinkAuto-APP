@@ -210,3 +210,20 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - Implementado fallback resiliente em `BookingService.cancel_booking()` garantindo que o `starts_at` do slot seja convertido em timezone-aware UTC se for naive, assegurando a compatibilidade perfeita do SQLite com PostgreSQL em produção.
 - **Garantia de Qualidade e Testes:**
   - Rodada a suíte completa de testes unitários e de integração do backend: todos os **112 testes do pytest verdes**.
+
+### Iteração 14 (Modernização de Infraestrutura Docker & Documentação Completa)
+
+- **Empacotamento com Dockerfiles Multi-Stage:**
+  - Criado `linkauto-backend/Dockerfile` e `linkauto-backend/.dockerignore` com estágios `base`, `development` (hot-reload `uvicorn --reload`) e `production` (usuário não-root e instalação enxuta).
+  - Criado `linkauto-frontend/Dockerfile` e `linkauto-frontend/.dockerignore` com estágios `base`, `development` (Vite dev server), `build` (`npm run build`) e `production` (servidor estático Nginx Alpine).
+- **Orquestração com Docker Compose:**
+  - Refatorado `infra/docker-compose.yml` utilizando os Dockerfiles multi-stage como alvo de desenvolvimento.
+  - Adicionados healthchecks automatizados na API backend (`/health`) e isolamento de volumes para `node_modules` no frontend e `.venv` no backend.
+  - Mapeado serviço opcional `postgres` com PostGIS sob o perfil `--profile postgres` para paridade com produção.
+- **Documentação de Infraestrutura & Guia de Comandos:**
+  - Criado o manual completo `infra/README.md` com tabela de comandos essenciais, execução de testes dentro de containers, troubleshooting e guia passo a passo para usuários não-técnicos via Docker Desktop.
+  - Atualizado o `README.md` raiz com atalhos de inicialização e links diretos.
+- **Garantia de Qualidade e Testes:**
+  - Sintaxe de compose validada com sucesso (`docker compose -f infra/docker-compose.yml config`).
+  - Suítes de testes 100% validadas: **112 testes pytest verdes** no backend e **94 testes vitest verdes + typecheck TS limpo** no frontend.
+

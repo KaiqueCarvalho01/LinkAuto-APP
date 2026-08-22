@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.coverage
+coverage
+tests/e2e/videos
+tests/e2e/screenshots
+playwright-report
+test-results

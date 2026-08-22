@@ -45,8 +45,26 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
   }, [token]);
 
   useEffect(() => {
-    void loadBookings();
-  }, [loadBookings]);
+    let isMounted = true;
+    if (!token) return;
+    setLoading(true);
+    setErrorMessage(null);
+    bookingService.getMyBookings(token)
+      .then((data) => {
+        if (isMounted) setBookings(data);
+      })
+      .catch((err) => {
+        console.error("Error loading bookings:", err);
+        if (isMounted) setErrorMessage("Não foi possível carregar seus agendamentos.");
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
 
   const handleCancel = async (bookingId: string) => {
     if (!token) return;

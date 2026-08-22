@@ -2,7 +2,6 @@
 
 > Design system reference para o frontend do LinkAuto.
 > Stack: React 19 + Vite + Tailwind CSS 4 + Chakra UI v3 + Leaflet + Zustand + Vitest
-> Consumido pelo agente Gemini e engenheiros do LinkAuto.
 
 ---
 
