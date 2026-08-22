@@ -15,8 +15,18 @@ def search_instructors(
     radius_km: float = Query(20.0, ge=1, le=100),
     min_rating: float | None = Query(None, ge=0, le=5),
     max_price: float | None = Query(None, ge=0),
+    specialties: list[str] | None = Query(None, description="Filtro de especialidades"),
+    sort_by: str | None = Query("distance", pattern="^(rating|price_asc|price_desc|distance)$"),
     db: Session = Depends(get_db),
 ):
+    # Parse potential comma-separated specialties in query params
+    cleaned_specialties: list[str] = []
+    if specialties:
+        for s in specialties:
+            for part in s.split(","):
+                if part.strip():
+                    cleaned_specialties.append(part.strip())
+
     service = InstructorSearchService(db)
     results = service.search(
         latitude=latitude,
@@ -24,6 +34,8 @@ def search_instructors(
         radius_km=radius_km,
         min_rating=min_rating,
         max_price=max_price,
+        specialties=cleaned_specialties if cleaned_specialties else None,
+        sort_by=sort_by,
     )
     data = [
         {

@@ -87,23 +87,27 @@ export const instructorService = {
       queryParams.set("max_price", params.maxPrice.toString());
     }
 
+    if (params.specialties && params.specialties.length > 0) {
+      for (const spec of params.specialties) {
+        if (spec && spec !== "Todas") {
+          queryParams.append("specialties", spec);
+        }
+      }
+    } else if (params.specialty && params.specialty !== "Todas") {
+      queryParams.append("specialties", params.specialty);
+    }
+
+    if (params.sortBy) {
+      queryParams.set("sort_by", params.sortBy);
+    }
+
     const response = await httpClient.get<ApiInstructorSearchResult[]>(
       `/instructors/search?${queryParams.toString()}`,
       token ? { token } : {}
     );
 
     const list = response.data || [];
-    let mapped = list.map((item) => mapApiInstructorToSummary(item, lat, lng));
-
-    // Client-side filtering for specialty if selected
-    if (params.specialty && params.specialty !== "Todas") {
-      mapped = mapped.filter((instructor) =>
-        instructor.specialties.some(
-          (s) => s.toLowerCase() === params.specialty!.toLowerCase()
-        )
-      );
-    }
-
+    const mapped = list.map((item) => mapApiInstructorToSummary(item, lat, lng));
     return mapped;
   },
 

@@ -29,6 +29,8 @@ class InstructorSearchService:
         radius_km: float = 20.0,
         min_rating: float | None = None,
         max_price: float | None = None,
+        specialties: list[str] | None = None,
+        sort_by: str | None = None,
     ) -> list[InstructorProfile]:
         query = self._db.query(InstructorProfile).filter(
             InstructorProfile.detran_status == DetranStatus.APROVADO.value,
@@ -44,11 +46,31 @@ class InstructorSearchService:
 
         candidates = query.all()
 
-        # SQLite fallback: filter by Haversine in Python
-        results = []
+        # Clean specialties filter list
+        target_specialties = [s.strip().lower() for s in (specialties or []) if s.strip()]
+
+        # SQLite fallback: filter by Haversine and specialties in Python
+        matched_entries: list[tuple[InstructorProfile, float]] = []
         for p in candidates:
+            # Check specialty match if filter was provided
+            if target_specialties:
+                prof_specs = [s.lower() for s in (p.specialties or [])]
+                # Match if any of the target specialties is present in profile specialties
+                if not any(ts in prof_specs or any(ts in ps for ps in prof_specs) for ts in target_specialties):
+                    continue
+
             dist = _haversine_distance(latitude, longitude, float(p.latitude), float(p.longitude))
             if dist <= radius_km:
-                results.append(p)
+                matched_entries.append((p, dist))
 
-        return results
+        # Sort results
+        if sort_by == "rating":
+            matched_entries.sort(key=lambda item: (item[0].rating_avg or 0.0), reverse=True)
+        elif sort_by == "price_asc":
+            matched_entries.sort(key=lambda item: float(item[0].price_per_hour or 0.0))
+        elif sort_by == "price_desc":
+            matched_entries.sort(key=lambda item: float(item[0].price_per_hour or 0.0), reverse=True)
+        else:  # default or "distance"
+            matched_entries.sort(key=lambda item: item[1])
+
+        return [item[0] for item in matched_entries]

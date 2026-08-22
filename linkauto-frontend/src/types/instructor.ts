@@ -23,6 +23,8 @@ export interface InstructorSearchParams {
   minRating?: number | undefined;
   maxPrice?: number | undefined;
   specialty?: string | undefined;
+  specialties?: string[] | undefined;
+  sortBy?: "rating" | "price_asc" | "price_desc" | "distance" | undefined;
   query?: string | undefined;
   city?: string | undefined;
 }

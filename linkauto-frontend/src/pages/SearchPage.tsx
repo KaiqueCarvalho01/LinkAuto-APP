@@ -48,6 +48,7 @@ export default function SearchPage({
   });
   const [specialty, setSpecialty] = useState("Todas");
   const [radiusKm, setRadiusKm] = useState(10);
+  const [sortBy, setSortBy] = useState<"distance" | "rating" | "price_asc" | "price_desc">("distance");
   const minRating = 0;
   const [maxPrice, setMaxPrice] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,6 +97,7 @@ export default function SearchPage({
       longitude: coords.lng,
       radiusKm,
       specialty,
+      sortBy,
       minRating: minRating > 0 ? minRating : undefined,
       maxPrice: maxPrice.trim() !== "" ? parseFloat(maxPrice) : undefined,
     };
@@ -110,7 +112,7 @@ export default function SearchPage({
     } finally {
       setLoading(false);
     }
-  }, [coords, radiusKm, specialty, minRating, maxPrice, token]);
+  }, [coords, radiusKm, specialty, sortBy, minRating, maxPrice, token]);
 
   useEffect(() => {
     let isMounted = true;
@@ -120,6 +122,7 @@ export default function SearchPage({
       longitude: coords.lng,
       radiusKm,
       specialty,
+      sortBy,
       minRating: minRating > 0 ? minRating : undefined,
       maxPrice: maxPrice.trim() !== "" ? parseFloat(maxPrice) : undefined,
     };
@@ -142,7 +145,7 @@ export default function SearchPage({
     return () => {
       isMounted = false;
     };
-  }, [coords, radiusKm, specialty, minRating, maxPrice, token]);
+  }, [coords, radiusKm, specialty, sortBy, minRating, maxPrice, token]);
 
   const selectedInstructor =
     instructors.find((item) => item.id === selectedInstructorId) ??
@@ -262,6 +265,26 @@ export default function SearchPage({
               borderColor="border.default"
               color="text.primary"
             />
+
+            {/* Sort Filter */}
+            <chakra.select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value as "distance" | "rating" | "price_asc" | "price_desc")}
+              h="46px"
+              borderRadius="md"
+              border="1px solid"
+              borderColor="border.default"
+              bg="surface.panel"
+              px={3}
+              fontSize="sm"
+              fontWeight="600"
+              color="text.primary"
+              aria-label="Ordenar por">
+              <option value="distance">Mais Próximos</option>
+              <option value="rating">Melhor Avaliados</option>
+              <option value="price_asc">Menor Preço</option>
+              <option value="price_desc">Maior Preço</option>
+            </chakra.select>
 
             {/* Search Trigger Button */}
             <Button
