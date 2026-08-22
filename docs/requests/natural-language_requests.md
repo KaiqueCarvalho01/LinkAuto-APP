@@ -1,7 +1,6 @@
 # Problemas identificados
 
-1. Ao tentar acessar o perfil público dos intrutores, em qualquer tela com a opção, o usuário é redirecionado para a tela do próprio perfil. Em `/profile`. Não existe roteamento direto para acesso ao perfil público do instrutor, assim como o instrutor não consegue o próprio perfil público ou perfil do aluno.
-A idéia é justamente permitir que exista transparência de dados do usuário que está prestando ou recebendo o seriço, permitindo que qualquer usuário possa acessar o perfil público do instrutor ou do aluno, sem precisar estar logado ou ser o próprio usuário. Isso vai alinhado a ideia de que o instrutor ou aluno podem ter um perfil público, com informações básicas, avaliações e histórico de aulas, sem expor dados sensíveis.
+, 
 
 2. Foi identificado que ao agendar uma aula, o instutor não possui a opção de confirmá-la. Exemplo: "aluno" marcou aula com "Camila Rocha" (pré-seeded), mas a instrutora não possui a opção de confirmar a aula, apenas de recusar. Mesmo sem o cron job de notificação de aulas o instrutor deve ter a opção de confirmar a aula solicitada.
 

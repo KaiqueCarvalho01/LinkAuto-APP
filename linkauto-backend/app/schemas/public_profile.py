@@ -7,6 +7,7 @@ class PublicReviewAuthor(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
+    slug: str
     full_name: str
     avatar_url: str | None = None
 
@@ -25,6 +26,7 @@ class PublicInstructorProfileResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
+    slug: str
     full_name: str
     avatar_url: str | None = None
     city: str | None = None
@@ -42,6 +44,7 @@ class PublicStudentProfileResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
+    slug: str
     full_name: str
     avatar_url: str | None = None
     city: str | None = None

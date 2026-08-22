@@ -40,6 +40,7 @@ def search_instructors(
     data = [
         {
             "user_id": p.user_id,
+            "slug": p.slug or p.user_id,
             "full_name": p.full_name,
             "city": p.city,
             "state": p.state,

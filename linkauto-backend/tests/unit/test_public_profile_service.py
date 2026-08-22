@@ -6,7 +6,7 @@ from app.services.public_profile_service import PublicProfileService
 
 
 def _seed_public_profiles_data(db_session):
-    # 1. Approved Instructor
+    # 1. Approved Instructor with Slug
     u_inst = User(
         id="inst-pub-1",
         email="inst1@secret.com",
@@ -16,6 +16,7 @@ def _seed_public_profiles_data(db_session):
     )
     p_inst = InstructorProfile(
         user_id="inst-pub-1",
+        slug="carlos-silva-mogi-mirim-8f2a",
         full_name="Carlos Silva Instrutor",
         phone="11999998888",
         city="Mogi Mirim",
@@ -39,6 +40,7 @@ def _seed_public_profiles_data(db_session):
     )
     p_inst_pending = InstructorProfile(
         user_id="inst-pub-pending",
+        slug="instrutor-pendente-4d2e",
         full_name="Instrutor Pendente",
         phone="11999997777",
         city="Mogi Mirim",
@@ -47,7 +49,7 @@ def _seed_public_profiles_data(db_session):
         is_active=True,
     )
 
-    # 3. Student 1 (Reviewer & Target)
+    # 3. Student 1 (Reviewer & Target) with Slug
     u_stud1 = User(
         id="stud-pub-1",
         email="stud1@secret.com",
@@ -57,6 +59,7 @@ def _seed_public_profiles_data(db_session):
     )
     p_stud1 = StudentProfile(
         user_id="stud-pub-1",
+        slug="ana-paula-mogi-mirim-3b1c",
         full_name="Ana Paula Aluna",
         phone="11988887777",
         city="Mogi Mirim",
@@ -75,6 +78,7 @@ def _seed_public_profiles_data(db_session):
     )
     p_stud2 = StudentProfile(
         user_id="stud-pub-2",
+        slug="bruno-aluno-mogi-mirim-7a9f",
         full_name="Bruno Aluno",
         phone="11977776666",
         city="Mogi Mirim",
@@ -126,13 +130,15 @@ def _seed_public_profiles_data(db_session):
 
 
 class TestPublicProfileService:
-    def test_get_public_instructor_profile_success(self, db_session):
+    def test_get_public_instructor_profile_by_slug_and_conceals_uuid(self, db_session):
         _seed_public_profiles_data(db_session)
         service = PublicProfileService(db_session)
 
-        profile = service.get_public_instructor("inst-pub-1")
+        # Lookup by public slug
+        profile = service.get_public_instructor("carlos-silva-mogi-mirim-8f2a")
 
-        assert profile.id == "inst-pub-1"
+        assert profile.id == "carlos-silva-mogi-mirim-8f2a"
+        assert profile.slug == "carlos-silva-mogi-mirim-8f2a"
         assert profile.full_name == "Carlos Silva Instrutor"
         assert profile.city == "Mogi Mirim"
         assert profile.state == "SP"
@@ -143,6 +149,8 @@ class TestPublicProfileService:
         assert len(profile.reviews) == 1
         assert profile.reviews[0].rating == 5
         assert profile.reviews[0].comment == "Excelente aula de baliza!"
+        assert profile.reviews[0].reviewer.id == "ana-paula-mogi-mirim-3b1c"
+        assert profile.reviews[0].reviewer.slug == "ana-paula-mogi-mirim-3b1c"
         assert profile.reviews[0].reviewer.full_name == "Ana Paula Aluna"
         assert profile.reviews[0].reviewer.avatar_url == "https://example.com/ana.jpg"
 
@@ -152,19 +160,20 @@ class TestPublicProfileService:
 
         # Pending instructor must raise ValueError (treated as 404 in endpoint)
         with pytest.raises(ValueError, match="Instructor not found or not approved"):
-            service.get_public_instructor("inst-pub-pending")
+            service.get_public_instructor("instrutor-pendente-4d2e")
 
-        # Non-existent instructor
+        # Non-existent instructor slug
         with pytest.raises(ValueError, match="Instructor not found or not approved"):
-            service.get_public_instructor("non-existent-id")
+            service.get_public_instructor("non-existent-slug")
 
-    def test_get_public_student_profile_success(self, db_session):
+    def test_get_public_student_profile_by_slug_and_conceals_uuid(self, db_session):
         _seed_public_profiles_data(db_session)
         service = PublicProfileService(db_session)
 
-        profile = service.get_public_student("stud-pub-1")
+        profile = service.get_public_student("ana-paula-mogi-mirim-3b1c")
 
-        assert profile.id == "stud-pub-1"
+        assert profile.id == "ana-paula-mogi-mirim-3b1c"
+        assert profile.slug == "ana-paula-mogi-mirim-3b1c"
         assert profile.full_name == "Ana Paula Aluna"
         assert profile.city == "Mogi Mirim"
         assert profile.state == "SP"
@@ -175,6 +184,8 @@ class TestPublicProfileService:
         assert len(profile.reviews) == 1
         assert profile.reviews[0].rating == 5
         assert profile.reviews[0].comment == "Aluna muito dedicada e pontual."
+        assert profile.reviews[0].reviewer.id == "carlos-silva-mogi-mirim-8f2a"
+        assert profile.reviews[0].reviewer.slug == "carlos-silva-mogi-mirim-8f2a"
         assert profile.reviews[0].reviewer.full_name == "Carlos Silva Instrutor"
 
     def test_get_public_student_non_existent_raises_value_error(self, db_session):
@@ -182,4 +193,4 @@ class TestPublicProfileService:
         service = PublicProfileService(db_session)
 
         with pytest.raises(ValueError, match="Student not found"):
-            service.get_public_student("non-existent-id")
+            service.get_public_student("non-existent-student-slug")
