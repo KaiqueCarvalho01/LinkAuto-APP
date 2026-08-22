@@ -38,6 +38,7 @@ export interface ApiUserAccount {
 
 export interface ApiInstructorSearchResult {
   user_id: string;
+  slug?: string | undefined;
   full_name: string;
   city: string;
   state: string;
@@ -102,6 +103,7 @@ export interface ApiReviewResource {
 
 export interface ApiPublicReviewAuthor {
   id: string;
+  slug: string;
   full_name: string;
   avatar_url?: string | null | undefined;
 }
@@ -116,6 +118,7 @@ export interface ApiPublicReviewItem {
 
 export interface ApiPublicInstructorProfile {
   id: string;
+  slug: string;
   full_name: string;
   avatar_url?: string | null | undefined;
   city?: string | null | undefined;
@@ -131,6 +134,7 @@ export interface ApiPublicInstructorProfile {
 
 export interface ApiPublicStudentProfile {
   id: string;
+  slug: string;
   full_name: string;
   avatar_url?: string | null | undefined;
   city?: string | null | undefined;

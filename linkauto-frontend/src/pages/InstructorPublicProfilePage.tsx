@@ -25,13 +25,10 @@ import {
 } from "@chakra-ui/react";
 
 import { RatingStars } from "../components/RatingStars";
-import { SlotPicker } from "../components/SlotPicker";
-import { bookingSelectionIsValid } from "../features/bookings/bookingRules";
 import { profileService } from "../services/profileService";
-import { slotService } from "../services/slotService";
 import { useSessionStore } from "../state/sessionStore";
 import type { ApiPublicInstructorProfile } from "../types/api.types";
-import type { BookingSlot } from "../types/booking";
+import type { InstructorSummary } from "../types/instructor";
 
 const initialsFromName = (name: string): string => {
   const parts = name
@@ -45,13 +42,11 @@ const initialsFromName = (name: string): string => {
 export default function InstructorPublicProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, roles } = useSessionStore();
+  const { isAuthenticated } = useSessionStore();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [instructor, setInstructor] = useState<ApiPublicInstructorProfile | null>(null);
-  const [slots, setSlots] = useState<BookingSlot[]>([]);
-  const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!id) {
@@ -64,14 +59,10 @@ export default function InstructorPublicProfilePage() {
     setLoading(true);
     setError(null);
 
-    Promise.all([
-      profileService.fetchPublicInstructorProfile(id),
-      slotService.getInstructorSlots(id).catch(() => []),
-    ])
-      .then(([prof, slotList]) => {
+    profileService.fetchPublicInstructorProfile(id)
+      .then((prof) => {
         if (isMounted) {
           setInstructor(prof);
-          setSlots(slotList);
         }
       })
       .catch((err) => {
@@ -89,26 +80,36 @@ export default function InstructorPublicProfilePage() {
     };
   }, [id]);
 
-  const isValidSelection = bookingSelectionIsValid(slots, selectedSlotIds);
+  const handleStartBooking = () => {
+    if (!instructor) return;
 
-  const handleBook = () => {
-    if (!id) return;
+    const summary: InstructorSummary = {
+      id: instructor.id,
+      slug: instructor.slug,
+      fullName: instructor.full_name,
+      city: instructor.city ?? "Mogi Mirim",
+      neighborhood: instructor.state ?? "SP",
+      rating: instructor.rating_avg,
+      reviewsCount: instructor.rating_count,
+      distanceKm: 0,
+      hourlyRate: instructor.price_per_hour ?? 70,
+      detranApproved: instructor.detran_approved,
+      specialties: instructor.specialties,
+      radiusKm: 15,
+      coordinates: { lat: -22.4319, lng: -46.9578 },
+    };
 
     if (!isAuthenticated) {
       navigate("/login", {
         state: {
-          returnUrl: `/instructors/${id}`,
-          selectedSlots: selectedSlotIds,
+          returnUrl: `/bookings/new`,
+          instructor: summary,
         },
       });
       return;
     }
 
-    if (roles.includes("ALUNO")) {
-      navigate(`/bookings/new?instructorId=${id}&slots=${selectedSlotIds.join(",")}`);
-    } else {
-      navigate(`/bookings/new?instructorId=${id}`);
-    }
+    navigate("/bookings/new", { state: { instructor: summary } });
   };
 
   if (loading) {
@@ -118,7 +119,7 @@ export default function InstructorPublicProfilePage() {
           <Skeleton h="40px" w="150px" borderRadius="md" />
           <Skeleton h="220px" borderRadius="2xl" />
           <Skeleton h="180px" borderRadius="2xl" />
-          <Skeleton h="240px" borderRadius="2xl" />
+          <Skeleton h="200px" borderRadius="2xl" />
         </Stack>
       </Container>
     );
@@ -244,26 +245,39 @@ export default function InstructorPublicProfilePage() {
               </Stack>
             </HStack>
 
-            {instructor.price_per_hour !== null && instructor.price_per_hour !== undefined && (
-              <Box
-                bg="surface.muted"
-                px={5}
-                py={3}
-                borderRadius="xl"
-                border="1px solid"
-                borderColor="border.default"
-                textAlign={{ base: "left", md: "right" }}>
-                <Text fontSize="xs" color="text.muted" textTransform="uppercase" fontWeight="700">
-                  Valor da hora/aula
-                </Text>
-                <Text fontSize="2xl" fontWeight="900" color="brand.solid">
-                  R$ {instructor.price_per_hour.toFixed(2)}
-                  <Text as="span" fontSize="sm" color="text.secondary" fontWeight="600">
-                    /h
+            <HStack gap={4} align="center" flexWrap="wrap">
+              {instructor.price_per_hour !== null && instructor.price_per_hour !== undefined && (
+                <Box
+                  bg="surface.muted"
+                  px={5}
+                  py={3}
+                  borderRadius="xl"
+                  border="1px solid"
+                  borderColor="border.default"
+                  textAlign={{ base: "left", md: "right" }}>
+                  <Text fontSize="xs" color="text.muted" textTransform="uppercase" fontWeight="700">
+                    Valor da hora/aula
                   </Text>
-                </Text>
-              </Box>
-            )}
+                  <Text fontSize="2xl" fontWeight="900" color="brand.solid">
+                    R$ {instructor.price_per_hour.toFixed(2)}
+                    <Text as="span" fontSize="sm" color="text.secondary" fontWeight="600">
+                      /h
+                    </Text>
+                  </Text>
+                </Box>
+              )}
+
+              <Button
+                bg="brand.solid"
+                color="text.inverse"
+                fontWeight="700"
+                size="lg"
+                onClick={handleStartBooking}
+                _hover={{ bg: "brand.emphasized" }}>
+                <Calendar size={18} />
+                Agendar Aula
+              </Button>
+            </HStack>
           </Stack>
         </Box>
 
@@ -333,46 +347,31 @@ export default function InstructorPublicProfilePage() {
           </Box>
         </SimpleGrid>
 
-        {/* Slot Scheduling Section */}
+        {/* Action Callout Banner */}
         <Box
           bg="surface.panel"
           p={{ base: 6, md: 8 }}
           borderRadius="2xl"
           border="1px solid"
-          borderColor="border.default">
-          <HStack justify="space-between" align="center" mb={4} flexWrap="wrap" gap={2}>
-            <Box>
-              <Heading size="md" color="text.primary">
-                Horários Disponíveis para Agendamento
-              </Heading>
-              <Text fontSize="xs" color="text.muted" mt={1}>
-                Selecione no mínimo 2 horários consecutivos (2h de aula mínima).
-              </Text>
-            </Box>
-
-            <Button
-              bg="brand.solid"
-              color="text.inverse"
-              fontWeight="700"
-              size="md"
-              disabled={!isValidSelection}
-              onClick={handleBook}
-              _hover={{ bg: "brand.emphasized" }}>
-              {isAuthenticated ? "Continuar Agendamento" : "Entrar e Agendar"}
-            </Button>
-          </HStack>
-
-          {slots.length === 0 ? (
-            <Box py={8} textAlign="center" color="text.secondary">
-              <Text fontSize="sm">Nenhum horário disponível publicado no momento.</Text>
-            </Box>
-          ) : (
-            <SlotPicker
-              slots={slots}
-              selectedIds={selectedSlotIds}
-              onSelectedIdsChange={setSelectedSlotIds}
-            />
-          )}
+          borderColor="border.default"
+          textAlign="center">
+          <Heading size="md" mb={2} color="text.primary">
+            Pronto para começar suas aulas com {instructor.full_name}?
+          </Heading>
+          <Text color="text.secondary" fontSize="sm" maxW="2xl" mx="auto" mb={6}>
+            Escolha os melhores horários para você e faça sua solicitação de agendamento de forma rápida e segura.
+          </Text>
+          <Button
+            bg="brand.solid"
+            color="text.inverse"
+            fontWeight="700"
+            size="lg"
+            px={8}
+            onClick={handleStartBooking}
+            _hover={{ bg: "brand.emphasized" }}>
+            <Calendar size={18} />
+            Agendar Aula com este Instrutor
+          </Button>
         </Box>
 
         {/* Student Reviews Section */}
@@ -423,7 +422,7 @@ export default function InstructorPublicProfilePage() {
                         )}
                       </Box>
                       <RouterLink
-                        to={`/students/${rev.reviewer.id}`}
+                        to={`/students/${rev.reviewer.slug || rev.reviewer.id}`}
                         style={{ textDecoration: "none" }}>
                         <Text
                           fontWeight="700"

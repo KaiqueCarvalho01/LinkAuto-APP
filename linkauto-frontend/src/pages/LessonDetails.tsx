@@ -153,7 +153,7 @@ export default function LessonDetails({
                 px={4}
                 py={3}>
                 <RouterLink
-                  to={`/instructors/${instructor.id}`}
+                  to={`/instructors/${instructor.slug || instructor.id}`}
                   style={{ textDecoration: "none" }}>
                   <Text
                     fontWeight="700"

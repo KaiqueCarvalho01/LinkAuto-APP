@@ -310,7 +310,7 @@ export default function StudentPublicProfilePage() {
                         )}
                       </Box>
                       <RouterLink
-                        to={`/instructors/${rev.reviewer.id}`}
+                        to={`/instructors/${rev.reviewer.slug || rev.reviewer.id}`}
                         style={{ textDecoration: "none" }}>
                         <Text
                           fontWeight="700"

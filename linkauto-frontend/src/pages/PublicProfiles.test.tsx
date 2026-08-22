@@ -6,7 +6,6 @@ import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import InstructorPublicProfilePage from "./InstructorPublicProfilePage";
 import StudentPublicProfilePage from "./StudentPublicProfilePage";
 import { profileService } from "../services/profileService";
-import { slotService } from "../services/slotService";
 
 vi.mock("../state/sessionStore", () => ({
   useSessionStore: () => ({
@@ -23,12 +22,6 @@ vi.mock("../services/profileService", () => ({
   },
 }));
 
-vi.mock("../services/slotService", () => ({
-  slotService: {
-    getInstructorSlots: vi.fn(),
-  },
-}));
-
 function renderWithProviders(ui: React.ReactElement) {
   return render(
     <ChakraProvider value={defaultSystem}>
@@ -42,9 +35,10 @@ describe("InstructorPublicProfilePage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders public instructor profile with details, slots, and reviews", async () => {
+  it("renders public instructor profile with details, CTA button, and reviews (without slots)", async () => {
     vi.mocked(profileService.fetchPublicInstructorProfile).mockResolvedValueOnce({
-      id: "inst-1",
+      id: "marcos-lima-mogi-mirim-4a9b",
+      slug: "marcos-lima-mogi-mirim-4a9b",
       full_name: "Marcos Lima",
       city: "Mogi Mirim",
       state: "SP",
@@ -61,32 +55,16 @@ describe("InstructorPublicProfilePage", () => {
           comment: "Excelente paciência e didática!",
           created_at: "2026-08-20T10:00:00Z",
           reviewer: {
-            id: "stud-1",
+            id: "camila-rocha-mogi-mirim-7e2a",
+            slug: "camila-rocha-mogi-mirim-7e2a",
             full_name: "Camila Rocha",
           },
         },
       ],
     });
 
-    vi.mocked(slotService.getInstructorSlots).mockResolvedValueOnce([
-      {
-        id: "slot-1",
-        label: "08:00 - 09:00",
-        startAt: "2026-08-25T08:00:00Z",
-        endAt: "2026-08-25T09:00:00Z",
-        state: "DISPONIVEL",
-      },
-      {
-        id: "slot-2",
-        label: "09:00 - 10:00",
-        startAt: "2026-08-25T09:00:00Z",
-        endAt: "2026-08-25T10:00:00Z",
-        state: "DISPONIVEL",
-      },
-    ]);
-
     renderWithProviders(
-      <MemoryRouter initialEntries={["/instructors/inst-1"]}>
+      <MemoryRouter initialEntries={["/instructors/marcos-lima-mogi-mirim-4a9b"]}>
         <Routes>
           <Route path="/instructors/:id" element={<InstructorPublicProfilePage />} />
         </Routes>
@@ -104,17 +82,16 @@ describe("InstructorPublicProfilePage", () => {
     expect(screen.getByText("Especialista em alunos com fobia de volante.")).toBeInTheDocument();
     expect(screen.getByText("Camila Rocha")).toBeInTheDocument();
     expect(screen.getByText(/"Excelente paciência e didática!"/)).toBeInTheDocument();
-    expect(screen.getByText("08:00 - 09:00")).toBeInTheDocument();
+    expect(screen.getByText("Agendar Aula com este Instrutor")).toBeInTheDocument();
   });
 
-  it("renders friendly error state when instructor is not found", async () => {
+  it("renders friendly error state when instructor slug is not found", async () => {
     vi.mocked(profileService.fetchPublicInstructorProfile).mockRejectedValueOnce(
       new Error("Not found")
     );
-    vi.mocked(slotService.getInstructorSlots).mockResolvedValueOnce([]);
 
     renderWithProviders(
-      <MemoryRouter initialEntries={["/instructors/non-existent"]}>
+      <MemoryRouter initialEntries={["/instructors/non-existent-slug"]}>
         <Routes>
           <Route path="/instructors/:id" element={<InstructorPublicProfilePage />} />
         </Routes>
@@ -133,9 +110,10 @@ describe("StudentPublicProfilePage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders public student profile with stats and instructor reviews", async () => {
+  it("renders public student profile with stats and instructor reviews with public slugs", async () => {
     vi.mocked(profileService.fetchPublicStudentProfile).mockResolvedValueOnce({
-      id: "stud-1",
+      id: "mariana-souza-mogi-mirim-1c2d",
+      slug: "mariana-souza-mogi-mirim-1c2d",
       full_name: "Mariana Souza",
       city: "Mogi Mirim",
       state: "SP",
@@ -150,7 +128,8 @@ describe("StudentPublicProfilePage", () => {
           comment: "Aluna muito atenta às regras de trânsito.",
           created_at: "2026-08-21T14:00:00Z",
           reviewer: {
-            id: "inst-1",
+            id: "carlos-instrutor-mogi-mirim-9b3f",
+            slug: "carlos-instrutor-mogi-mirim-9b3f",
             full_name: "Carlos Instrutor",
           },
         },
@@ -158,7 +137,7 @@ describe("StudentPublicProfilePage", () => {
     });
 
     renderWithProviders(
-      <MemoryRouter initialEntries={["/students/stud-1"]}>
+      <MemoryRouter initialEntries={["/students/mariana-souza-mogi-mirim-1c2d"]}>
         <Routes>
           <Route path="/students/:id" element={<StudentPublicProfilePage />} />
         </Routes>

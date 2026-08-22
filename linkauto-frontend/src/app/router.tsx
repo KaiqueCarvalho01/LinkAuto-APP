@@ -266,8 +266,8 @@ function SearchRoute() {
 		<SearchPage
 			token={session?.accessToken}
 			onOpenProfile={(instructor) => {
-				if (instructor?.id) {
-					navigate(`/instructors/${instructor.id}`);
+				if (instructor) {
+					navigate(`/instructors/${instructor.slug || instructor.id}`);
 				} else {
 					navigate("/profile");
 				}

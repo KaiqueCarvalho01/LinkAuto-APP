@@ -1,5 +1,6 @@
 export interface InstructorSummary {
   id: string;
+  slug?: string | undefined;
   fullName: string;
   city: string;
   neighborhood: string;

@@ -35,6 +35,7 @@ export const mapApiInstructorToSummary = (
 
   return {
     id: api.user_id,
+    slug: api.slug ?? api.user_id,
     fullName: api.full_name,
     city: api.city,
     neighborhood: api.state || "SP",
