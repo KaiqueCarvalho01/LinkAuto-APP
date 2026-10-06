@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from typing import Annotated
 
-from app.core.database import get_db
+from fastapi import APIRouter, Query
+
+from app.api.deps.types import DbSession
 from app.core.slug import generate_profile_slug
 from app.schemas.common import success_response
 from app.services.instructor_search_service import InstructorSearchService
@@ -11,14 +12,16 @@ router = APIRouter(tags=["Instructor Search"])
 
 @router.get("/instructors/search")
 def search_instructors(
-    latitude: float = Query(..., description="Latitude do aluno"),
-    longitude: float = Query(..., description="Longitude do aluno"),
-    radius_km: float = Query(20.0, ge=1, le=100),
-    min_rating: float | None = Query(None, ge=0, le=5),
-    max_price: float | None = Query(None, ge=0),
-    specialties: list[str] | None = Query(None, description="Filtro de especialidades"),
-    sort_by: str | None = Query("distance", pattern="^(rating|price_asc|price_desc|distance)$"),
-    db: Session = Depends(get_db),
+    latitude: Annotated[float, Query(description="Latitude do aluno")],
+    longitude: Annotated[float, Query(description="Longitude do aluno")],
+    db: DbSession,
+    radius_km: Annotated[float, Query(ge=1, le=100)] = 20.0,
+    min_rating: Annotated[float | None, Query(ge=0, le=5)] = None,
+    max_price: Annotated[float | None, Query(ge=0)] = None,
+    specialties: Annotated[list[str] | None, Query(description="Filtro de especialidades")] = None,
+    sort_by: Annotated[
+        str | None, Query(pattern="^(rating|price_asc|price_desc|distance)$")
+    ] = "distance",
 ):
     # Parse potential comma-separated specialties in query params
     cleaned_specialties: list[str] = []

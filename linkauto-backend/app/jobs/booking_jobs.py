@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.api.deps.authz import require_roles
-from app.core.database import get_db
+from app.api.deps.types import CurrentAdmin, DbSession
 from app.schemas.common import success_response
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
 from app.services.booking_scheduler import BookingScheduler
@@ -13,9 +10,8 @@ router = APIRouter(tags=["Jobs"])
 
 @router.post("/jobs/booking-timeout")
 def run_booking_timeout(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
+    _: CurrentAdmin,
+    db: DbSession,
 ):
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
@@ -29,9 +25,8 @@ def run_booking_timeout(
 
 @router.post("/jobs/booking-completion")
 def run_booking_completion(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
+    _: CurrentAdmin,
+    db: DbSession,
 ):
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
@@ -45,9 +40,8 @@ def run_booking_completion(
 
 @router.post("/jobs/booking-reminder")
 def run_booking_reminder(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
+    _: CurrentAdmin,
+    db: DbSession,
 ):
     port = SqlAlchemyBookingAutomationPort(db)
     from app.services.dependencies import get_notification_service

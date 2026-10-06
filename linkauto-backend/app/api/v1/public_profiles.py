@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Response, status
 
-from app.core.database import get_db
+from app.api.deps.types import DbSession
 from app.schemas.common import success_response
 from app.services.public_profile_service import PublicProfileService
 
@@ -13,7 +12,7 @@ router = APIRouter(tags=["public-profiles"])
 @router.get("/instructors/{instructor_id}/public")
 def get_public_instructor_profile(
     instructor_id: str,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ) -> Response:
     service = PublicProfileService(db)
     try:
@@ -29,7 +28,7 @@ def get_public_instructor_profile(
 @router.get("/students/{student_id}/public")
 def get_public_student_profile(
     student_id: str,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ) -> Response:
     service = PublicProfileService(db)
     try:

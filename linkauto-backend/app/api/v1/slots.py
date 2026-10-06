@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.api.deps.authz import require_roles
-from app.core.database import get_db
+from app.api.deps.types import CurrentInstrutor, DbSession
 from app.schemas.common import success_response
 from app.schemas.slot import SlotCreateRequest, SlotResource
 from app.services.slot_service import SlotOverlapError, SlotService
@@ -14,9 +11,8 @@ router = APIRouter(tags=["Slots"])
 @router.post("/instructors/me/slots", status_code=201)
 def create_slot(
     body: SlotCreateRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("INSTRUTOR")),
-    db: Session = Depends(get_db),
+    current_user: CurrentInstrutor,
+    db: DbSession,
 ):
     service = SlotService(db)
     try:
@@ -37,9 +33,8 @@ def create_slot(
 
 @router.get("/instructors/me/slots")
 def list_my_slots(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("INSTRUTOR")),
-    db: Session = Depends(get_db),
+    current_user: CurrentInstrutor,
+    db: DbSession,
 ):
     service = SlotService(db)
     slots = service.list_slots(current_user.user_id)
@@ -52,7 +47,7 @@ def list_my_slots(
 @router.get("/instructors/{instructor_id}/slots")
 def list_instructor_slots(
     instructor_id: str,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ):
     service = SlotService(db)
     slots = service.list_slots(instructor_id, status=None)
@@ -65,9 +60,8 @@ def list_instructor_slots(
 @router.delete("/instructors/me/slots/{slot_id}", status_code=200)
 def delete_slot(
     slot_id: str,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("INSTRUTOR")),
-    db: Session = Depends(get_db),
+    current_user: CurrentInstrutor,
+    db: DbSession,
 ):
     service = SlotService(db)
     try:

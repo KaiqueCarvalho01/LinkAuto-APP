@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from typing import Annotated
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.core.database import get_db
+from fastapi import APIRouter, Query
+
+from app.api.deps.types import CurrentUser, DbSession
 from app.models.booking import Booking
 from app.models.user import User
 from app.schemas.common import error_response, success_response
@@ -22,8 +22,8 @@ router = APIRouter(tags=["Reviews"])
 def create_booking_review(
     id: str,
     payload: ReviewCreateRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: DbSession,
 ):
     # Fetch booking to determine recipient
     booking = db.query(Booking).filter(Booking.id == id).first()
@@ -59,9 +59,9 @@ def create_booking_review(
 @router.get("/instructors/{id}/reviews", response_model=dict)
 def list_instructor_reviews(
     id: str,
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-    db: Session = Depends(get_db),
+    db: DbSession,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     service = ReviewService(db)
     reviews = service.list_instructor_reviews(

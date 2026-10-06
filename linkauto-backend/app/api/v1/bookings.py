@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from typing import Annotated
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.api.deps.authz import require_roles
-from app.core.database import get_db
+from fastapi import APIRouter, HTTPException, Query
+
+from app.api.deps.types import CurrentAluno, CurrentInstrutor, CurrentUser, DbSession
 from app.domain.booking import BookingTransitionError
 from app.schemas.booking import (
     BookingCancelRequest,
@@ -23,9 +22,8 @@ router = APIRouter(tags=["Bookings"])
 @router.post("/bookings", status_code=201)
 def create_booking(
     body: BookingCreateRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ALUNO")),
-    db: Session = Depends(get_db),
+    current_user: CurrentAluno,
+    db: DbSession,
 ):
     service = BookingService(db)
     try:
@@ -53,9 +51,9 @@ def create_booking(
 
 @router.get("/bookings")
 def list_bookings(
-    status: str | None = Query(None),
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: DbSession,
+    status: Annotated[str | None, Query()] = None,
 ):
     service = BookingService(db)
     role = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
@@ -69,8 +67,8 @@ def list_bookings(
 @router.get("/bookings/{booking_id}")
 def get_booking(
     booking_id: str,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: DbSession,
 ):
     service = BookingService(db)
     booking = service.get_booking(booking_id)
@@ -92,9 +90,8 @@ def get_booking(
 @router.patch("/bookings/{booking_id}/confirm")
 def confirm_booking(
     booking_id: str,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("INSTRUTOR")),
-    db: Session = Depends(get_db),
+    current_user: CurrentInstrutor,
+    db: DbSession,
 ):
     service = BookingService(db)
     try:
@@ -116,8 +113,8 @@ def confirm_booking(
 def cancel_booking(
     booking_id: str,
     body: BookingCancelRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: DbSession,
 ):
     service = BookingService(db)
     cancelled_by = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict
 
-from app.api.deps import AuthenticatedUser, get_current_user
+from app.api.deps.types import CurrentUser
 from app.schemas.common import success_response
 from app.services.dependencies import get_profile_service
 from app.services.profile_service import ProfileService
@@ -45,8 +47,8 @@ class UserMePatchRequest(BaseModel):
 
 @router.get("/me")
 def get_me(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    profile_service: ProfileService = Depends(get_profile_service),
+    current_user: CurrentUser,
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
     try:
         payload = profile_service.get_me(current_user.user_id)
@@ -61,8 +63,8 @@ def get_me(
 @router.patch("/me")
 def patch_me(
     payload: UserMePatchRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    profile_service: ProfileService = Depends(get_profile_service),
+    current_user: CurrentUser,
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
     try:
         user_payload = profile_service.update_me(
@@ -78,6 +80,6 @@ def patch_me(
 
 @router.get("/public-instructors")
 def list_public_instructors(
-    profile_service: ProfileService = Depends(get_profile_service),
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
     return success_response(profile_service.list_public_instructors())

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import Depends, HTTPException, status
 
@@ -14,7 +14,7 @@ def require_roles(*allowed_roles: str) -> Callable[[AuthenticatedUser], Authenti
     allowed = set(allowed_roles)
 
     def role_dependency(
-        current_user: AuthenticatedUser = Depends(get_current_user),
+        current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
     ) -> AuthenticatedUser:
         if allowed.intersection(current_user.roles):
             return current_user

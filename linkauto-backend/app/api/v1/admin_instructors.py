@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
 
-from app.api.deps import AuthenticatedUser, require_roles
+from app.api.deps.types import CurrentAdmin
 from app.core.security_logger import log_admin_action
 from app.schemas.common import success_response
 from app.services.admin_validation_service import AdminValidationService
@@ -18,11 +20,11 @@ class RejectInstructorRequest(BaseModel):
 
 @router.get("")
 def list_instructors(
-    status_filter: str | None = Query(default=None, alias="status"),
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-    _: AuthenticatedUser = Depends(require_roles("ADMIN")),
-    service: AdminValidationService = Depends(get_admin_validation_service),
+    _: CurrentAdmin,
+    service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
+    status_filter: Annotated[str | None, Query(alias="status")] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> Response:
     result = service.list_instructors(status=status_filter, page=page, page_size=page_size)
     return success_response(
@@ -40,8 +42,8 @@ def list_instructors(
 @router.patch("/{instructor_id}/approve")
 def approve_instructor(
     instructor_id: str,
-    admin_user: AuthenticatedUser = Depends(require_roles("ADMIN")),
-    service: AdminValidationService = Depends(get_admin_validation_service),
+    admin_user: CurrentAdmin,
+    service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
 ) -> Response:
     try:
         result = service.approve(instructor_id=instructor_id, admin_id=admin_user.user_id)
@@ -60,8 +62,8 @@ def approve_instructor(
 def reject_instructor(
     instructor_id: str,
     payload: RejectInstructorRequest,
-    admin_user: AuthenticatedUser = Depends(require_roles("ADMIN")),
-    service: AdminValidationService = Depends(get_admin_validation_service),
+    admin_user: CurrentAdmin,
+    service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
 ) -> Response:
     try:
         result = service.reject(

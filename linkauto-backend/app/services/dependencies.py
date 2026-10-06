@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Annotated
 
 from fastapi import Depends
 
@@ -23,7 +24,7 @@ def get_store() -> IdentityStore:
     return get_identity_store()
 
 
-def get_auth_service(settings: Settings = Depends(get_settings)) -> AuthService:
+def get_auth_service(settings: Annotated[Settings, Depends(get_settings)]) -> AuthService:
     return AuthService(
         settings=settings,
         store=get_store(),
@@ -49,6 +50,6 @@ def get_admin_validation_service() -> AdminValidationService:
 
 
 def get_instructor_document_service(
-    settings: Settings = Depends(get_settings),
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> InstructorDocumentService:
     return InstructorDocumentService(settings=settings, store=get_store())

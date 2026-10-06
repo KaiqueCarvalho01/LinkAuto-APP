@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Response, status
 
-from app.api.deps import AuthenticatedUser, get_current_user, require_roles
+from app.api.deps.types import CurrentAdmin, CurrentUser
 from app.schemas.common import success_response
 
 router = APIRouter(tags=["foundation"])
@@ -17,7 +17,7 @@ def foundation_ping() -> Response:
 
 @router.get("/foundation/protected")
 def foundation_protected(
-    current_user: AuthenticatedUser = Depends(get_current_user),
+    current_user: CurrentUser,
 ) -> Response:
     data: dict[str, Any] = {"user_id": current_user.user_id, "roles": current_user.roles}
     return success_response(data)
@@ -25,7 +25,7 @@ def foundation_protected(
 
 @router.get("/foundation/admin")
 def foundation_admin_only(
-    current_user: AuthenticatedUser = Depends(require_roles("ADMIN")),
+    current_user: CurrentAdmin,
 ) -> Response:
     return success_response({"user_id": current_user.user_id, "role_check": "ok"})
 

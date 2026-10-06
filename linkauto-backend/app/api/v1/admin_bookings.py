@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.api.deps.authz import require_roles
-from app.core.database import get_db
+from app.api.deps.types import CurrentAdmin, DbSession
 from app.domain.booking import BookingTransitionError
 from app.schemas.booking import BookingAdminOverrideRequest, BookingResource
 from app.schemas.common import success_response
@@ -16,9 +13,8 @@ router = APIRouter(tags=["Admin Bookings"])
 def admin_override_booking(
     booking_id: str,
     body: BookingAdminOverrideRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
+    current_user: CurrentAdmin,
+    db: DbSession,
 ):
     service = AdminBookingService(db)
     try:

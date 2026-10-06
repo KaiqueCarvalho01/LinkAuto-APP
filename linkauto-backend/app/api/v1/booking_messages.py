@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from typing import Annotated
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.core.database import get_db
+from fastapi import APIRouter, Query
+
+from app.api.deps.types import CurrentUser, DbSession
 from app.models.booking import Booking
 from app.models.user import User
 from app.schemas.booking_message import BookingMessageCreateRequest, MessageResource
@@ -17,8 +17,8 @@ router = APIRouter(prefix="/bookings/{id}", tags=["Booking Messages"])
 def send_booking_message(
     id: str,
     payload: BookingMessageCreateRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: DbSession,
 ):
     # Fetch booking to determine recipient
     booking = db.query(Booking).filter(Booking.id == id).first()
@@ -55,10 +55,10 @@ def send_booking_message(
 @router.get("/messages", response_model=dict)
 def list_booking_messages(
     id: str,
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUser,
+    db: DbSession,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     service = BookingMessageService(db)
     try:

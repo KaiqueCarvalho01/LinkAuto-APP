@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.api.deps import AuthenticatedUser, get_current_user
+from app.api.deps.types import CurrentUser
 from app.schemas.common import success_response
 from app.services.dependencies import get_instructor_document_service
 from app.services.instructor_document_service import (
@@ -17,10 +19,10 @@ router = APIRouter(prefix="/instructors", tags=["instructor-documents"])
 @router.post("/{instructor_id}/documents")
 async def upload_documents(
     instructor_id: str,
-    detran_credential: UploadFile = File(...),
-    criminal_record: UploadFile = File(...),
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    service: InstructorDocumentService = Depends(get_instructor_document_service),
+    detran_credential: Annotated[UploadFile, File()],
+    criminal_record: Annotated[UploadFile, File()],
+    current_user: CurrentUser,
+    service: Annotated[InstructorDocumentService, Depends(get_instructor_document_service)],
 ):
     if current_user.user_id != instructor_id and "ADMIN" not in current_user.roles:
         raise HTTPException(

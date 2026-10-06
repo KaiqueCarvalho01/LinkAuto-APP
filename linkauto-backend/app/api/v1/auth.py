@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+from typing import Annotated, TYPE_CHECKING
+
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
-from app.core import Settings, get_settings
+from app.api.deps.types import AppSettings
 from app.core.rate_limit import limiter
 from app.core.security_logger import log_auth_failure, log_auth_success
 from app.schemas.common import success_response
 from app.services.auth_service import AuthService
 from app.services.dependencies import get_auth_service, get_profile_service
 from app.services.profile_service import ProfileService
+
+if TYPE_CHECKING:
+    from app.core import Settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -48,8 +53,8 @@ def _set_refresh_cookie(
 def register(
     request: Request,
     payload: RegisterRequest,
-    auth_service: AuthService = Depends(get_auth_service),
-    profile_service: ProfileService = Depends(get_profile_service),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
     try:
         user = auth_service.register(
@@ -68,8 +73,8 @@ def register(
 def login(
     payload: LoginRequest,
     request: Request,
-    auth_service: AuthService = Depends(get_auth_service),
-    settings: Settings = Depends(get_settings),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: AppSettings,
 ) -> Response:
     client_ip = request.client.host if request.client else "unknown"
     try:
@@ -99,9 +104,9 @@ def login(
 @limiter.limit("20/minute")
 def refresh(
     request: Request,
-    refresh_token: str | None = Cookie(default=None),
-    auth_service: AuthService = Depends(get_auth_service),
-    settings: Settings = Depends(get_settings),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: AppSettings,
+    refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> Response:
     if not refresh_token:
         raise HTTPException(
@@ -134,7 +139,7 @@ def refresh(
 def password_reset(
     request: Request,
     payload: PasswordResetRequest,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Response:
     auth_service.trigger_password_reset(email=payload.email)
     return success_response({"status": "accepted"}, status_code=status.HTTP_202_ACCEPTED)
