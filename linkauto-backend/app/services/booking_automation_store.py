@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import func
+
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot
@@ -31,7 +33,6 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
 
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
         """Find confirmed bookings whose last slot ended before cutoff_utc."""
-        from sqlalchemy import func
 
         results = (
             self._db.query(Booking.id)
@@ -56,7 +57,6 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         self._db.flush()
 
     def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
-        from sqlalchemy import func
 
         results = (
             self._db.query(Booking.id)

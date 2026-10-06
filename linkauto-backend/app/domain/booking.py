@@ -10,6 +10,9 @@ class BookingStatus(StrEnum):
     CANCELADA = "CANCELADA"
 
 
+# RN02: a booking spans at least this many consecutive one-hour slots
+MIN_SLOTS_PER_BOOKING = 2
+
 TERMINAL_STATUSES = {BookingStatus.REALIZADA, BookingStatus.CANCELADA}
 
 ALLOWED_TRANSITIONS: dict[BookingStatus, set[BookingStatus]] = {

@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from app.core.config import get_settings
 from app.core.security import create_access_token
 from app.domain.booking import BookingStatus
+from app.models.slot import Slot
 from app.models.user import UserRole
 
 
@@ -120,7 +121,6 @@ def test_happy_path_e2e_journey(client, db_session):
 
     # 8. Admin triggers the completion job to complete the lesson (simulating time passing)
     # Manually backdate slot times to be in the past to trigger completion
-    from app.models.slot import Slot
 
     db_session.query(Slot).filter(Slot.id.in_([slot1_id, slot2_id])).update(
         {

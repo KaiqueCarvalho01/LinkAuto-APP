@@ -5,7 +5,9 @@ from dataclasses import dataclass, field
 from threading import Lock
 from typing import TYPE_CHECKING
 
+from app.core.database import SessionLocal
 from app.models import DetranStatus, LicenseType, UserRole, generate_uuid7
+from app.models import User as DbUser
 from app.models.base import utc_now
 
 if TYPE_CHECKING:
@@ -140,8 +142,6 @@ class IdentityStore:
         return user
 
     def _load_user_from_db_by_email(self, email: str) -> str | None:
-        from app.core.database import SessionLocal
-        from app.models.user import User as DbUser
 
         db = SessionLocal()
         try:
@@ -156,8 +156,6 @@ class IdentityStore:
         return None
 
     def _load_user_from_db_by_id(self, user_id: str) -> UserRecord | None:
-        from app.core.database import SessionLocal
-        from app.models.user import User as DbUser
 
         db = SessionLocal()
         try:
@@ -171,8 +169,6 @@ class IdentityStore:
         return None
 
     def _sync_db_user_to_memory(self, db_user) -> UserRecord:
-        from app.models import DetranStatus
-        from app.models.user import LicenseType
 
         with self._lock:
             # StudentProfile map

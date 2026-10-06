@@ -78,11 +78,11 @@ def get_booking(
         raise HTTPException(
             status_code=404, detail={"code": "NOT_FOUND", "message": "Booking not found"}
         )
-    if booking.student_id != current_user.user_id and booking.instructor_id != current_user.user_id:
-        if "ADMIN" not in current_user.roles:
-            raise HTTPException(
-                status_code=403, detail={"code": "FORBIDDEN", "message": "Access denied"}
-            )
+    is_participant = current_user.user_id in {booking.student_id, booking.instructor_id}
+    if not is_participant and "ADMIN" not in current_user.roles:
+        raise HTTPException(
+            status_code=403, detail={"code": "FORBIDDEN", "message": "Access denied"}
+        )
     return success_response(
         BookingResource.model_validate(booking).model_dump(mode="json"),
         meta={},

@@ -4,6 +4,7 @@ from app.api.deps.types import CurrentAdmin, DbSession
 from app.schemas.common import success_response
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
 from app.services.booking_scheduler import BookingScheduler
+from app.services.dependencies import get_notification_service
 
 router = APIRouter(tags=["Jobs"])
 
@@ -44,7 +45,6 @@ def run_booking_reminder(
     db: DbSession,
 ):
     port = SqlAlchemyBookingAutomationPort(db)
-    from app.services.dependencies import get_notification_service
 
     scheduler = BookingScheduler(port, notification_service=get_notification_service())
     result = scheduler.run_lesson_reminders()

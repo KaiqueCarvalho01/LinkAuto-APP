@@ -6,6 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger("app.core.config")
 
+# Placeholder default that must be overridden outside development
+INSECURE_JWT_SECRET = "change-me"  # noqa: S105
+
 
 class Settings(BaseSettings):
     app_env: str = Field(default="development", alias="APP_ENV")
@@ -19,7 +22,7 @@ class Settings(BaseSettings):
         alias="CORS_ORIGINS",
     )
 
-    jwt_secret: str = Field(default="change-me", alias="JWT_SECRET")
+    jwt_secret: str = Field(default=INSECURE_JWT_SECRET, alias="JWT_SECRET")
     jwt_access_minutes: int = Field(default=15, alias="JWT_ACCESS_MINUTES")
     jwt_refresh_days: int = Field(default=7, alias="JWT_REFRESH_DAYS")
 
@@ -34,8 +37,8 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_security(self) -> Settings:
         if self.app_env.lower() == "production":
-            if self.jwt_secret == "change-me":
-                msg = "JWT_SECRET cannot be 'change-me' in production environment."
+            if self.jwt_secret == INSECURE_JWT_SECRET:
+                msg = f"JWT_SECRET cannot be {INSECURE_JWT_SECRET!r} in production environment."
                 raise ValueError(msg)
             if self.reset_sqlite_on_startup:
                 msg = "RESET_SQLITE_ON_STARTUP cannot be True in production environment."

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import and_
 
 from app.models.slot import Slot, SlotStatus
+from app.models.user import InstructorProfile
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -59,7 +60,6 @@ class SlotService:
         instructor_id: str,
         status: SlotStatus | None = None,
     ) -> list[Slot]:
-        from app.models.user import InstructorProfile
 
         prof = (
             self._db.query(InstructorProfile)

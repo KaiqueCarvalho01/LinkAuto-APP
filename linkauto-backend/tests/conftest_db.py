@@ -1,7 +1,10 @@
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.core.database import get_db
+from app.main import create_app
 from app.models.base import Base
 
 
@@ -30,10 +33,6 @@ def db_session(test_engine):
 
 @pytest.fixture
 def client(db_session):
-    from fastapi.testclient import TestClient
-
-    from app.core.database import get_db
-    from app.main import create_app
 
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db_session

@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
+from app.core.security import hash_password
 from app.main import create_app
+from app.services.us1_store import get_identity_store
 
 client = TestClient(create_app())
 
@@ -25,8 +27,6 @@ def test_register_with_admin_role_is_blocked():
 
 
 def _register_and_login_user(email: str, roles: list[str]) -> tuple[str, str]:
-    from app.core.security import hash_password
-    from app.services.us1_store import get_identity_store
 
     try:
         user = get_identity_store().create_user(

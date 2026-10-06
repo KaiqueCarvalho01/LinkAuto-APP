@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
+from app.core.security import hash_password
 from app.main import create_app
+from app.services.us1_store import get_identity_store
 
 client = TestClient(create_app())
 
@@ -56,8 +58,6 @@ def test_multi_role_profile_updates_keep_other_profile_intact():
 
 
 def test_non_approved_instructor_hidden_from_public_list_until_admin_approval():
-    from app.core.security import hash_password
-    from app.services.us1_store import get_identity_store
 
     instructor = _register_user("hidden-instructor@example.com", ["INSTRUTOR"])
     get_identity_store().create_user(

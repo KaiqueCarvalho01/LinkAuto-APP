@@ -18,15 +18,15 @@ from app.services.review_service import (
 router = APIRouter(tags=["Reviews"])
 
 
-@router.post("/bookings/{id}/reviews", response_model=dict, status_code=201)
+@router.post("/bookings/{booking_id}/reviews", response_model=dict, status_code=201)
 def create_booking_review(
-    id: str,
+    booking_id: str,
     payload: ReviewCreateRequest,
     current_user: CurrentUser,
     db: DbSession,
 ):
     # Fetch booking to determine recipient
-    booking = db.query(Booking).filter(Booking.id == id).first()
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         return error_response(code="NOT_FOUND", message="Booking not found", status_code=404)
 
@@ -40,7 +40,7 @@ def create_booking_review(
     service = ReviewService(db, notification_service=get_notification_service())
     try:
         review = service.create_review(
-            booking_id=id,
+            booking_id=booking_id,
             reviewer_id=current_user.user_id,
             rating=payload.rating,
             comment=payload.comment,
@@ -56,16 +56,16 @@ def create_booking_review(
         return error_response(code="NOT_FOUND", message=str(e), status_code=404)
 
 
-@router.get("/instructors/{id}/reviews", response_model=dict)
+@router.get("/instructors/{instructor_id}/reviews", response_model=dict)
 def list_instructor_reviews(
-    id: str,
+    instructor_id: str,
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     service = ReviewService(db)
     reviews = service.list_instructor_reviews(
-        instructor_id=id,
+        instructor_id=instructor_id,
         page=page,
         page_size=page_size,
     )

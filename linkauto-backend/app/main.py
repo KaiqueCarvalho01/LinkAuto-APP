@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from sqlalchemy.exc import IntegrityError
 
 from app.api import api_router
 from app.core import get_settings
@@ -39,7 +40,7 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix=settings.api_v1_prefix)
 
     @app.exception_handler(RateLimitExceeded)
-    async def rate_limit_exceeded_handler(_: Request, exc: RateLimitExceeded):
+    async def rate_limit_exceeded_handler(_request: Request, _exc: RateLimitExceeded):
         return error_response(
             code="RATE_LIMIT_EXCEEDED",
             message="Too many requests. Please try again later.",
@@ -65,13 +66,14 @@ def create_app() -> FastAPI:
             meta={"issues": exc.errors()},
         )
 
-    from sqlalchemy.exc import IntegrityError
-
     @app.exception_handler(IntegrityError)
-    async def integrity_error_handler(_: Request, exc: IntegrityError):
+    async def integrity_error_handler(_request: Request, _exc: IntegrityError):
         return error_response(
             code="CONFLICT",
-            message="Resource conflict — the operation could not be completed due to a constraint violation",
+            message=(
+                "Resource conflict — the operation could not be completed due to a constraint "
+                "violation"
+            ),
             status_code=409,
         )
 

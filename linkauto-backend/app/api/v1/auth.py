@@ -51,7 +51,7 @@ def _set_refresh_cookie(
 @router.post("/register")
 @limiter.limit("5/minute")
 def register(
-    request: Request,
+    request: Request,  # noqa: ARG001 - required by slowapi's @limiter.limit
     payload: RegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
@@ -137,7 +137,7 @@ def refresh(
 @router.post("/password-reset")
 @limiter.limit("3/minute")
 def password_reset(
-    request: Request,
+    request: Request,  # noqa: ARG001 - required by slowapi's @limiter.limit
     payload: PasswordResetRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Response:

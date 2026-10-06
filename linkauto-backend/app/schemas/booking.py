@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from pydantic import BaseModel, field_validator
 
+from app.domain.booking import MIN_SLOTS_PER_BOOKING
 from app.schemas.datetime import UtcDateTime
 from app.schemas.slot import SlotResource
+
+MIN_OVERRIDE_REASON_LENGTH = 3
 
 
 class BookingCreateRequest(BaseModel):
@@ -16,7 +19,7 @@ class BookingCreateRequest(BaseModel):
     @field_validator("slot_ids")
     @classmethod
     def minimum_2_slots(cls, v: list[str]) -> list[str]:
-        if len(v) < 2:
+        if len(v) < MIN_SLOTS_PER_BOOKING:
             msg = "Minimum 2 consecutive slots required (RN02)"
             raise ValueError(msg)
         return v
@@ -37,8 +40,8 @@ class BookingAdminOverrideRequest(BaseModel):
     @field_validator("reason")
     @classmethod
     def reason_min_length(cls, v: str) -> str:
-        if len(v.strip()) < 3:
-            msg = "Reason must be at least 3 characters"
+        if len(v.strip()) < MIN_OVERRIDE_REASON_LENGTH:
+            msg = f"Reason must be at least {MIN_OVERRIDE_REASON_LENGTH} characters"
             raise ValueError(msg)
         return v
 

@@ -2,6 +2,8 @@ import logging
 
 logger = logging.getLogger("app.security")
 
+VISIBLE_TOKEN_CHARS = 4
+
 
 def mask_token(token: str | None) -> str:
     """Oculta segredos sensíveis exibindo apenas os últimos 4 caracteres.
@@ -9,9 +11,9 @@ def mask_token(token: str | None) -> str:
     """
     if not token:
         return "..."
-    if len(token) <= 4:
+    if len(token) <= VISIBLE_TOKEN_CHARS:
         return "..."
-    return f"...{token[-4:]}"
+    return f"...{token[-VISIBLE_TOKEN_CHARS:]}"
 
 
 def log_auth_success(email: str, ip: str) -> None:

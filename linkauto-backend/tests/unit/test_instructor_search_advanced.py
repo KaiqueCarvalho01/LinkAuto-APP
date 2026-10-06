@@ -4,7 +4,7 @@ from app.services.instructor_search_service import InstructorSearchService
 
 def _seed_advanced_instructors(db_session):
     instructors_data = [
-        # (id, name, lat, lon, specialties, price, rating_avg, rating_count)
+        # Fields: id, name, lat, lon, specialties, price, rating_avg, rating_count
         (
             "adv-1",
             "Carlos Baliza",

@@ -129,7 +129,10 @@ class ReviewService:
                 NotificationPayload(
                     event=NotificationEvent.NEW_REVIEW_RECEIVED,
                     subject="Nova avaliação recebida",
-                    body=f"Você recebeu uma nova avaliação de {reviewer_id}: {rating} estrelas. Comentário: '{comment or ''}'",
+                    body=(
+                        f"Você recebeu uma nova avaliação de {reviewer_id}: {rating} estrelas. "
+                        f"Comentário: '{comment or ''}'"
+                    ),
                     recipients=[recipient_email],
                 )
             )

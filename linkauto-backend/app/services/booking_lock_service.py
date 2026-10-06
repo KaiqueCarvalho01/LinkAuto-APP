@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Protocol
 
 from sqlalchemy import bindparam, text
 
+from app.domain.booking import MIN_SLOTS_PER_BOOKING
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -93,7 +95,7 @@ class BookingLockService:
 
     def reserve_slots(self, slot_ids: Sequence[str]) -> None:
         unique_slot_ids = list(dict.fromkeys(slot_ids))
-        if len(unique_slot_ids) < 2:
+        if len(unique_slot_ids) < MIN_SLOTS_PER_BOOKING:
             msg = "Booking requires at least two unique slots."
             raise ValueError(msg)
 

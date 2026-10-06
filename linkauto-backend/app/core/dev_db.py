@@ -10,6 +10,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
+from app.domain.booking import MIN_SLOTS_PER_BOOKING
 from app.models import (
     Base,
     Booking,
@@ -112,7 +113,10 @@ def seed_dev_data(session: Session) -> None:
             phone="19999997777",
             city="Mogi Mirim",
             state="SP",
-            bio="Instrutora credenciada pelo DETRAN focada em alunos com medo de dirigir e recém-habilitados. Aulas práticas com paciência e didática moderna.",
+            bio=(
+                "Instrutora credenciada pelo DETRAN focada em alunos com medo de dirigir e "
+                "recém-habilitados. Aulas práticas com paciência e didática moderna."
+            ),
             specialties=["Carro", "Medo de Dirigir"],
             price_per_hour=Decimal("70.00"),
             detran_status=DetranStatus.APROVADO,
@@ -146,7 +150,10 @@ def seed_dev_data(session: Session) -> None:
             phone="19999996666",
             city="Mogi Guaçu",
             state="SP",
-            bio="Especialista em categorias A e B. Foco em direção defensiva e preparação completa para exame prático do DETRAN.",
+            bio=(
+                "Especialista em categorias A e B. Foco em direção defensiva e preparação "
+                "completa para exame prático do DETRAN."
+            ),
             specialties=["Carro", "Moto"],
             price_per_hour=Decimal("65.00"),
             detran_status=DetranStatus.APROVADO,
@@ -180,7 +187,10 @@ def seed_dev_data(session: Session) -> None:
             phone="19999995555",
             city="Estiva Gerbi",
             state="SP",
-            bio="Habilitada para aulas práticas PCD com veículo adaptado. Didática inclusiva e focada na autonomia do condutor.",
+            bio=(
+                "Habilitada para aulas práticas PCD com veículo adaptado. Didática inclusiva e "
+                "focada na autonomia do condutor."
+            ),
             specialties=["Habilitação PCD"],
             price_per_hour=Decimal("80.00"),
             detran_status=DetranStatus.APROVADO,
@@ -268,7 +278,7 @@ def seed_dev_data(session: Session) -> None:
             .all()
         )
 
-        if len(slots_inst2) >= 2:
+        if len(slots_inst2) >= MIN_SLOTS_PER_BOOKING:
             slots_inst2[0].status = SlotStatus.RESERVADO.value
             slots_inst2[1].status = SlotStatus.RESERVADO.value
 
@@ -328,7 +338,10 @@ def seed_dev_data(session: Session) -> None:
             reviewer_id=student_id,
             reviewed_id=inst3_id,
             rating=5,
-            comment="Fernanda é excelente! Muito paciente e didática. O carro adaptado para PCD é ótimo.",
+            comment=(
+                "Fernanda é excelente! Muito paciente e didática. O carro adaptado para PCD é "
+                "ótimo."
+            ),
         )
         session.add(review)
 

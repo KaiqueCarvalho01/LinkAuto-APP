@@ -89,11 +89,11 @@ class InMemoryEmailGateway:
 
 class NotificationService:
     def __init__(self, email_gateway: EmailGateway) -> None:
-        self._email_gateway = email_gateway
+        self.email_gateway = email_gateway
 
     def dispatch(self, payload: NotificationPayload) -> NotificationDispatchResult:
         try:
-            message_id = self._email_gateway.send(
+            message_id = self.email_gateway.send(
                 subject=payload.subject,
                 body=payload.body,
                 recipients=payload.recipients,

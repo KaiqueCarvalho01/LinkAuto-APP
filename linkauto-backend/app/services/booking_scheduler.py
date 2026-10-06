@@ -151,7 +151,10 @@ class BookingScheduler:
                         NotificationPayload(
                             event=NotificationEvent.LESSON_REMINDER_24H,
                             subject="Lembrete de aula LinkAuto",
-                            body=f"Lembrete: Sua aula LinkAuto (Agendamento: {booking_id}) iniciará em aproximadamente 24 horas.",
+                            body=(
+                                f"Lembrete: Sua aula LinkAuto (Agendamento: {booking_id}) iniciará "
+                                "em aproximadamente 24 horas."
+                            ),
                             recipients=recipients,
                         )
                     )

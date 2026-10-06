@@ -16,6 +16,8 @@ from app.services.booking_service import (
     PenalizedStudentError,
     SlotValidationError,
 )
+from app.services.notification_service import InMemoryEmailGateway, NotificationService
+from app.services.penalty_service import PenaltyService
 
 
 def _seed_users(db_session):
@@ -107,7 +109,6 @@ class TestBookingServiceCreate:
 
     def test_rejects_penalized_student(self, db_session):
         _seed_users(db_session)
-        from app.services.penalty_service import PenaltyService
 
         PenaltyService(db_session).apply_penalty("stu-001", "test penalty")
         slots = _create_consecutive_slots(db_session, "inst-001")
@@ -141,7 +142,6 @@ class TestBookingServiceCancel:
         cancelled = service.cancel_booking(booking.id, "stu-001", "ALUNO")
 
         assert cancelled.status == BookingStatus.CANCELADA.value
-        from app.services.penalty_service import PenaltyService
 
         assert PenaltyService(db_session).is_penalized("stu-001") is False
 
@@ -155,14 +155,12 @@ class TestBookingServiceCancel:
         cancelled = service.cancel_booking(booking.id, "stu-001", "ALUNO")
 
         assert cancelled.status == BookingStatus.CANCELADA.value
-        from app.services.penalty_service import PenaltyService
 
         assert PenaltyService(db_session).is_penalized("stu-001") is True
 
 
 class TestBookingServiceNotifications:
     def test_create_booking_dispatches_notification(self, db_session):
-        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
@@ -180,7 +178,6 @@ class TestBookingServiceNotifications:
         assert "pendente" in email["body"]
 
     def test_confirm_booking_dispatches_notification(self, db_session):
-        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
@@ -201,7 +198,6 @@ class TestBookingServiceNotifications:
         assert "confirmada" in email["body"]
 
     def test_cancel_booking_dispatches_notification(self, db_session):
-        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)

@@ -1,6 +1,8 @@
 import logging
+from typing import override
 
 from app.services.notification_service import (
+    EmailGateway,
     NotificationDispatchResult,
     NotificationEvent,
     NotificationPayload,
@@ -8,9 +10,10 @@ from app.services.notification_service import (
 )
 
 
-class FailureEmailGateway:
+class FailureEmailGateway(EmailGateway):
     """Mock email gateway that always fails."""
 
+    @override
     def send(self, subject: str, body: str, recipients: list[str]) -> str:
         msg = "Gateway is offline"
         raise ConnectionError(msg)

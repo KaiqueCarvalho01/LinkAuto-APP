@@ -46,7 +46,7 @@ class TestBookingContract:
     def test_create_booking_returns_201(self, client):
         get_identity_store().reset()
         inst_id, inst_token = _register_login("INSTRUTOR", "bookinst@test.com", client)
-        stu_id, stu_token = _register_login("ALUNO", "bookstu@test.com", client)
+        _, stu_token = _register_login("ALUNO", "bookstu@test.com", client)
         slot_ids = _setup_instructor_with_slots(inst_token, client)
 
         resp = client.post(
@@ -63,7 +63,7 @@ class TestBookingContract:
 
     def test_list_bookings_returns_200(self, client):
         get_identity_store().reset()
-        stu_id, stu_token = _register_login("ALUNO", "liststu@test.com", client)
+        _, stu_token = _register_login("ALUNO", "liststu@test.com", client)
         resp = client.get(
             "/api/v1/bookings",
             headers={"Authorization": f"Bearer {stu_token}"},

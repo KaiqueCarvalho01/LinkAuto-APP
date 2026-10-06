@@ -20,7 +20,7 @@ def test_datetime_serializes_with_utc_z():
 
 def test_naive_datetime_interpreted_as_utc_and_serializes_with_z():
     """Naive datetimes should be assumed as UTC and serialized ending in Z."""
-    dt = datetime(2026, 5, 28, 12, 0, 0)
+    dt = datetime(2026, 5, 28, 12, 0, 0)  # noqa: DTZ001 - naive on purpose
     schema = MockSchema(timestamp=dt)
     json_data = schema.model_dump(mode="json")
 

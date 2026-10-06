@@ -15,4 +15,4 @@ def reset_identity_store():
 
 @pytest.fixture(autouse=True)
 def reset_limiter_global():
-    limiter._storage.reset()
+    limiter.reset()

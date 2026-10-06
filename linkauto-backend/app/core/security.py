@@ -64,7 +64,7 @@ def _build_payload(
 def create_access_token(subject: str, settings: Settings, roles: list[str] | None = None) -> str:
     payload = _build_payload(
         subject=subject,
-        token_type="access",
+        token_type="access",  # noqa: S106 - token kind, not a secret
         expires_delta=timedelta(minutes=settings.jwt_access_minutes),
         roles=roles,
     )
@@ -74,7 +74,7 @@ def create_access_token(subject: str, settings: Settings, roles: list[str] | Non
 def create_refresh_token(subject: str, settings: Settings, roles: list[str] | None = None) -> str:
     payload = _build_payload(
         subject=subject,
-        token_type="refresh",
+        token_type="refresh",  # noqa: S106 - token kind, not a secret
         expires_delta=timedelta(days=settings.jwt_refresh_days),
         roles=roles,
     )

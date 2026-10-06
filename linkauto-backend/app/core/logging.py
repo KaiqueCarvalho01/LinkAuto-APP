@@ -42,7 +42,7 @@ class CorrelationIDMiddleware(BaseHTTPMiddleware):
 
 
 def setup_logging():
-    """Configures the logging system with the trace/correlation ID filter and standard format."""
+    """Configure logging with the trace/correlation ID filter and the standard format."""
     # Create the filter
     corr_filter = CorrelationIDFilter()
 

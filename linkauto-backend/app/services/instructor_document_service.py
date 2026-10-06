@@ -44,7 +44,10 @@ class InstructorDocumentService:
     @staticmethod
     async def _read_and_validate(upload: UploadFile) -> bytes:
         if upload.content_type not in ALLOWED_MIME_TYPES:
-            msg = f"Unsupported MIME type '{upload.content_type}'. Allowed: {', '.join(sorted(ALLOWED_MIME_TYPES))}."
+            msg = (
+                f"Unsupported MIME type '{upload.content_type}'. Allowed: "
+                f"{', '.join(sorted(ALLOWED_MIME_TYPES))}."
+            )
             raise DocumentValidationError(msg)
 
         content = await upload.read()
@@ -58,7 +61,10 @@ class InstructorDocumentService:
             signatures = MAGIC_BYTES[mime]
             matched = any(content.startswith(sig) for sig in signatures)
             if not matched:
-                msg = f"INVALID_FILE_CONTENT: File content does not match declared MIME type '{mime}'."
+                msg = (
+                    "INVALID_FILE_CONTENT: File content does not match declared MIME type '"
+                    f"{mime}'."
+                )
                 raise DocumentValidationError(msg)
 
         return content

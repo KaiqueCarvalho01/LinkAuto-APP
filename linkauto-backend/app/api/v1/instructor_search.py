@@ -24,12 +24,9 @@ def search_instructors(
     ] = "distance",
 ):
     # Parse potential comma-separated specialties in query params
-    cleaned_specialties: list[str] = []
-    if specialties:
-        for s in specialties:
-            for part in s.split(","):
-                if part.strip():
-                    cleaned_specialties.append(part.strip())
+    cleaned_specialties = [
+        part.strip() for s in specialties or [] for part in s.split(",") if part.strip()
+    ]
 
     service = InstructorSearchService(db)
     results = service.search(

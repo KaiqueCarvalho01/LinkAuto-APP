@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class AuthTokens:
     access_token: str
     refresh_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 - OAuth2 token type, not a secret
 
 
 class AuthService:
@@ -54,7 +54,9 @@ class AuthService:
                 NotificationPayload(
                     event=NotificationEvent.INSTRUCTOR_REGISTERED,
                     subject="Novo instrutor aguardando validação",
-                    body=f"Instrutor {user.email} registrado e aguardando validação administrativa.",
+                    body=(
+                        f"Instrutor {user.email} registrado e aguardando validação administrativa."
+                    ),
                     recipients=[self._settings.ses_from_email or user.email],
                 )
             )

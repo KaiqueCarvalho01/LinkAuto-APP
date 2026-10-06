@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-from app.domain.booking import BookingStatus, transition_booking
+from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
-from app.models.user import User
+from app.models.user import InstructorProfile, User
 from app.services.notification_service import (
     NotificationEvent,
     NotificationPayload,
@@ -53,7 +53,6 @@ class BookingService:
             raise PenalizedStudentError(msg)
 
         # Resolve instructor slug if necessary
-        from app.models.user import InstructorProfile
 
         inst_prof = (
             self._db.query(InstructorProfile)
@@ -63,7 +62,7 @@ class BookingService:
         effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
 
         # RN02: minimum 2 slots
-        if len(slot_ids) < 2:
+        if len(slot_ids) < MIN_SLOTS_PER_BOOKING:
             msg = "Booking requires minimum 2 consecutive slots (RN02)"
             raise SlotValidationError(msg)
 
@@ -146,7 +145,10 @@ class BookingService:
                 NotificationPayload(
                     event=NotificationEvent.BOOKING_CONFIRMED,
                     subject="Sua aula foi confirmada",
-                    body=f"Sua solicitação de agendamento {booking_id} foi confirmada pelo instrutor {instructor_id}.",
+                    body=(
+                        f"Sua solicitação de agendamento {booking_id} foi confirmada pelo "
+                        f"instrutor {instructor_id}."
+                    ),
                     recipients=[student_user.email],
                 )
             )
@@ -156,7 +158,7 @@ class BookingService:
     def cancel_booking(
         self,
         booking_id: str,
-        user_id: str,
+        user_id: str,  # noqa: ARG002 - authorization check added in #9
         cancelled_by: str,
         reason: str | None = None,
     ) -> Booking:
@@ -223,7 +225,10 @@ class BookingService:
                 NotificationPayload(
                     event=NotificationEvent.BOOKING_CANCELLED,
                     subject="Sua aula foi cancelada",
-                    body=f"O agendamento {booking_id} foi cancelado por {cancelled_by}. Motivo: {reason or ''}",
+                    body=(
+                        f"O agendamento {booking_id} foi cancelado por {cancelled_by}. Motivo: "
+                        f"{reason or ''}"
+                    ),
                     recipients=recipients,
                 )
             )

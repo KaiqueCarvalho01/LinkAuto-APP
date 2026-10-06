@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from typing import override
 
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking, BookingSlot
@@ -11,7 +12,8 @@ from app.models.user import (
     UserRole,
 )
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
-from app.services.booking_scheduler import BookingScheduler
+from app.services.booking_scheduler import BookingAutomationPort, BookingScheduler
+from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
 
 def _seed_full_booking(db_session, status, starts_offset_hours, booking_id="book-auto"):
@@ -95,7 +97,6 @@ class TestBookingAutomationPort:
         assert result.processed == 1
 
     def test_lesson_reminder_cron_triggers(self, db_session):
-        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
@@ -125,24 +126,30 @@ class TestBookingAutomationPort:
         assert "Lembrete" in email["subject"]
 
 
-class FailingBookingAutomationPort:
+class FailingBookingAutomationPort(BookingAutomationPort):
+    @override
     def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
         return ["book-failed", "book-success"]
 
+    @override
     def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
         if booking_id == "book-failed":
             msg = "Database connection timed out for this item"
             raise RuntimeError(msg)
 
+    @override
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
         return []
 
+    @override
     def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
         return []
 
+    @override
     def mark_reminder_sent(self, booking_id: str) -> None:
         pass
 
+    @override
     def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
         return None, None
 

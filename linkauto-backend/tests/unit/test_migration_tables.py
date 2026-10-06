@@ -38,7 +38,8 @@ def test_review_unique_constraint_on_reviewer(test_engine):
             has_uq = True
             break
 
-    # In SQLite, UniqueConstraint might also be mapped as a unique index, so we also check unique indexes
+    # In SQLite, UniqueConstraint might also be mapped as a unique index,
+    # so we also check unique indexes
     if not has_uq:
         indexes = inspector.get_indexes("reviews")
         for idx in indexes:

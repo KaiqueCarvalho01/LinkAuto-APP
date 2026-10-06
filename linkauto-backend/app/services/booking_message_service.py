@@ -35,7 +35,6 @@ class BookingMessageService:
         booking_id: str,
         sender_id: str,
         content: str,
-        sender_email: str | None = None,
         recipient_email: str | None = None,
     ) -> BookingMessage:
         # Fetch booking to check existence and authorization
@@ -71,7 +70,10 @@ class BookingMessageService:
                 NotificationPayload(
                     event=NotificationEvent.NEW_BOOKING_MESSAGE,
                     subject="Nova mensagem recebida",
-                    body=f"Você recebeu uma nova mensagem de {sender_id} ({opposing_role}): '{content}'",
+                    body=(
+                        f"Você recebeu uma nova mensagem de {sender_id} ({opposing_role}): '"
+                        f"{content}'"
+                    ),
                     recipients=[recipient_email],
                 )
             )

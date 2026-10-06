@@ -52,8 +52,8 @@ def _seed_auth_users(db_session):
 
 
 def test_booking_messages_endpoints_contract_and_auth(client, db_session):
-    """POST and GET /bookings/{id}/messages validate participants and return correctly formatted envelope."""
-    student_token, instructor_token, intruder_token = _seed_auth_users(db_session)
+    """POST and GET /bookings/{id}/messages validate participants and the response envelope."""
+    student_token, _, intruder_token = _seed_auth_users(db_session)
 
     # Create booking
     booking = Booking(
@@ -105,8 +105,8 @@ def test_booking_messages_endpoints_contract_and_auth(client, db_session):
 
 
 def test_booking_reviews_endpoints_contract_and_auth(client, db_session):
-    """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce business rules and validate contract."""
-    student_token, instructor_token, intruder_token = _seed_auth_users(db_session)
+    """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce rules and contract."""
+    student_token, _, intruder_token = _seed_auth_users(db_session)
 
     # Create non-realizada booking
     booking_pending = Booking(

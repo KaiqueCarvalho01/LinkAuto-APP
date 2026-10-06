@@ -13,7 +13,7 @@ def mock_notification_service():
 
 
 def test_send_message_creates_record_and_dispatches_email(db_session, mock_notification_service):
-    """send_message persists message and triggers a new_booking_message notification to the opposing party."""
+    """send_message persists the message and notifies the opposing party (new_booking_message)."""
     notification_svc, gateway = mock_notification_service
 
     # Setup booking
@@ -33,7 +33,6 @@ def test_send_message_creates_record_and_dispatches_email(db_session, mock_notif
         booking_id="booking-123",
         sender_id="student-456",
         content="Olá, professor!",
-        sender_email="aluno@test.com",
         recipient_email="instrutor@test.com",
     )
 
@@ -68,7 +67,6 @@ def test_send_message_rejects_unauthorized_sender(db_session):
             booking_id="booking-123",
             sender_id="intruder-999",
             content="Hackeando",
-            sender_email="hacker@test.com",
             recipient_email="instrutor@test.com",
         )
 

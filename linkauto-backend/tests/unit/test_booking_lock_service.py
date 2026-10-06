@@ -1,7 +1,10 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.models import Base, InstructorProfile, Slot, SlotStatus, User
 from app.services.booking_lock_service import SqlAlchemySlotReservationStore
 
 
@@ -12,10 +15,10 @@ def test_sqlalchemy_slot_reservation_store_has_static_table_name():
     # 1. Verifica se existe o atributo de classe privado _TABLE_NAME
     assert getattr(SqlAlchemySlotReservationStore, "_TABLE_NAME", None) == "slots"
 
-    # 2. Verifica que tentar instanciar passando table_name levanta TypeError (pois o parâmetro foi removido)
+    # 2. Verifica que tentar instanciar passando table_name levanta TypeError
+    # (pois o parâmetro foi removido)
     engine = create_engine("sqlite:///:memory:")
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
+    session = sessionmaker(bind=engine)()
 
     with pytest.raises(TypeError):
         # Essa chamada deve falhar na fase GREEN quando o construtor for ajustado.
@@ -24,9 +27,6 @@ def test_sqlalchemy_slot_reservation_store_has_static_table_name():
 
 
 def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing():
-    from datetime import UTC, datetime, timedelta
-
-    from app.models import Base, InstructorProfile, Slot, SlotStatus, User
 
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
