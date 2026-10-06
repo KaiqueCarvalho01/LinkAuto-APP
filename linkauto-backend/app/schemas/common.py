@@ -30,7 +30,7 @@ class ErrorEnvelope(BaseModel):
     meta: dict[str, Any] = Field(default_factory=dict)
 
 
-def success_envelope(data: Any, meta: dict[str, Any] | None = None) -> dict[str, Any]:
+def success_envelope(data: object, meta: dict[str, Any] | None = None) -> dict[str, Any]:
     envelope = SuccessEnvelope[Any](data=data, meta=meta or {})
     return envelope.model_dump(mode="json")
 
@@ -41,7 +41,7 @@ def error_envelope(code: str, message: str, meta: dict[str, Any] | None = None) 
 
 
 def success_response(
-    data: Any, meta: dict[str, Any] | None = None, status_code: int = 200
+    data: object, meta: dict[str, Any] | None = None, status_code: int = 200
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status_code, content=jsonable_encoder(success_envelope(data, meta))

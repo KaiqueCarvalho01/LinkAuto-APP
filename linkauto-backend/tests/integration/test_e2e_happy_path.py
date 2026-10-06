@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from app.core.config import get_settings
 from app.core.security import create_access_token
@@ -6,8 +7,13 @@ from app.domain.booking import BookingStatus
 from app.models.slot import Slot
 from app.models.user import UserRole
 
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from httpx2 import Response
+    from sqlalchemy.orm import Session
 
-def _register(client, email, role, full_name, phone):
+
+def _register(client: TestClient, email: str, role: UserRole, full_name: str, phone: str) -> str:
     resp = client.post(
         "/api/v1/auth/register",
         json={
@@ -25,13 +31,13 @@ def _register(client, email, role, full_name, phone):
     return resp.json()["data"]["id"]
 
 
-def _login(client, email):
+def _login(client: TestClient, email: str) -> dict[str, str]:
     resp = client.post("/api/v1/auth/login", json={"email": email, "password": "password123"})
     assert resp.status_code == 200
     return {"Authorization": f"Bearer {resp.json()['data']['access_token']}"}
 
 
-def _create_consecutive_slots(client, headers_instructor):
+def _create_consecutive_slots(client: TestClient, headers_instructor: dict[str, str]) -> list[str]:
     start = (datetime.now(UTC) + timedelta(hours=2)).replace(minute=0, second=0, microsecond=0)
     slot_ids = []
     for i in range(2):
@@ -48,7 +54,13 @@ def _create_consecutive_slots(client, headers_instructor):
     return slot_ids
 
 
-def _complete_booking(client, db_session, booking_id, slot_ids, headers_admin) -> None:
+def _complete_booking(
+    client: TestClient,
+    db_session: Session,
+    booking_id: str,
+    slot_ids: list[str],
+    headers_admin: dict[str, str],
+) -> None:
     """Backdate the slots (simulating time passing) and run the completion job."""
     db_session.query(Slot).filter(Slot.id.in_(slot_ids)).update(
         {
@@ -64,13 +76,15 @@ def _complete_booking(client, db_session, booking_id, slot_ids, headers_admin) -
     assert booking_id in resp_job.json()["data"]["errors"]
 
 
-def _post(client, url, payload, headers):
+def _post(
+    client: TestClient, url: str, payload: dict[str, object], headers: dict[str, str]
+) -> Response:
     resp = client.post(url, json=payload, headers=headers)
     assert resp.status_code == 201
     return resp
 
 
-def test_happy_path_e2e_journey(client, db_session) -> None:
+def test_happy_path_e2e_journey(client: TestClient, db_session: Session) -> None:
     """End-to-end happy-path integration smoke test for student-instructor-admin lifecycle."""
     # 1. Register users and authenticate all roles
     _register(client, "student_e2e@test.com", UserRole.ALUNO, "Student E2E", "11999999999")

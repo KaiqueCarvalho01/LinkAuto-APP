@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 
 from app.api.deps.types import CurrentAdmin, DbSession
 from app.domain.booking import BookingTransitionError
@@ -15,7 +15,7 @@ def admin_override_booking(
     body: BookingAdminOverrideRequest,
     current_user: CurrentAdmin,
     db: DbSession,
-):
+) -> Response:
     service = AdminBookingService(db)
     try:
         booking = service.override_status(booking_id, body.status, body.reason)

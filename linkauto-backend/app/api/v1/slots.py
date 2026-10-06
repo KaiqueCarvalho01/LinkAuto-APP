@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 
 from app.api.deps.types import CurrentInstrutor, DbSession
 from app.schemas.common import success_response
@@ -13,7 +13,7 @@ def create_slot(
     body: SlotCreateRequest,
     current_user: CurrentInstrutor,
     db: DbSession,
-):
+) -> Response:
     service = SlotService(db)
     try:
         slot = service.create_slot(
@@ -37,7 +37,7 @@ def create_slot(
 def list_my_slots(
     current_user: CurrentInstrutor,
     db: DbSession,
-):
+) -> Response:
     service = SlotService(db)
     slots = service.list_slots(current_user.user_id)
     return success_response(
@@ -50,7 +50,7 @@ def list_my_slots(
 def list_instructor_slots(
     instructor_id: str,
     db: DbSession,
-):
+) -> Response:
     service = SlotService(db)
     slots = service.list_slots(instructor_id, status=None)
     return success_response(
@@ -64,7 +64,7 @@ def delete_slot(
     slot_id: str,
     current_user: CurrentInstrutor,
     db: DbSession,
-):
+) -> Response:
     service = SlotService(db)
     try:
         service.delete_slot(current_user.user_id, slot_id)

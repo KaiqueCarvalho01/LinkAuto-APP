@@ -1,12 +1,16 @@
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot, SlotStatus
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
 from app.services.instructor_stats_service import InstructorStatsService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_instructor_stats(db_session, instructor_id="inst-stats-1") -> None:
+
+def _seed_instructor_stats(db_session: Session, instructor_id: str = "inst-stats-1") -> None:
     # Create instructor
     u_inst = User(
         id=instructor_id,
@@ -69,7 +73,7 @@ def _seed_instructor_stats(db_session, instructor_id="inst-stats-1") -> None:
 
 
 class TestInstructorStatsService:
-    def test_get_instructor_stats(self, db_session) -> None:
+    def test_get_instructor_stats(self, db_session: Session) -> None:
         inst_id = "inst-stats-1"
         _seed_instructor_stats(db_session, instructor_id=inst_id)
         service = InstructorStatsService(db_session)

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 
 from app.api.deps.types import CurrentUser, DbSession
 from app.models.booking import Booking
@@ -24,7 +24,7 @@ def create_booking_review(
     payload: ReviewCreateRequest,
     current_user: CurrentUser,
     db: DbSession,
-):
+) -> Response:
     # Fetch booking to determine recipient
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
@@ -62,7 +62,7 @@ def list_instructor_reviews(
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
-):
+) -> Response:
     service = ReviewService(db)
     reviews = service.list_instructor_reviews(
         instructor_id=instructor_id,

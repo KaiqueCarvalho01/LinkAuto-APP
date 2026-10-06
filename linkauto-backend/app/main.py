@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy.exc import IntegrityError
@@ -15,13 +17,16 @@ from app.core.middleware import SecurityHeadersMiddleware
 from app.core.rate_limit import limiter
 from app.schemas.common import error_response
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
 
 def create_app() -> FastAPI:
     setup_logging()
     settings = get_settings()
 
     @asynccontextmanager
-    async def lifespan(_: FastAPI):
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         initialize_sqlite_dev_database(settings)
         yield
 
@@ -40,7 +45,9 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix=settings.api_v1_prefix)
 
     @app.exception_handler(RateLimitExceeded)
-    async def rate_limit_exceeded_handler(_request: Request, _exc: RateLimitExceeded):
+    async def rate_limit_exceeded_handler(
+        _request: Request, _exc: RateLimitExceeded
+    ) -> JSONResponse:
         return error_response(
             code="RATE_LIMIT_EXCEEDED",
             message="Too many requests. Please try again later.",
@@ -48,7 +55,7 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(HTTPException)
-    async def handle_http_exception(_: Request, exc: HTTPException):
+    async def handle_http_exception(_: Request, exc: HTTPException) -> JSONResponse:
         detail = exc.detail if isinstance(exc.detail, dict) else {}
         return error_response(
             code=detail.get("code", "HTTP_ERROR"),
@@ -58,7 +65,7 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def handle_validation_exception(_: Request, exc: RequestValidationError):
+    async def handle_validation_exception(_: Request, exc: RequestValidationError) -> JSONResponse:
         return error_response(
             code="VALIDATION_ERROR",
             message="Request validation failed.",
@@ -67,7 +74,7 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(IntegrityError)
-    async def integrity_error_handler(_request: Request, _exc: IntegrityError):
+    async def integrity_error_handler(_request: Request, _exc: IntegrityError) -> JSONResponse:
         return error_response(
             code="CONFLICT",
             message=(

@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking, BookingSlot
@@ -15,8 +15,13 @@ from app.services.booking_automation_store import SqlAlchemyBookingAutomationPor
 from app.services.booking_scheduler import BookingAutomationPort, BookingScheduler
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_full_booking(db_session, status, starts_offset_hours, booking_id="book-auto"):
+
+def _seed_full_booking(
+    db_session: Session, status: str, starts_offset_hours: int, booking_id: str = "book-auto"
+) -> Booking:
     inst = User(
         id="auto-inst", email="autoinst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
     )
@@ -70,7 +75,7 @@ def _seed_full_booking(db_session, status, starts_offset_hours, booking_id="book
 
 
 class TestBookingAutomationPort:
-    def test_pending_timeout_cancels_old_bookings(self, db_session) -> None:
+    def test_pending_timeout_cancels_old_bookings(self, db_session: Session) -> None:
         booking = _seed_full_booking(
             db_session, BookingStatus.PENDENTE.value, starts_offset_hours=-48
         )
@@ -83,7 +88,7 @@ class TestBookingAutomationPort:
         assert booking.status == BookingStatus.CANCELADA.value
         assert result.processed == 1
 
-    def test_confirmed_completion_after_2h(self, db_session) -> None:
+    def test_confirmed_completion_after_2h(self, db_session: Session) -> None:
         booking = _seed_full_booking(
             db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=-6
         )
@@ -96,7 +101,7 @@ class TestBookingAutomationPort:
         assert booking.status == BookingStatus.REALIZADA.value
         assert result.processed == 1
 
-    def test_lesson_reminder_cron_triggers(self, db_session) -> None:
+    def test_lesson_reminder_cron_triggers(self, db_session: Session) -> None:
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)

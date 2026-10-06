@@ -1,7 +1,13 @@
+from typing import TYPE_CHECKING
+
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
 
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session
 
-def _seed_contract_instructors(db_session) -> None:
+
+def _seed_contract_instructors(db_session: Session) -> None:
     instructors_data = [
         (
             "c-inst-1",
@@ -41,7 +47,7 @@ def _seed_contract_instructors(db_session) -> None:
 
 
 class TestInstructorSearchAdvancedContract:
-    def test_search_with_specialty_and_sort(self, client, db_session) -> None:
+    def test_search_with_specialty_and_sort(self, client: TestClient, db_session: Session) -> None:
         _seed_contract_instructors(db_session)
 
         resp = client.get(
@@ -61,7 +67,9 @@ class TestInstructorSearchAdvancedContract:
         assert "c-inst-1" not in str(data)
         assert "c-inst-2" not in str(data)
 
-    def test_search_with_multiple_specialties(self, client, db_session) -> None:
+    def test_search_with_multiple_specialties(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _seed_contract_instructors(db_session)
 
         resp = client.get(

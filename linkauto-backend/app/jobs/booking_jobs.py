@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 from app.api.deps.types import CurrentAdmin, DbSession
 from app.schemas.common import success_response
@@ -13,7 +13,7 @@ router = APIRouter(tags=["Jobs"])
 def run_booking_timeout(
     _: CurrentAdmin,
     db: DbSession,
-):
+) -> Response:
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
     result = scheduler.run_pending_timeout()
@@ -28,7 +28,7 @@ def run_booking_timeout(
 def run_booking_completion(
     _: CurrentAdmin,
     db: DbSession,
-):
+) -> Response:
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
     result = scheduler.run_confirmed_completion()
@@ -43,7 +43,7 @@ def run_booking_completion(
 def run_booking_reminder(
     _: CurrentAdmin,
     db: DbSession,
-):
+) -> Response:
     port = SqlAlchemyBookingAutomationPort(db)
 
     scheduler = BookingScheduler(port, notification_service=get_notification_service())

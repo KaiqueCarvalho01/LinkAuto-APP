@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
@@ -5,8 +7,11 @@ from app.services.booking_message_service import BookingMessageService
 from app.services.dependencies import get_notification_service
 from app.services.review_service import ReviewService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _setup_integration_data(db_session) -> None:
+
+def _setup_integration_data(db_session: Session) -> None:
     student = User(
         id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
     )
@@ -35,7 +40,7 @@ def _setup_integration_data(db_session) -> None:
     db_session.flush()
 
 
-def test_integration_messages_and_reviews_lifecycle(db_session) -> None:
+def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None:
     """Verify chronological chat messages, email notifications and rating recalculation."""
     _setup_integration_data(db_session)
 

@@ -1,5 +1,5 @@
 import logging
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from app.services.notification_service import (
     EmailGateway,
@@ -8,6 +8,9 @@ from app.services.notification_service import (
     NotificationPayload,
     NotificationService,
 )
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class FailureEmailGateway(EmailGateway):
@@ -19,7 +22,7 @@ class FailureEmailGateway(EmailGateway):
         raise ConnectionError(msg)
 
 
-def test_notification_service_handles_gateway_failure(caplog) -> None:
+def test_notification_service_handles_gateway_failure(caplog: pytest.LogCaptureFixture) -> None:
     """D11 - P1: Resiliência do NotificationService
     Verifica se o serviço captura falhas do gateway de e-mail e não propaga a exceção,
     retornando delivered=False e gerando logs adequados.

@@ -1,12 +1,15 @@
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 
 from app.api.deps.types import DbSession
 from app.core.slug import generate_profile_slug
 from app.schemas.common import success_response
 from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
+
+if TYPE_CHECKING:
+    from app.models.user import InstructorProfile
 
 router = APIRouter(tags=["Instructor Search"])
 
@@ -15,10 +18,10 @@ router = APIRouter(tags=["Instructor Search"])
 def search_instructors(
     filters: Annotated[InstructorSearchFilters, Query()],
     db: DbSession,
-):
+) -> Response:
     results = InstructorSearchService(db).search(filters)
 
-    def _resolve_slug(p) -> str:
+    def _resolve_slug(p: InstructorProfile) -> str:
         if not p.slug:
             p.slug = generate_profile_slug(p.full_name, p.city, default_prefix="instrutor")
             db.flush()

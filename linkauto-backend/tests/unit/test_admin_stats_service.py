@@ -1,9 +1,14 @@
+from typing import TYPE_CHECKING
+
 from app.models.booking import Booking
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
 from app.services.admin_stats_service import AdminStatsService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_stats_data(db_session) -> None:
+
+def _seed_stats_data(db_session: Session) -> None:
     # 2 Approved instructors, 1 Pending, 1 Rejected
     for i, status in enumerate(
         [
@@ -50,7 +55,7 @@ def _seed_stats_data(db_session) -> None:
 
 
 class TestAdminStatsService:
-    def test_get_admin_stats_aggregation(self, db_session) -> None:
+    def test_get_admin_stats_aggregation(self, db_session: Session) -> None:
         _seed_stats_data(db_session)
         service = AdminStatsService(db_session)
 

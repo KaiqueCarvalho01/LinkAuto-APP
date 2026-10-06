@@ -1,6 +1,11 @@
+from typing import TYPE_CHECKING
+
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+
+if TYPE_CHECKING:
+    from httpx2 import Response
 
 client = TestClient(create_app())
 
@@ -14,7 +19,7 @@ def _register_user(email: str, roles: list[str], password: str = "strong-passwor
     return response.json()["data"]
 
 
-def _login(email: str, password: str = "strong-password"):
+def _login(email: str, password: str = "strong-password") -> Response:
     return client.post("/api/v1/auth/login", json={"email": email, "password": password})
 
 

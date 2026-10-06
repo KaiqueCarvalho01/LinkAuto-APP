@@ -1,11 +1,15 @@
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.models.slot import Slot, SlotStatus
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def test_slot_model_creation(db_session) -> None:
+
+def test_slot_model_creation(db_session: Session) -> None:
     """Slot model persists with required fields."""
     now = datetime.now(UTC)
     slot = Slot(
@@ -22,7 +26,7 @@ def test_slot_model_creation(db_session) -> None:
     assert slot.ends_at - slot.starts_at == timedelta(hours=1)
 
 
-def test_booking_model_creation(db_session) -> None:
+def test_booking_model_creation(db_session: Session) -> None:
     """Booking model persists with required fields and default status."""
     booking = Booking(
         student_id="student-001",
@@ -37,7 +41,7 @@ def test_booking_model_creation(db_session) -> None:
     assert booking.cancelled_by is None
 
 
-def test_booking_slot_association(db_session) -> None:
+def test_booking_slot_association(db_session: Session) -> None:
     """BookingSlot links a Booking to a Slot."""
     now = datetime.now(UTC)
     slot = Slot(
@@ -62,7 +66,7 @@ def test_booking_slot_association(db_session) -> None:
     assert link.slot_id == slot.id
 
 
-def test_student_penalty_model(db_session) -> None:
+def test_student_penalty_model(db_session: Session) -> None:
     """StudentPenalty persists with blocking date."""
     penalty = StudentPenalty(
         student_id="student-001",

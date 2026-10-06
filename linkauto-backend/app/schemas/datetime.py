@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import BeforeValidator, PlainSerializer
 
 
-def parse_datetime(v: Any) -> datetime:
+def parse_datetime(v: object) -> datetime:
     if isinstance(v, datetime):
         if v.tzinfo is None:
             return v.replace(tzinfo=UTC)

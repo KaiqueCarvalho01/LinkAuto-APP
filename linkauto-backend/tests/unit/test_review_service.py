@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 from app.models.booking import Booking
@@ -11,14 +13,20 @@ from app.services.review_service import (
     ReviewStateError,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
 
 @pytest.fixture
-def mock_notification_service():
+def mock_notification_service() -> tuple[NotificationService, InMemoryEmailGateway]:
     gateway = InMemoryEmailGateway()
     return NotificationService(email_gateway=gateway), gateway
 
 
-def test_create_review_valid_student_to_instructor(db_session, mock_notification_service) -> None:
+def test_create_review_valid_student_to_instructor(
+    db_session: Session,
+    mock_notification_service: tuple[NotificationService, InMemoryEmailGateway],
+) -> None:
     """create_review creates review, updates instructor average and dispatches notification."""
     notification_svc, gateway = mock_notification_service
 
@@ -78,7 +86,7 @@ def test_create_review_valid_student_to_instructor(db_session, mock_notification
     assert "5" in email["body"]
 
 
-def test_create_review_rejects_non_realizada_booking(db_session) -> None:
+def test_create_review_rejects_non_realizada_booking(db_session: Session) -> None:
     """create_review raises error if booking status is not REALIZADA."""
     booking = Booking(
         id="booking-123",
@@ -100,7 +108,7 @@ def test_create_review_rejects_non_realizada_booking(db_session) -> None:
         )
 
 
-def test_create_review_rejects_duplicate_submission(db_session) -> None:
+def test_create_review_rejects_duplicate_submission(db_session: Session) -> None:
     """create_review raises error if reviewer already submitted a review for this booking."""
     booking = Booking(
         id="booking-123",
@@ -132,7 +140,7 @@ def test_create_review_rejects_duplicate_submission(db_session) -> None:
         )
 
 
-def test_create_review_rejects_unauthorized_user(db_session) -> None:
+def test_create_review_rejects_unauthorized_user(db_session: Session) -> None:
     """create_review raises error if reviewer is not part of the booking."""
     booking = Booking(
         id="booking-123",

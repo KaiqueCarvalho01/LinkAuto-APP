@@ -1,11 +1,16 @@
+from typing import TYPE_CHECKING
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.models.booking_message import BookingMessage
 from app.models.review import Review
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def test_booking_message_model_persists(db_session) -> None:
+
+def test_booking_message_model_persists(db_session: Session) -> None:
     """BookingMessage model persists with required fields."""
     message = BookingMessage(
         booking_id="booking-uuid-placeholder",
@@ -20,7 +25,7 @@ def test_booking_message_model_persists(db_session) -> None:
     assert message.created_at is not None
 
 
-def test_review_model_persists_and_enforces_unicity(db_session) -> None:
+def test_review_model_persists_and_enforces_unicity(db_session: Session) -> None:
     """Review model persists and composition constraint restricts duplicate reviewer per booking."""
     review1 = Review(
         booking_id="booking-uuid-placeholder",

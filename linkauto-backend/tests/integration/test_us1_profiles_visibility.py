@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 from fastapi.testclient import TestClient
 
 from app.core.security import hash_password
 from app.main import create_app
 from app.services.us1_store import get_identity_store
+
+if TYPE_CHECKING:
+    from httpx2 import Response
 
 client = TestClient(create_app())
 
@@ -16,7 +21,7 @@ def _register_user(email: str, roles: list[str], password: str = "strong-passwor
     return response.json()["data"]
 
 
-def _login(email: str, password: str = "strong-password"):
+def _login(email: str, password: str = "strong-password") -> Response:
     response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200
     return response

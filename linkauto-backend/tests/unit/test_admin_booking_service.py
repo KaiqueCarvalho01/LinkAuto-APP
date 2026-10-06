@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 from app.domain.booking import BookingStatus
@@ -11,8 +13,11 @@ from app.models.user import (
 )
 from app.services.admin_booking_service import AdminBookingService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_booking(db_session):
+
+def _seed_booking(db_session: Session) -> Booking:
     inst = User(
         id="inst-admin", email="instadm@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
     )
@@ -39,7 +44,7 @@ def _seed_booking(db_session):
 
 
 class TestAdminBookingOverride:
-    def test_admin_overrides_terminal_to_terminal(self, db_session) -> None:
+    def test_admin_overrides_terminal_to_terminal(self, db_session: Session) -> None:
         booking = _seed_booking(db_session)
         service = AdminBookingService(db_session)
 
@@ -51,7 +56,7 @@ class TestAdminBookingOverride:
 
         assert result.status == BookingStatus.REALIZADA.value
 
-    def test_admin_override_rejects_non_terminal(self, db_session) -> None:
+    def test_admin_override_rejects_non_terminal(self, db_session: Session) -> None:
         booking = _seed_booking(db_session)
         service = AdminBookingService(db_session)
 

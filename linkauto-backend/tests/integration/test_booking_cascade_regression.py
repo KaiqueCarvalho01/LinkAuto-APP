@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,8 +16,11 @@ from app.services.booking_automation_store import SqlAlchemyBookingAutomationPor
 from app.services.booking_scheduler import BookingScheduler
 from app.services.booking_service import BookingService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _full_seed(db_session) -> None:
+
+def _full_seed(db_session: Session) -> None:
     inst = User(
         id="reg-inst", email="reginst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
     )
@@ -35,7 +39,7 @@ def _full_seed(db_session) -> None:
 
 
 class TestBookingCascadeRegression:
-    def test_full_happy_path_lifecycle(self, db_session) -> None:
+    def test_full_happy_path_lifecycle(self, db_session: Session) -> None:
         """PENDENTE → CONFIRMADA → REALIZADA via service layer."""
         _full_seed(db_session)
         now = datetime.now(UTC) + timedelta(hours=4)
@@ -66,7 +70,7 @@ class TestBookingCascadeRegression:
         with pytest.raises(BookingTransitionError):
             transition_booking(BookingStatus.CANCELADA, BookingStatus.CONFIRMADA)
 
-    def test_scheduler_integration(self, db_session) -> None:
+    def test_scheduler_integration(self, db_session: Session) -> None:
         """Scheduler uses automation port correctly."""
         _full_seed(db_session)
         port = SqlAlchemyBookingAutomationPort(db_session)

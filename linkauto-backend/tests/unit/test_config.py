@@ -24,7 +24,7 @@ def test_production_config_rejects_reset_sqlite_on_startup() -> None:
     assert "RESET_SQLITE_ON_STARTUP cannot be True in production" in str(exc_info.value)
 
 
-def test_production_config_warns_on_localhost_cors(caplog) -> None:
+def test_production_config_warns_on_localhost_cors(caplog: pytest.LogCaptureFixture) -> None:
     """D05 - P1: Settings deve emitir um warning se CORS contiver localhost em produção"""
     with caplog.at_level(logging.WARNING):
         Settings(

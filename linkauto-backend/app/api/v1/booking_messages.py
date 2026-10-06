@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 
 from app.api.deps.types import CurrentUser, DbSession
 from app.models.booking import Booking
@@ -19,7 +19,7 @@ def send_booking_message(
     payload: BookingMessageCreateRequest,
     current_user: CurrentUser,
     db: DbSession,
-):
+) -> Response:
     # Fetch booking to determine recipient
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
@@ -55,7 +55,7 @@ def list_booking_messages(
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
-):
+) -> Response:
     service = BookingMessageService(db)
     try:
         messages = service.list_messages(

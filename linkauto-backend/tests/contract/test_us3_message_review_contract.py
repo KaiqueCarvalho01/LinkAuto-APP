@@ -1,10 +1,16 @@
+from typing import TYPE_CHECKING
+
 from app.core.config import get_settings
 from app.core.security import create_access_token
 from app.models.booking import Booking
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
 
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session
 
-def _seed_auth_users(db_session):
+
+def _seed_auth_users(db_session: Session) -> tuple[str, str, str]:
     settings = get_settings()
     student = User(
         id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
@@ -51,7 +57,9 @@ def _seed_auth_users(db_session):
     return student_token, instructor_token, intruder_token
 
 
-def test_booking_messages_endpoints_contract_and_auth(client, db_session) -> None:
+def test_booking_messages_endpoints_contract_and_auth(
+    client: TestClient, db_session: Session
+) -> None:
     """POST and GET /bookings/{id}/messages validate participants and the response envelope."""
     student_token, _, intruder_token = _seed_auth_users(db_session)
 
@@ -104,7 +112,9 @@ def test_booking_messages_endpoints_contract_and_auth(client, db_session) -> Non
     assert json_data["data"][0]["created_at"].endswith("Z")
 
 
-def test_booking_reviews_endpoints_contract_and_auth(client, db_session) -> None:
+def test_booking_reviews_endpoints_contract_and_auth(
+    client: TestClient, db_session: Session
+) -> None:
     """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce rules and contract."""
     student_token, _, intruder_token = _seed_auth_users(db_session)
 

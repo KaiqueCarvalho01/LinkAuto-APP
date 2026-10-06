@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 from app.models.booking import Booking
@@ -5,15 +7,19 @@ from app.models.booking_message import BookingMessage
 from app.services.booking_message_service import BookingMessageAccessError, BookingMessageService
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
 
 @pytest.fixture
-def mock_notification_service():
+def mock_notification_service() -> tuple[NotificationService, InMemoryEmailGateway]:
     gateway = InMemoryEmailGateway()
     return NotificationService(email_gateway=gateway), gateway
 
 
 def test_send_message_creates_record_and_dispatches_email(
-    db_session, mock_notification_service
+    db_session: Session,
+    mock_notification_service: tuple[NotificationService, InMemoryEmailGateway],
 ) -> None:
     """send_message persists the message and notifies the opposing party (new_booking_message)."""
     notification_svc, gateway = mock_notification_service
@@ -51,7 +57,7 @@ def test_send_message_creates_record_and_dispatches_email(
     assert "student-456" in email["body"]
 
 
-def test_send_message_rejects_unauthorized_sender(db_session) -> None:
+def test_send_message_rejects_unauthorized_sender(db_session: Session) -> None:
     """send_message raises access error if sender is not part of the booking."""
     booking = Booking(
         id="booking-123",
@@ -73,7 +79,7 @@ def test_send_message_rejects_unauthorized_sender(db_session) -> None:
         )
 
 
-def test_list_messages_retrieves_chronologically(db_session) -> None:
+def test_list_messages_retrieves_chronologically(db_session: Session) -> None:
     """list_messages returns all messages in chronological order and checks authorization."""
     booking = Booking(
         id="booking-123",

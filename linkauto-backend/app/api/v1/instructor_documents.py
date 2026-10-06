@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 
 from app.api.deps.types import CurrentUser
 from app.schemas.common import success_response
@@ -23,7 +23,7 @@ async def upload_documents(
     criminal_record: Annotated[UploadFile, File()],
     current_user: CurrentUser,
     service: Annotated[InstructorDocumentService, Depends(get_instructor_document_service)],
-):
+) -> Response:
     if current_user.user_id != instructor_id and "ADMIN" not in current_user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

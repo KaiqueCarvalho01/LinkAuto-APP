@@ -1,9 +1,14 @@
+from typing import TYPE_CHECKING
+
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
 from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_advanced_instructors(db_session) -> None:
+
+def _seed_advanced_instructors(db_session: Session) -> None:
     instructors_data = [
         # Fields: id, name, lat, lon, specialties, price, rating_avg, rating_count
         (
@@ -44,7 +49,7 @@ def _seed_advanced_instructors(db_session) -> None:
 
 
 class TestInstructorSearchAdvanced:
-    def test_filter_by_single_specialty(self, db_session) -> None:
+    def test_filter_by_single_specialty(self, db_session: Session) -> None:
         _seed_advanced_instructors(db_session)
         service = InstructorSearchService(db_session)
 
@@ -59,7 +64,7 @@ class TestInstructorSearchAdvanced:
         assert len(results) == 1
         assert results[0].full_name == "Ana Rodovia"
 
-    def test_filter_by_specialty_case_insensitive(self, db_session) -> None:
+    def test_filter_by_specialty_case_insensitive(self, db_session: Session) -> None:
         _seed_advanced_instructors(db_session)
         service = InstructorSearchService(db_session)
 
@@ -75,7 +80,7 @@ class TestInstructorSearchAdvanced:
         names = {r.full_name for r in results}
         assert names == {"Carlos Baliza", "Ana Rodovia"}
 
-    def test_sort_by_price_asc(self, db_session) -> None:
+    def test_sort_by_price_asc(self, db_session: Session) -> None:
         _seed_advanced_instructors(db_session)
         service = InstructorSearchService(db_session)
 
@@ -90,7 +95,7 @@ class TestInstructorSearchAdvanced:
         prices = [float(r.price_per_hour) for r in results]
         assert prices == [70.0, 80.0, 110.0]
 
-    def test_sort_by_price_desc(self, db_session) -> None:
+    def test_sort_by_price_desc(self, db_session: Session) -> None:
         _seed_advanced_instructors(db_session)
         service = InstructorSearchService(db_session)
 
@@ -105,7 +110,7 @@ class TestInstructorSearchAdvanced:
         prices = [float(r.price_per_hour) for r in results]
         assert prices == [110.0, 80.0, 70.0]
 
-    def test_sort_by_rating(self, db_session) -> None:
+    def test_sort_by_rating(self, db_session: Session) -> None:
         _seed_advanced_instructors(db_session)
         service = InstructorSearchService(db_session)
 
@@ -120,7 +125,7 @@ class TestInstructorSearchAdvanced:
         ratings = [r.rating_avg for r in results]
         assert ratings == [5.0, 4.9, 4.2]
 
-    def test_sort_by_distance(self, db_session) -> None:
+    def test_sort_by_distance(self, db_session: Session) -> None:
         _seed_advanced_instructors(db_session)
         service = InstructorSearchService(db_session)
 

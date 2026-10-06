@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from app.models.user import (
     DetranStatus,
     InstructorProfile,
@@ -7,8 +9,11 @@ from app.models.user import (
 from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_instructors(db_session) -> None:
+
+def _seed_instructors(db_session: Session) -> None:
     for i, (lat, lon, status) in enumerate(
         [
             (-22.43, -46.95, DetranStatus.APROVADO),  # Mogi Mirim
@@ -38,7 +43,7 @@ def _seed_instructors(db_session) -> None:
 
 
 class TestInstructorSearch:
-    def test_returns_only_approved_instructors(self, db_session) -> None:
+    def test_returns_only_approved_instructors(self, db_session: Session) -> None:
         _seed_instructors(db_session)
         service = InstructorSearchService(db_session)
 
@@ -50,7 +55,7 @@ class TestInstructorSearch:
         assert DetranStatus.PENDENTE.value not in statuses
         assert len(results) >= 2  # At least the two nearby approved ones
 
-    def test_filters_by_distance(self, db_session) -> None:
+    def test_filters_by_distance(self, db_session: Session) -> None:
         _seed_instructors(db_session)
         service = InstructorSearchService(db_session)
 

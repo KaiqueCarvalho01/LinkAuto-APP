@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 
 from app.api.deps.types import CurrentAluno, CurrentInstrutor, CurrentUser, DbSession
 from app.domain.booking import BookingTransitionError
@@ -25,7 +25,7 @@ def create_booking(
     body: BookingCreateRequest,
     current_user: CurrentAluno,
     db: DbSession,
-):
+) -> Response:
     service = BookingService(db)
     try:
         booking = service.create_booking(
@@ -59,7 +59,7 @@ def list_bookings(
     current_user: CurrentUser,
     db: DbSession,
     status: Annotated[str | None, Query()] = None,
-):
+) -> Response:
     service = BookingService(db)
     role = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
     bookings = service.list_bookings(current_user.user_id, role, status_filter=status)
@@ -74,7 +74,7 @@ def get_booking(
     booking_id: str,
     current_user: CurrentUser,
     db: DbSession,
-):
+) -> Response:
     service = BookingService(db)
     booking = service.get_booking(booking_id)
     if not booking:
@@ -97,7 +97,7 @@ def confirm_booking(
     booking_id: str,
     current_user: CurrentInstrutor,
     db: DbSession,
-):
+) -> Response:
     service = BookingService(db)
     try:
         booking = service.confirm_booking(booking_id, current_user.user_id)
@@ -120,7 +120,7 @@ def cancel_booking(
     body: BookingCancelRequest,
     current_user: CurrentUser,
     db: DbSession,
-):
+) -> Response:
     service = BookingService(db)
     cancelled_by = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
     try:

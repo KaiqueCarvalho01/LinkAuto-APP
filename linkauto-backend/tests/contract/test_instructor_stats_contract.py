@@ -1,6 +1,12 @@
+from typing import TYPE_CHECKING
+
 from app.core.config import get_settings
 from app.core.security import create_access_token
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session
 
 
 def _create_token_for(user_id: str, roles: list[str]) -> str:
@@ -9,7 +15,9 @@ def _create_token_for(user_id: str, roles: list[str]) -> str:
 
 
 class TestInstructorStatsContract:
-    def test_instructor_stats_success_for_instructor(self, client, db_session) -> None:
+    def test_instructor_stats_success_for_instructor(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         inst_id = "contract-inst-stat-id"
         user = User(
             id=inst_id,
@@ -41,7 +49,9 @@ class TestInstructorStatsContract:
         assert "unique_students" in data
         assert "pending_bookings" in data
 
-    def test_instructor_stats_forbidden_for_student(self, client, db_session) -> None:
+    def test_instructor_stats_forbidden_for_student(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         student_id = "contract-student-id"
         user = User(
             id=student_id,
@@ -57,6 +67,6 @@ class TestInstructorStatsContract:
 
         assert resp.status_code == 403
 
-    def test_instructor_stats_unauthorized_without_token(self, client) -> None:
+    def test_instructor_stats_unauthorized_without_token(self, client: TestClient) -> None:
         resp = client.get("/api/v1/instructor/stats")
         assert resp.status_code == 401

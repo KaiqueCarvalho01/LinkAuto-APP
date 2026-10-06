@@ -168,7 +168,7 @@ class IdentityStore:
             db.close()
         return None
 
-    def _sync_db_user_to_memory(self, db_user) -> UserRecord:
+    def _sync_db_user_to_memory(self, db_user: DbUser) -> UserRecord:
 
         with self._lock:
             # StudentProfile map
