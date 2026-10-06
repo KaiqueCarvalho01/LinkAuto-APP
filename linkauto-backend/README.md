@@ -17,8 +17,10 @@ linkauto-backend/
 │   ├── models/          # Mapeamento ORM (SQLAlchemy) e chaves primárias baseadas em UUIDv7
 │   ├── schemas/         # Validação de Entrada/Saída e schemas de serialização (Pydantic)
 │   └── services/        # Regras de Negócio e Casos de Uso (Services e Ports)
+├── alembic/             # Migrações do banco (Alembic)
 ├── tests/               # Suíte completa de testes (Unitários, Integração e Contratos)
-├── pyproject.toml       # Metadados, dependências (uv) e configuração Ruff/Pytest
+├── alembic.ini          # Configuração de logging do Alembic
+├── pyproject.toml       # Metadados, dependências (uv) e configuração Ruff/Pytest/Alembic
 └── uv.lock              # Lockfile de dependências gerado pelo uv (versionado)
 ```
 
@@ -85,6 +87,19 @@ uv add --dev <pacote>    # Adiciona dependência de desenvolvimento (grupo `dev`
 uv lock --upgrade        # Atualiza todas as versões no uv.lock
 uv sync --no-dev         # Instala apenas as dependências de produção
 ```
+
+### Migrações de Banco (Alembic)
+Em desenvolvimento, o SQLite local é recriado e populado a cada inicialização (`RESET_SQLITE_ON_STARTUP=true`), sem usar migrações. Em qualquer outro ambiente o schema é gerenciado pelo Alembic, usando a mesma `DATABASE_URL` da aplicação:
+
+```bash
+uv run alembic upgrade head                               # Aplica todas as migrações
+uv run alembic revision --autogenerate -m "descrição"     # Gera uma migração a partir dos models
+uv run alembic check                                      # Falha se os models divergirem das migrações
+```
+
+- Configuração: `[tool.alembic]` no `pyproject.toml` (código) e `alembic.ini` (logging).
+- Revisões geradas são formatadas automaticamente pelo Ruff; revise sempre o arquivo antes de commitar.
+- `tests/unit/test_migrations.py` garante que as migrações aplicam do zero, revertem e batem com os models.
 
 A API estará acessível em `http://localhost:8000` e a documentação interativa Swagger em `http://localhost:8000/docs`.
 
