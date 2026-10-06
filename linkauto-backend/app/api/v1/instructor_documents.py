@@ -1,3 +1,5 @@
+"""Endpoint for uploading instructor credential documents."""
+
 from __future__ import annotations
 
 from typing import Annotated
@@ -24,6 +26,13 @@ async def upload_documents(
     current_user: CurrentUser,
     service: Annotated[InstructorDocumentService, Depends(get_instructor_document_service)],
 ) -> Response:
+    """Upload an instructor's DETRAN credential and criminal record documents.
+
+    May be called by the instructor themself or by an ADMIN; any other caller gets
+    403. Each file must be a PDF, JPEG or PNG whose content matches its declared type
+    (400 otherwise) and at most 10 MB (413 otherwise). Returns 404 when the instructor
+    does not exist.
+    """
     if current_user.user_id != instructor_id and "ADMIN" not in current_user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -1,4 +1,4 @@
-"""Add BookingMessage and Review tables
+"""Add BookingMessage and Review tables.
 
 Revision ID: 0003_messages_reviews
 Revises: 0002_booking

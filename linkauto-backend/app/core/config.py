@@ -1,3 +1,5 @@
+"""Application settings loaded from environment variables and the .env file."""
+
 import logging
 from functools import lru_cache
 
@@ -11,6 +13,8 @@ INSECURE_JWT_SECRET = "change-me"  # noqa: S105
 
 
 class Settings(BaseSettings):
+    """Typed application settings, each field populated from its upper-case env alias."""
+
     app_env: str = Field(default="development", alias="APP_ENV")
     api_v1_prefix: str = Field(default="/api/v1", alias="API_V1_PREFIX")
     app_name: str = Field(default="LinkAuto API", alias="APP_NAME")
@@ -36,6 +40,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_security(self) -> Settings:
+        """Reject insecure settings when APP_ENV is production.
+
+        Raises if JWT_SECRET is the placeholder or RESET_SQLITE_ON_STARTUP is enabled, and
+        logs a warning if CORS_ORIGINS contains localhost or 127.0.0.1.
+        """
         if self.app_env.lower() == "production":
             if self.jwt_secret == INSECURE_JWT_SECRET:
                 msg = f"JWT_SECRET cannot be {INSECURE_JWT_SECRET!r} in production environment."
@@ -54,9 +63,11 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
+        """Return CORS_ORIGINS split on commas, stripped, with empty entries removed."""
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
+    """Return the process-wide cached Settings instance."""
     return Settings()

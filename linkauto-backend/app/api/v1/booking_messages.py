@@ -1,3 +1,5 @@
+"""Endpoints for messages exchanged between booking participants."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
@@ -20,6 +22,12 @@ def send_booking_message(
     current_user: CurrentUser,
     db: DbSession,
 ) -> Response:
+    """Post a message on a booking and notify the other participant by email.
+
+    Any authenticated user may call it, but only the booking's student or instructor
+    may post. Returns 403 when the caller is not a participant and 404 when the
+    booking does not exist.
+    """
     # Fetch booking to determine recipient
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
@@ -56,6 +64,11 @@ def list_booking_messages(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> Response:
+    """List a booking's messages in chronological order, paginated.
+
+    Only the booking's student or instructor may read them. Returns 403 when the
+    caller is not a participant and 404 when the booking does not exist.
+    """
     service = BookingMessageService(db)
     try:
         messages = service.list_messages(

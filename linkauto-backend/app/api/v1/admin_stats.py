@@ -1,3 +1,5 @@
+"""Admin dashboard statistics endpoint."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Response
@@ -14,6 +16,10 @@ def get_admin_stats(
     _: CurrentAdmin,
     db: DbSession,
 ) -> Response:
+    """Return platform-wide counts of instructors by validation status, students and bookings.
+
+    Requires the ADMIN role.
+    """
     service = AdminStatsService(db)
     stats = service.get_stats()
     return success_response(stats.model_dump())

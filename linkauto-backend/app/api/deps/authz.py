@@ -1,3 +1,5 @@
+"""Role-based authorization dependency factory."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated
@@ -11,6 +13,11 @@ if TYPE_CHECKING:
 
 
 def require_roles(*allowed_roles: str) -> Callable[[AuthenticatedUser], AuthenticatedUser]:
+    """Build a dependency that admits users holding any of the given roles.
+
+    The dependency authenticates the request first (401 on failure) and raises
+    403 when the user has none of the allowed roles.
+    """
     allowed = set(allowed_roles)
 
     def role_dependency(

@@ -1,3 +1,5 @@
+"""Structured logging of security-relevant events (auth, authorization, uploads, admin)."""
+
 import logging
 
 logger = logging.getLogger("app.security")
@@ -7,6 +9,7 @@ VISIBLE_TOKEN_CHARS = 4
 
 def mask_token(token: str | None) -> str:
     """Oculta segredos sensíveis exibindo apenas os últimos 4 caracteres.
+
     Retorna '...' para tokens nulos ou vazios.
     """
     if not token:

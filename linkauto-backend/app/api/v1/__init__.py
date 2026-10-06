@@ -1,3 +1,5 @@
+"""Version 1 API router aggregating all endpoint modules."""
+
 from fastapi import APIRouter
 
 from app.api.v1 import (

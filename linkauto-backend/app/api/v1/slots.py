@@ -1,3 +1,5 @@
+"""Endpoints for managing instructor availability slots."""
+
 from fastapi import APIRouter, HTTPException, Response
 
 from app.api.deps.types import CurrentInstrutor, DbSession
@@ -14,6 +16,11 @@ def create_slot(
     current_user: CurrentInstrutor,
     db: DbSession,
 ) -> Response:
+    """Create an available one-hour slot for the calling instructor.
+
+    Requires the INSTRUTOR role. The slot must start in the future and last exactly
+    one hour (422 otherwise). Returns 409 when it overlaps an existing slot.
+    """
     service = SlotService(db)
     try:
         slot = service.create_slot(
@@ -38,6 +45,10 @@ def list_my_slots(
     current_user: CurrentInstrutor,
     db: DbSession,
 ) -> Response:
+    """List the calling instructor's slots ordered by start time.
+
+    Requires the INSTRUTOR role.
+    """
     service = SlotService(db)
     slots = service.list_slots(current_user.user_id)
     return success_response(
@@ -51,6 +62,10 @@ def list_instructor_slots(
     instructor_id: str,
     db: DbSession,
 ) -> Response:
+    """List an instructor's slots of any status, ordered by start time.
+
+    Public. The instructor may be identified by public slug or ID.
+    """
     service = SlotService(db)
     slots = service.list_slots(instructor_id, status=None)
     return success_response(
@@ -65,6 +80,11 @@ def delete_slot(
     current_user: CurrentInstrutor,
     db: DbSession,
 ) -> Response:
+    """Delete one of the calling instructor's slots.
+
+    Requires the INSTRUTOR role. Returns 400 when the slot does not belong to the
+    caller, does not exist, or is reserved by a booking.
+    """
     service = SlotService(db)
     try:
         service.delete_slot(current_user.user_id, slot_id)

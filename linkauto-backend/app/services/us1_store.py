@@ -1,3 +1,5 @@
+"""In-memory identity store for users and instructor documents, backed by the database."""
+
 from __future__ import annotations
 
 import logging
@@ -21,6 +23,8 @@ ALLOWED_ROLES = {role.value for role in UserRole}
 
 @dataclass
 class UserRecord:
+    """In-memory snapshot of a user account with optional student/instructor profiles."""
+
     id: str
     email: str
     password_hash: str
@@ -34,6 +38,8 @@ class UserRecord:
 
 @dataclass
 class InstructorDocumentRecord:
+    """Instructor validation documents (DETRAN credential and criminal record) and review state."""
+
     id: str
     instructor_id: str
     detran_credential_url: str
@@ -47,6 +53,11 @@ class InstructorDocumentRecord:
 
 @dataclass
 class IdentityStore:
+    """Thread-safe in-memory store of users and instructor documents.
+
+    Users missing from memory are lazily loaded from the database and cached.
+    """
+
     _lock: Lock = field(default_factory=Lock)
     _users: dict[str, UserRecord] = field(default_factory=dict)
     _email_to_id: dict[str, str] = field(default_factory=dict)
@@ -54,6 +65,7 @@ class IdentityStore:
     _documents_by_instructor: dict[str, list[str]] = field(default_factory=dict)
 
     def reset(self) -> None:
+        """Clear all cached users, email index entries and instructor documents."""
         with self._lock:
             self._users.clear()
             self._email_to_id.clear()
@@ -61,6 +73,11 @@ class IdentityStore:
             self._documents_by_instructor.clear()
 
     def create_user(self, email: str, password_hash: str, roles: Iterable[str]) -> UserRecord:
+        """Create an active user with default profiles for its ALUNO/INSTRUTOR roles.
+
+        The email is normalized (trimmed, lowercased). Raises ``ValueError`` when no role is
+        given, a role is unsupported, or the email is already registered.
+        """
         normalized_email = email.strip().lower()
         role_list = sorted(set(roles))
         if not role_list:
@@ -128,6 +145,7 @@ class IdentityStore:
         }
 
     def get_user_by_email(self, email: str) -> UserRecord | None:
+        """Return the user with the given email, falling back to a database lookup."""
         user_id = self._email_to_id.get(email.strip().lower())
         if not user_id:
             user_id = self._load_user_from_db_by_email(email)
@@ -136,6 +154,7 @@ class IdentityStore:
         return self._users.get(user_id)
 
     def get_user(self, user_id: str) -> UserRecord | None:
+        """Return the user with the given ID, falling back to a database lookup."""
         user = self._users.get(user_id)
         if not user:
             user = self._load_user_from_db_by_id(user_id)
@@ -226,6 +245,10 @@ class IdentityStore:
             return user
 
     def update_profile(self, user_id: str, payload: dict) -> UserRecord:
+        """Merge ``student_profile``/``instructor_profile`` updates from ``payload`` into the user.
+
+        Raises ``ValueError`` if the user does not exist or lacks the role matching a profile.
+        """
         user = self.get_user(user_id)
         if user is None:
             msg = "User not found."
@@ -254,6 +277,7 @@ class IdentityStore:
         return user
 
     def list_instructors(self, *, status: str | None = None) -> list[UserRecord]:
+        """Return cached users with an instructor profile, optionally filtered by DETRAN status."""
         instructors: list[UserRecord] = []
         for user in self._users.values():
             profile = user.instructor_profile
@@ -265,6 +289,7 @@ class IdentityStore:
         return instructors
 
     def list_public_instructors(self) -> list[UserRecord]:
+        """Return instructors that are DETRAN-approved and whose profile is active."""
         return [
             instructor
             for instructor in self.list_instructors(status=DetranStatus.APROVADO.value)
@@ -275,6 +300,10 @@ class IdentityStore:
     def add_instructor_document(
         self, instructor_id: str, *, detran_credential_url: str, criminal_record_url: str
     ) -> InstructorDocumentRecord:
+        """Register a new set of validation documents for an instructor.
+
+        Raises ``ValueError`` if the user does not exist or has no instructor profile.
+        """
         instructor = self.get_user(instructor_id)
         if instructor is None or instructor.instructor_profile is None:
             msg = "Instructor not found."
@@ -292,12 +321,17 @@ class IdentityStore:
         return document
 
     def list_documents(self, instructor_id: str) -> list[InstructorDocumentRecord]:
+        """Return the documents uploaded by the given instructor."""
         document_ids = self._documents_by_instructor.get(instructor_id, [])
         return [self._documents[doc_id] for doc_id in document_ids if doc_id in self._documents]
 
     def review_instructor(
         self, instructor_id: str, *, status: str, reviewed_by: str, reason: str | None = None
     ) -> UserRecord:
+        """Set the instructor's DETRAN status and record the review on all their documents.
+
+        Raises ``ValueError`` if the user does not exist or has no instructor profile.
+        """
         instructor = self.get_user(instructor_id)
         if instructor is None or instructor.instructor_profile is None:
             msg = "Instructor not found."
@@ -314,6 +348,7 @@ class IdentityStore:
         return instructor
 
     def purge_instructor_documents(self, instructor_id: str) -> list[str]:
+        """Remove the instructor's documents and return their storage keys for deletion."""
         purged_keys: list[str] = []
         document_ids = self._documents_by_instructor.get(instructor_id, [])
         for doc_id in list(document_ids):
@@ -329,4 +364,5 @@ _identity_store = IdentityStore()
 
 
 def get_identity_store() -> IdentityStore:
+    """Return the process-wide ``IdentityStore`` singleton."""
     return _identity_store

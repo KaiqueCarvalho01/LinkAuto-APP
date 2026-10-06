@@ -1,3 +1,5 @@
+"""Public, slug-addressed instructor and student profiles with their received reviews."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -18,7 +20,10 @@ if TYPE_CHECKING:
 
 
 class PublicProfileService:
+    """Build public profile responses, generating missing profile slugs on demand."""
+
     def __init__(self, db: Session) -> None:
+        """Store the DB session used for profile and review queries."""
         self._db = db
 
     def _ensure_instructor_slug(self, prof: InstructorProfile) -> str:
@@ -69,6 +74,11 @@ class PublicProfileService:
         )
 
     def get_public_instructor(self, slug: str) -> PublicInstructorProfileResponse:
+        """Return the public profile and reviews of an active, DETRAN-approved instructor.
+
+        Lookup is by slug only (raw user IDs are not accepted). Raises ``ValueError`` if no
+        active, approved instructor matches.
+        """
         # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
         prof = (
             self._db.query(InstructorProfile)
@@ -132,6 +142,11 @@ class PublicProfileService:
         )
 
     def get_public_student(self, slug: str) -> PublicStudentProfileResponse:
+        """Return an active student's public profile, completed lessons and reviews.
+
+        Lookup is by slug only. The rating average is computed from the student's reviews
+        (5.0 when there are none). Raises ``ValueError`` if no active student matches.
+        """
         # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
         prof = self._db.query(StudentProfile).filter(StudentProfile.slug == slug).first()
         if not prof:

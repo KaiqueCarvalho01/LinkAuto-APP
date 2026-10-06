@@ -1,4 +1,4 @@
-"""Add slug columns to instructor_profiles and student_profiles
+"""Add slug columns to instructor_profiles and student_profiles.
 
 Revision ID: 0004_profile_slugs
 Revises: 0003_messages_reviews

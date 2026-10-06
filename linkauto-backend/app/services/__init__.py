@@ -1,3 +1,5 @@
+"""Application services package."""
+
 from app.services.admin_validation_service import AdminValidationService
 from app.services.auth_service import AuthService
 from app.services.booking_lock_service import (

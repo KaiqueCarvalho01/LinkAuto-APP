@@ -1,3 +1,5 @@
+"""Admin endpoints for overriding booking status."""
+
 from fastapi import APIRouter, HTTPException, Response
 
 from app.api.deps.types import CurrentAdmin, DbSession
@@ -16,6 +18,15 @@ def admin_override_booking(
     current_user: CurrentAdmin,
     db: DbSession,
 ) -> Response:
+    """Force a booking into a terminal status (REALIZADA or CANCELADA).
+
+    Requires the ADMIN role. The reason is required (min. 3 characters) and is echoed
+    in the response metadata with the admin's user ID. Unlike regular transitions,
+    an admin may move a booking between the two terminal statuses.
+
+    Returns 404 when the booking does not exist and 422 when the transition is not
+    allowed or the body is invalid.
+    """
     service = AdminBookingService(db)
     try:
         booking = service.override_status(booking_id, body.status, body.reason)

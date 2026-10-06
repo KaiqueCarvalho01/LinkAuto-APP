@@ -23,7 +23,8 @@ class FailureEmailGateway(EmailGateway):
 
 
 def test_notification_service_handles_gateway_failure(caplog: pytest.LogCaptureFixture) -> None:
-    """D11 - P1: Resiliência do NotificationService
+    """D11 - P1: Resiliência do NotificationService.
+
     Verifica se o serviço captura falhas do gateway de e-mail e não propaga a exceção,
     retornando delivered=False e gerando logs adequados.
     """

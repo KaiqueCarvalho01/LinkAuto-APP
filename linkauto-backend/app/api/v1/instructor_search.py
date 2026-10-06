@@ -1,3 +1,5 @@
+"""Public instructor search endpoint."""
+
 from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Query, Response
@@ -19,6 +21,12 @@ def search_instructors(
     filters: Annotated[InstructorSearchFilters, Query()],
     db: DbSession,
 ) -> Response:
+    """Search approved, active instructors within a radius of a location.
+
+    Public. Supports filtering by minimum rating, maximum hourly price and
+    specialties, and sorting by distance (default), rating or price. Instructors are
+    identified by their public slug, never by internal ID.
+    """
     results = InstructorSearchService(db).search(filters)
 
     def _resolve_slug(p: InstructorProfile) -> str:

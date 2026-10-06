@@ -1,3 +1,5 @@
+"""Instructor verification documents model and its repository."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -9,6 +11,12 @@ from app.models.base import AuditUUIDBase
 
 
 class InstructorDocument(AuditUUIDBase):
+    """Uploaded DETRAN credential and criminal record of an instructor.
+
+    Tracks the admin review: reviewer, review time, ``review_status`` (default PENDENTE)
+    and optional reason.
+    """
+
     __tablename__ = "instructor_documents"
 
     instructor_id: Mapped[str] = mapped_column(
@@ -29,15 +37,20 @@ class InstructorDocument(AuditUUIDBase):
 
 
 class InstructorDocumentRepository:
+    """Data access for InstructorDocument rows within a SQLAlchemy session."""
+
     def __init__(self, session: Session) -> None:
+        """Bind the repository to a session."""
         self._session = session
 
     def add(self, document: InstructorDocument) -> InstructorDocument:
+        """Add the document to the session, flush it and return it."""
         self._session.add(document)
         self._session.flush()
         return document
 
     def list_by_instructor(self, instructor_id: str) -> list[InstructorDocument]:
+        """Return the instructor's documents, most recently uploaded first."""
         statement = (
             select(InstructorDocument)
             .where(InstructorDocument.instructor_id == instructor_id)
@@ -54,6 +67,7 @@ class InstructorDocumentRepository:
         status: str,
         reason: str | None,
     ) -> list[InstructorDocument]:
+        """Record the review outcome on all of the instructor's documents and return them."""
         documents = self.list_by_instructor(instructor_id)
         for document in documents:
             document.reviewed_by = reviewed_by

@@ -1,3 +1,5 @@
+"""Scheduled booking automations: pending timeouts, auto-completion and lesson reminders."""
+
 from __future__ import annotations
 
 import logging
@@ -16,23 +18,37 @@ logger = logging.getLogger("app.services.booking_scheduler")
 
 
 class BookingAutomationPort(Protocol):
-    def list_pending_expired(self, cutoff_utc: datetime) -> list[str]: ...
+    """Persistence operations required by ``BookingScheduler``."""
 
-    def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]: ...
+    def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
+        """Return IDs of PENDENTE bookings created at or before ``cutoff_utc``."""
+        ...
 
-    def list_unreminded_upcoming(
-        self, start_cutoff: datetime, end_cutoff: datetime
-    ) -> list[str]: ...
+    def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
+        """Return IDs of CONFIRMADA bookings whose last slot ended by ``cutoff_utc``."""
+        ...
 
-    def mark_reminder_sent(self, booking_id: str) -> None: ...
+    def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
+        """Return IDs of unreminded CONFIRMADA bookings starting between the cutoffs."""
+        ...
 
-    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None: ...
+    def mark_reminder_sent(self, booking_id: str) -> None:
+        """Record that the lesson reminder for the booking was sent."""
+        ...
 
-    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]: ...
+    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
+        """Move the booking to ``status``, recording ``reason``."""
+        ...
+
+    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
+        """Return the student and instructor emails of the booking."""
+        ...
 
 
 @dataclass(slots=True)
 class BookingSchedulerResult:
+    """Summary of a scheduler run: succeeded and failed booking IDs."""
+
     processed: int
     booking_ids: list[str]
     failed: int = 0
@@ -40,11 +56,14 @@ class BookingSchedulerResult:
 
 
 class BookingScheduler:
+    """Run periodic booking automations: timeouts, completions and lesson reminders."""
+
     def __init__(
         self,
         automation_port: BookingAutomationPort,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Store the automation port and optional notification service."""
         self._automation_port = automation_port
         self._notification_service = notification_service
 
@@ -57,6 +76,10 @@ class BookingScheduler:
         return now_utc.astimezone(UTC)
 
     def run_pending_timeout(self, now_utc: datetime | None = None) -> BookingSchedulerResult:
+        """Cancel PENDENTE bookings created more than 24 hours ago (reason ``AUTO_TIMEOUT_24H``).
+
+        Per-booking failures are logged and reported in the result instead of raised.
+        """
         reference = self._now_utc(now_utc)
         cutoff = reference - timedelta(hours=24)
         pending_ids = self._automation_port.list_pending_expired(cutoff)
@@ -91,6 +114,10 @@ class BookingScheduler:
         )
 
     def run_confirmed_completion(self, now_utc: datetime | None = None) -> BookingSchedulerResult:
+        """Mark CONFIRMADA bookings as REALIZADA 2 hours after their last slot ends.
+
+        Per-booking failures are logged and reported in the result instead of raised.
+        """
         reference = self._now_utc(now_utc)
         cutoff = reference - timedelta(hours=2)
         ready_ids = self._automation_port.list_confirmed_ready(cutoff)
@@ -125,6 +152,11 @@ class BookingScheduler:
         )
 
     def run_lesson_reminders(self, now_utc: datetime | None = None) -> BookingSchedulerResult:
+        """Email reminders for confirmed lessons starting in 23-25 hours and mark them reminded.
+
+        The reminder goes to the student and instructor when a notification service is set.
+        Per-booking failures are logged and reported in the result instead of raised.
+        """
         reference = self._now_utc(now_utc)
         start_cutoff = reference + timedelta(hours=23)
         end_cutoff = reference + timedelta(hours=25)

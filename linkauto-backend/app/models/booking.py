@@ -1,3 +1,5 @@
+"""Booking, booking-slot association and student penalty models."""
+
 from __future__ import annotations
 
 from enum import StrEnum
@@ -9,12 +11,20 @@ from app.models.base import AuditUUIDBase
 
 
 class CancelledBy(StrEnum):
+    """Who cancelled a booking: the student, the instructor or the system (automation)."""
+
     ALUNO = "ALUNO"
     INSTRUTOR = "INSTRUTOR"
     SISTEMA = "SISTEMA"
 
 
 class Booking(AuditUUIDBase):
+    """Driving lesson booked by a student with an instructor (``bookings`` table).
+
+    ``status`` moves PENDENTE -> CONFIRMADA -> REALIZADA, or to CANCELADA. Indexed by
+    (student_id, status) and (instructor_id, status).
+    """
+
     __tablename__ = "bookings"
 
     student_id: Mapped[str] = mapped_column(
@@ -42,6 +52,12 @@ class Booking(AuditUUIDBase):
 
 
 class BookingSlot(AuditUUIDBase):
+    """Association between a booking and one of its reserved slots (``booking_slots``).
+
+    ``slot_id`` is unique, so a slot can belong to at most one booking; rows are deleted
+    with their booking or slot.
+    """
+
     __tablename__ = "booking_slots"
 
     booking_id: Mapped[str] = mapped_column(
@@ -58,6 +74,8 @@ class BookingSlot(AuditUUIDBase):
 
 
 class StudentPenalty(AuditUUIDBase):
+    """Temporary block on a student's bookings, active until ``blocked_until``."""
+
     __tablename__ = "student_penalties"
 
     student_id: Mapped[str] = mapped_column(

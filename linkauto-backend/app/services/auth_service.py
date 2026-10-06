@@ -1,3 +1,5 @@
+"""Authentication service: registration, login and JWT refresh."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -24,12 +26,16 @@ if TYPE_CHECKING:
 
 @dataclass
 class AuthTokens:
+    """Access/refresh JWT pair returned on login and refresh."""
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"  # noqa: S105 - OAuth2 token type, not a secret
 
 
 class AuthService:
+    """Handle user registration, login and token refresh."""
+
     def __init__(
         self,
         *,
@@ -37,11 +43,17 @@ class AuthService:
         store: IdentityStore,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Store the settings, identity store and optional notification service."""
         self._settings = settings
         self._store = store
         self._notification_service = notification_service
 
     def register(self, *, email: str, password: str, roles: list[str]) -> UserRecord:
+        """Register a user with a hashed password.
+
+        Registering an instructor sends a "waiting for validation" notification. Raises
+        ``ValueError`` if the ADMIN role is requested or the store rejects the user.
+        """
         if "ADMIN" in [role.upper() for role in roles]:
             msg = "FORBIDDEN_ROLE: Public registration with ADMIN role is not allowed."
             raise ValueError(msg)
@@ -63,6 +75,7 @@ class AuthService:
         return user
 
     def login(self, *, email: str, password: str) -> AuthTokens:
+        """Return new tokens for valid credentials, raising ``ValueError`` otherwise."""
         user = self._store.get_user_by_email(email)
         if user is None or not verify_password(password, user.password_hash):
             msg = "Invalid credentials."
@@ -73,6 +86,10 @@ class AuthService:
         return AuthTokens(access_token=access_token, refresh_token=refresh_token)
 
     def refresh(self, *, refresh_token: str) -> AuthTokens:
+        """Return a new access token and a rotated refresh token.
+
+        Raises ``ValueError`` if the token's subject does not match a known user.
+        """
         payload = decode_token(refresh_token, self._settings, expected_type="refresh")
         user = self._store.get_user(payload.sub)
         if user is None:
@@ -83,6 +100,7 @@ class AuthService:
         return AuthTokens(access_token=access_token, refresh_token=rotated_refresh)
 
     def trigger_password_reset(self, *, email: str) -> None:
+        """Start a password reset for the email; currently a no-op placeholder."""
         user = self._store.get_user_by_email(email)
         if user is None:
             return

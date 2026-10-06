@@ -1,3 +1,5 @@
+"""Chat messages exchanged between the student and instructor of a booking."""
+
 from __future__ import annotations
 
 import logging
@@ -18,15 +20,18 @@ logger = logging.getLogger(__name__)
 
 
 class BookingMessageAccessError(ValueError):
-    pass
+    """Raised when a user who is not the booking's student or instructor accesses its chat."""
 
 
 class BookingMessageService:
+    """Send and list booking messages, restricted to the booking's participants."""
+
     def __init__(
         self,
         db: Session,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Store the DB session and the optional service used to notify the recipient."""
         self._db = db
         self._notification_service = notification_service
 
@@ -37,6 +42,12 @@ class BookingMessageService:
         content: str,
         recipient_email: str | None = None,
     ) -> BookingMessage:
+        """Persist a message on the booking and notify the other party by e-mail.
+
+        The notification is sent only when a notification service and ``recipient_email``
+        are available. Raises ``ValueError`` if the booking does not exist and
+        ``BookingMessageAccessError`` if the sender is not a participant.
+        """
         # Fetch booking to check existence and authorization
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
@@ -87,6 +98,11 @@ class BookingMessageService:
         page: int = 1,
         page_size: int = 20,
     ) -> list[BookingMessage]:
+        """Return a page of the booking's messages, oldest first.
+
+        Raises ``ValueError`` if the booking does not exist and ``BookingMessageAccessError``
+        if the user is not a participant.
+        """
         # Fetch booking to check existence and authorization
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:

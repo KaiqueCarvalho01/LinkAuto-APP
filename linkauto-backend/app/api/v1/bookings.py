@@ -1,3 +1,5 @@
+"""Booking endpoints for students and instructors."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Response
@@ -26,6 +28,14 @@ def create_booking(
     current_user: CurrentAluno,
     db: DbSession,
 ) -> Response:
+    """Create a PENDENTE booking for the calling student and reserve its slots.
+
+    Requires the ALUNO role. `instructor_id` may be the instructor's public slug.
+    Per RN02 the booking needs at least 2 consecutive one-hour slots, all available
+    and belonging to that instructor; otherwise 422 is returned. Returns 403 when the
+    student is under an active cancellation penalty (RN04). The instructor is
+    notified of the new booking.
+    """
     service = BookingService(db)
     try:
         booking = service.create_booking(
@@ -60,6 +70,11 @@ def list_bookings(
     db: DbSession,
     status: Annotated[str | None, Query()] = None,
 ) -> Response:
+    """List the caller's bookings, newest first, optionally filtered by status.
+
+    Requires authentication. Users with the INSTRUTOR role see bookings where they
+    are the instructor; everyone else sees bookings where they are the student.
+    """
     service = BookingService(db)
     role = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
     bookings = service.list_bookings(current_user.user_id, role, status_filter=status)
@@ -75,6 +90,11 @@ def get_booking(
     current_user: CurrentUser,
     db: DbSession,
 ) -> Response:
+    """Return a single booking with its slots.
+
+    Only the booking's student, its instructor or an ADMIN may view it. Returns 404
+    when the booking does not exist and 403 for any other caller.
+    """
     service = BookingService(db)
     booking = service.get_booking(booking_id)
     if not booking:
@@ -98,6 +118,12 @@ def confirm_booking(
     current_user: CurrentInstrutor,
     db: DbSession,
 ) -> Response:
+    """Confirm a PENDENTE booking and notify the student.
+
+    Requires the INSTRUTOR role and must be called by the booking's instructor.
+    Returns 403 when the caller is not the booking's instructor or the booking does
+    not exist, and 422 when the booking cannot move to CONFIRMADA.
+    """
     service = BookingService(db)
     try:
         booking = service.confirm_booking(booking_id, current_user.user_id)
@@ -121,6 +147,14 @@ def cancel_booking(
     current_user: CurrentUser,
     db: DbSession,
 ) -> Response:
+    """Cancel a PENDENTE or CONFIRMADA booking and release its slots.
+
+    Requires authentication. The cancellation is attributed to INSTRUTOR when the
+    caller has that role, otherwise to ALUNO. Per RN04, a student who cancels less
+    than 24 hours before the first slot receives a 7-day booking penalty. The other
+    party is notified. Returns 404 when the booking does not exist and 422 when it is
+    already in a terminal status.
+    """
     service = BookingService(db)
     cancelled_by = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
     try:

@@ -1,3 +1,5 @@
+"""Validation and registration of instructor credential documents (DETRAN, criminal record)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,15 +23,17 @@ MAGIC_BYTES = {
 
 
 class DocumentValidationError(ValueError):
-    pass
+    """Raised when a file's MIME type is not allowed or its content does not match it."""
 
 
 class DocumentTooLargeError(ValueError):
-    pass
+    """Raised when an uploaded file exceeds the 10 MB limit."""
 
 
 @dataclass
 class UploadedInstructorDocuments:
+    """Stored document record for an instructor, with the object URLs of both files."""
+
     instructor_id: str
     document_id: str
     detran_credential_url: str
@@ -37,7 +41,10 @@ class UploadedInstructorDocuments:
 
 
 class InstructorDocumentService:
+    """Validate instructor credential uploads and record them for admin review."""
+
     def __init__(self, *, settings: Settings, store: IdentityStore) -> None:
+        """Store the settings (for the S3 bucket name) and the identity store."""
         self._settings = settings
         self._store = store
 
@@ -77,6 +84,12 @@ class InstructorDocumentService:
     async def upload_documents(
         self, *, instructor_id: str, detran_credential: UploadFile, criminal_record: UploadFile
     ) -> UploadedInstructorDocuments:
+        """Validate both files and register a document record with their S3 object URLs.
+
+        Each file must be a PDF, JPEG or PNG of at most 10 MB whose magic bytes match the
+        declared MIME type. Only the URLs are stored; the file content is not uploaded here.
+        Raises ``DocumentValidationError`` or ``DocumentTooLargeError`` on invalid files.
+        """
         await self._read_and_validate(detran_credential)
         await self._read_and_validate(criminal_record)
 

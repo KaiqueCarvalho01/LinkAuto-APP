@@ -1,3 +1,5 @@
+"""Instructor availability slot model and status enum."""
+
 from __future__ import annotations
 
 from enum import StrEnum
@@ -9,12 +11,16 @@ from app.models.base import AuditUUIDBase
 
 
 class SlotStatus(StrEnum):
+    """Availability of a slot: open for booking, reserved by a booking, or blocked."""
+
     DISPONIVEL = "DISPONIVEL"
     RESERVADO = "RESERVADO"
     BLOQUEADO = "BLOQUEADO"
 
 
 class Slot(AuditUUIDBase):
+    """Time window of an instructor's agenda that students can book (``slots`` table)."""
+
     __tablename__ = "slots"
 
     instructor_id: Mapped[str] = mapped_column(

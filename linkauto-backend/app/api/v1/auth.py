@@ -1,3 +1,5 @@
+"""Authentication endpoints: registration, login, token refresh, password reset."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated
@@ -20,17 +22,23 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class RegisterRequest(BaseModel):
+    """Credentials and requested roles for a new account."""
+
     email: str = Field(min_length=3)
     password: str = Field(min_length=8)
     roles: list[str] = Field(min_length=1)
 
 
 class LoginRequest(BaseModel):
+    """Email and password credentials for logging in."""
+
     email: str = Field(min_length=3)
     password: str = Field(min_length=1)
 
 
 class PasswordResetRequest(BaseModel):
+    """Email address of the account requesting a password reset."""
+
     email: str = Field(min_length=3)
 
 
@@ -56,6 +64,11 @@ def register(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
+    """Register a new user account and return its profile.
+
+    Public; rate-limited to 5 requests per minute. Registering with the ADMIN role
+    is not allowed. Returns 400 for a duplicate email, unsupported or forbidden roles.
+    """
     try:
         user = auth_service.register(
             email=payload.email, password=payload.password, roles=payload.roles
@@ -76,6 +89,12 @@ def login(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     settings: AppSettings,
 ) -> Response:
+    """Authenticate with email and password and issue tokens.
+
+    Public; rate-limited to 10 requests per minute. Returns a bearer access token in
+    the body and sets the refresh token as an HTTP-only cookie scoped to the refresh
+    endpoint. Returns 401 for invalid credentials.
+    """
     client_ip = request.client.host if request.client else "unknown"
     try:
         tokens = auth_service.login(email=payload.email, password=payload.password)
@@ -108,6 +127,12 @@ def refresh(
     settings: AppSettings,
     refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> Response:
+    """Issue a new access token using the refresh token cookie.
+
+    Rate-limited to 20 requests per minute. The refresh token is rotated and the new
+    one is set as a cookie. Returns 401 when the cookie is missing or the token is
+    invalid.
+    """
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -141,5 +166,10 @@ def password_reset(
     payload: PasswordResetRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Response:
+    """Accept a password reset request for the given email.
+
+    Public; rate-limited to 3 requests per minute. Always returns 202 so that the
+    response does not reveal whether the email is registered.
+    """
     auth_service.trigger_password_reset(email=payload.email)
     return success_response({"status": "accepted"}, status_code=status.HTTP_202_ACCEPTED)

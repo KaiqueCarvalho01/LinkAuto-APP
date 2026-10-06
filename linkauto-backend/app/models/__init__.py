@@ -1,3 +1,5 @@
+"""SQLAlchemy ORM models and enums for the LinkAuto domain."""
+
 from app.models.base import (
     AuditTimestampsMixin,
     AuditUUIDBase,

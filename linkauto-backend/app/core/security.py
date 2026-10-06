@@ -1,3 +1,5 @@
+"""Password hashing (bcrypt) and JWT access/refresh token handling."""
+
 from __future__ import annotations
 
 import uuid
@@ -17,6 +19,8 @@ DEFAULT_ALGORITHM = "HS256"
 
 
 class TokenPayload(BaseModel):
+    """Decoded JWT claims: subject user ID, token type, roles, expiry, issued-at and token ID."""
+
     sub: str
     typ: TokenType
     roles: list[str] = []
@@ -35,10 +39,12 @@ def _password_bytes(password: str) -> bytes:
 
 
 def hash_password(password: str) -> str:
+    """Return a bcrypt hash of the password (only its first 72 bytes are used)."""
     return bcrypt.hashpw(_password_bytes(password), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
+    """Return whether the password matches the stored bcrypt hash."""
     return bcrypt.checkpw(_password_bytes(plain_password), password_hash.encode("utf-8"))
 
 
@@ -62,6 +68,7 @@ def _build_payload(
 
 
 def create_access_token(subject: str, settings: Settings, roles: list[str] | None = None) -> str:
+    """Return a signed access JWT that expires after JWT_ACCESS_MINUTES."""
     payload = _build_payload(
         subject=subject,
         token_type="access",  # noqa: S106 - token kind, not a secret
@@ -72,6 +79,7 @@ def create_access_token(subject: str, settings: Settings, roles: list[str] | Non
 
 
 def create_refresh_token(subject: str, settings: Settings, roles: list[str] | None = None) -> str:
+    """Return a signed refresh JWT that expires after JWT_REFRESH_DAYS."""
     payload = _build_payload(
         subject=subject,
         token_type="refresh",  # noqa: S106 - token kind, not a secret
@@ -84,6 +92,10 @@ def create_refresh_token(subject: str, settings: Settings, roles: list[str] | No
 def decode_token(
     token: str, settings: Settings, expected_type: TokenType | None = None
 ) -> TokenPayload:
+    """Verify and decode a JWT into a TokenPayload.
+
+    Raises ValueError if the token is invalid or not of ``expected_type`` (when given).
+    """
     try:
         raw_payload = jwt.decode(token, settings.jwt_secret, algorithms=[DEFAULT_ALGORITHM])
     except JWTError as exc:

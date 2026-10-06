@@ -1,3 +1,5 @@
+"""Admin overrides of booking statuses."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,7 +12,10 @@ if TYPE_CHECKING:
 
 
 class AdminBookingService:
+    """Let admins force a booking into a terminal status."""
+
     def __init__(self, db: Session) -> None:
+        """Store the DB session used to load and update bookings."""
         self._db = db
 
     def override_status(
@@ -19,6 +24,13 @@ class AdminBookingService:
         target_status: str,
         reason: str,  # noqa: ARG002 - TODO: persist the admin's override reason
     ) -> Booking:
+        """Set the booking to REALIZADA or CANCELADA using the admin override rules.
+
+        The admin override also allows switching between the two terminal statuses. The
+        ``reason`` is accepted but not persisted yet. Raises ``ValueError`` for any other
+        target status or an unknown booking, and ``BookingTransitionError`` if the
+        transition is not allowed.
+        """
         if target_status not in (BookingStatus.REALIZADA.value, BookingStatus.CANCELADA.value):
             msg = "Admin override target must be REALIZADA or CANCELADA"
             raise ValueError(msg)

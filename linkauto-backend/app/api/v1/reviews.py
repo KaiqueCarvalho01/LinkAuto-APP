@@ -1,3 +1,5 @@
+"""Endpoints for booking reviews."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
@@ -25,6 +27,14 @@ def create_booking_review(
     current_user: CurrentUser,
     db: DbSession,
 ) -> Response:
+    """Submit a review of the other participant of a completed booking.
+
+    Any authenticated user may call it, but only the booking's student or instructor
+    may review, once per booking. Reviewing the instructor updates their rating
+    average, and the reviewed user is notified by email. Returns 404 when the booking
+    does not exist, 409 when it is not REALIZADA or was already reviewed by the
+    caller, and 403 when the caller is not a participant.
+    """
     # Fetch booking to determine recipient
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
@@ -63,6 +73,10 @@ def list_instructor_reviews(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> Response:
+    """List reviews received by an instructor, newest first, paginated.
+
+    Public.
+    """
     service = ReviewService(db)
     reviews = service.list_instructor_reviews(
         instructor_id=instructor_id,

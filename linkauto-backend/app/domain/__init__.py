@@ -1,3 +1,5 @@
+"""Framework-independent domain rules for LinkAuto (booking state machine)."""
+
 from app.domain.booking import (
     ALLOWED_TRANSITIONS,
     BookingStatus,

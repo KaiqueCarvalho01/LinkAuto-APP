@@ -161,6 +161,7 @@ class FailingBookingAutomationPort(BookingAutomationPort):
 
 def test_scheduler_pending_timeout_resilience_per_item() -> None:
     """D13 - P2: Resiliência per-item no scheduler.
+
     Garante que se uma transição de booking falhar, o lote continue sendo processado
     para os próximos itens, retornando contadores adequados de processados e falhos.
     """

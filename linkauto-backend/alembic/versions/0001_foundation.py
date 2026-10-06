@@ -1,4 +1,4 @@
-"""foundation bootstrap
+"""Foundation bootstrap.
 
 Revision ID: 0001_foundation
 Revises:

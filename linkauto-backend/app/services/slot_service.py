@@ -1,3 +1,5 @@
+"""Management of instructors' availability slots."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -14,11 +16,14 @@ if TYPE_CHECKING:
 
 
 class SlotOverlapError(ValueError):
-    pass
+    """Raised when a new slot overlaps an existing slot of the same instructor."""
 
 
 class SlotService:
+    """Manage instructors' availability slots."""
+
     def __init__(self, db: Session) -> None:
+        """Store the database session."""
         self._db = db
 
     def create_slot(
@@ -27,6 +32,7 @@ class SlotService:
         starts_at: datetime,
         ends_at: datetime,
     ) -> Slot:
+        """Create a DISPONIVEL slot, raising ``SlotOverlapError`` if it overlaps an existing one."""
         overlap = (
             self._db.query(Slot)
             .filter(
@@ -60,7 +66,10 @@ class SlotService:
         instructor_id: str,
         status: SlotStatus | None = None,
     ) -> list[Slot]:
+        """Return an instructor's slots ordered by start time, optionally filtered by status.
 
+        ``instructor_id`` may be either the instructor's user ID or profile slug.
+        """
         prof = (
             self._db.query(InstructorProfile)
             .filter(InstructorProfile.slug == instructor_id)
@@ -74,6 +83,10 @@ class SlotService:
         return query.order_by(Slot.starts_at).all()
 
     def delete_slot(self, instructor_id: str, slot_id: str) -> None:
+        """Delete an instructor's slot.
+
+        Raises ``ValueError`` if the slot is not found for the instructor or is reserved.
+        """
         slot = (
             self._db.query(Slot)
             .filter(Slot.id == slot_id, Slot.instructor_id == instructor_id)
@@ -89,4 +102,5 @@ class SlotService:
         self._db.flush()
 
     def get_slots_by_ids(self, slot_ids: list[str]) -> list[Slot]:
+        """Return the slots matching the given IDs."""
         return self._db.query(Slot).filter(Slot.id.in_(slot_ids)).all()

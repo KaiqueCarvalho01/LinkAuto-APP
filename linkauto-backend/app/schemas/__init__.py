@@ -1,3 +1,5 @@
+"""Pydantic request/response schemas and the standard API response envelopes."""
+
 from app.schemas.common import (
     ErrorDetail,
     ErrorEnvelope,

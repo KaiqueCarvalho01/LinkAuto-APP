@@ -1,3 +1,5 @@
+"""Reviews between students and instructors after completed lessons."""
+
 from __future__ import annotations
 
 import logging
@@ -20,23 +22,26 @@ logger = logging.getLogger(__name__)
 
 
 class ReviewAccessError(ValueError):
-    pass
+    """Raised when the reviewer did not take part in the booking."""
 
 
 class ReviewStateError(ValueError):
-    pass
+    """Raised when reviewing a booking that is not REALIZADA."""
 
 
 class ReviewDuplicateError(ValueError):
-    pass
+    """Raised when the reviewer has already reviewed the booking."""
 
 
 class ReviewService:
+    """Create and list reviews exchanged between students and instructors."""
+
     def __init__(
         self,
         db: Session,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Store the database session and optional notification service."""
         self._db = db
         self._notification_service = notification_service
 
@@ -48,6 +53,18 @@ class ReviewService:
         comment: str | None = None,
         recipient_email: str | None = None,
     ) -> Review:
+        """Create a review of the other participant of a REALIZADA booking.
+
+        Reviews of the instructor update their profile's rating average and count. The reviewed
+        user is emailed when ``recipient_email`` is given.
+
+        Raises:
+            ValueError: If the booking does not exist.
+            ReviewStateError: If the booking is not REALIZADA.
+            ReviewAccessError: If the reviewer is not a participant of the booking.
+            ReviewDuplicateError: If the reviewer already reviewed this booking.
+
+        """
         # Fetch booking to check existence, status and access
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
@@ -145,6 +162,7 @@ class ReviewService:
         page: int = 1,
         page_size: int = 20,
     ) -> list[Review]:
+        """Return a page of reviews received by the instructor, newest first."""
         offset = (page - 1) * page_size
         return (
             self._db.query(Review)

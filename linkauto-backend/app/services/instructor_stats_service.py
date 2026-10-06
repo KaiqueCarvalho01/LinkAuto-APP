@@ -1,3 +1,5 @@
+"""Dashboard statistics for an instructor's bookings."""
+
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func
@@ -10,10 +12,18 @@ if TYPE_CHECKING:
 
 
 class InstructorStatsService:
+    """Aggregate booking counts for an instructor's dashboard."""
+
     def __init__(self, db: Session) -> None:
+        """Store the DB session used for the aggregate queries."""
         self._db = db
 
     def get_stats(self, instructor_id: str) -> InstructorStatsResponse:
+        """Return the instructor's lesson, hour, student and pending-booking counts.
+
+        Lessons and hours count only REALIZADA bookings (one hour per booked slot), unique
+        students exclude CANCELADA bookings, and pending counts PENDENTE bookings.
+        """
         total_lessons = (
             self._db.query(func.count(Booking.id))
             .filter(

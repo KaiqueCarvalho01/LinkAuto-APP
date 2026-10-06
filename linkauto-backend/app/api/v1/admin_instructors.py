@@ -1,3 +1,5 @@
+"""Admin endpoints for reviewing instructor credentials."""
+
 from __future__ import annotations
 
 from typing import Annotated
@@ -15,6 +17,8 @@ router = APIRouter(prefix="/admin/instructors", tags=["admin-instructors"])
 
 
 class RejectInstructorRequest(BaseModel):
+    """Payload for rejecting an instructor, with an optional reason."""
+
     reason: str | None = None
 
 
@@ -26,6 +30,10 @@ def list_instructors(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> Response:
+    """List instructors with pagination, optionally filtered by validation status.
+
+    Requires the ADMIN role. Pagination details are returned in `meta.pagination`.
+    """
     result = service.list_instructors(status=status_filter, page=page, page_size=page_size)
     return success_response(
         result["items"],
@@ -45,6 +53,12 @@ def approve_instructor(
     admin_user: CurrentAdmin,
     service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
 ) -> Response:
+    """Approve an instructor's credentials.
+
+    Requires the ADMIN role. Marks the instructor as APROVADO, purges the uploaded
+    documents, notifies the instructor and returns the updated user. Returns 404
+    when the instructor does not exist.
+    """
     try:
         result = service.approve(instructor_id=instructor_id, admin_id=admin_user.user_id)
         log_admin_action(
@@ -65,6 +79,12 @@ def reject_instructor(
     admin_user: CurrentAdmin,
     service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
 ) -> Response:
+    """Reject an instructor's credentials.
+
+    Requires the ADMIN role. Marks the instructor as REJEITADO with the optional
+    reason, purges the uploaded documents, notifies the instructor and returns the
+    updated user. Returns 404 when the instructor does not exist.
+    """
     try:
         result = service.reject(
             instructor_id=instructor_id,

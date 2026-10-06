@@ -1,3 +1,5 @@
+"""Logging setup with per-request correlation IDs."""
+
 import contextvars
 import logging
 import uuid
@@ -18,6 +20,7 @@ class CorrelationIDFilter(logging.Filter):
     """Logging filter to inject the current correlation ID into log records."""
 
     def filter(self, record: logging.LogRecord) -> bool:
+        """Set ``record.correlation_id`` (or "no-trace") and always keep the record."""
         record.correlation_id = correlation_id_ctx.get() or "no-trace"
         return True
 
@@ -26,6 +29,7 @@ class CorrelationIDMiddleware(BaseHTTPMiddleware):
     """FastAPI Middleware to manage the correlation ID context for each request."""
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        """Bind the X-Correlation-ID header (or a new UUID4) to the request and echo it back."""
         # Extract from header or generate a new unique UUID4
         correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
 

@@ -1,4 +1,4 @@
-"""Add Slot, Booking, BookingSlot, StudentPenalty tables
+"""Add Slot, Booking, BookingSlot, StudentPenalty tables.
 
 Revision ID: 0002_booking
 Revises: 0001_foundation

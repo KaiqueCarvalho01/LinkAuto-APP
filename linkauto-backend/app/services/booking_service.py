@@ -1,3 +1,5 @@
+"""Booking lifecycle service (PENDENTE -> CONFIRMADA -> REALIZADA, or CANCELADA)."""
+
 from __future__ import annotations
 
 import itertools
@@ -32,19 +34,22 @@ class BookingLocation:
 
 
 class SlotValidationError(ValueError):
-    pass
+    """Raised when requested slots cannot be booked (RN02 or availability rules)."""
 
 
 class PenalizedStudentError(ValueError):
-    pass
+    """Raised when a student under an RN04 penalty tries to create a booking."""
 
 
 class BookingService:
+    """Create, confirm, cancel and query bookings, enforcing RN02 and RN04."""
+
     def __init__(
         self,
         db: Session,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Store the database session, a penalty service and optional notification service."""
         self._db = db
         self._penalty = PenaltyService(db)
         self._notification_service = notification_service
@@ -57,6 +62,16 @@ class BookingService:
         *,
         location: BookingLocation | None = None,
     ) -> Booking:
+        """Create a PENDENTE booking over the given slots and reserve them.
+
+        ``instructor_id`` may be an instructor slug. The slots must be at least two consecutive,
+        available slots of that instructor (RN02). The instructor is notified by email.
+
+        Raises:
+            PenalizedStudentError: If the student is currently penalized (RN04).
+            SlotValidationError: If the slots violate RN02 or are unavailable.
+
+        """
         # RN04: penalized student cannot book
         if self._penalty.is_penalized(student_id):
             msg = "Student is currently penalized and cannot create bookings"
@@ -142,6 +157,11 @@ class BookingService:
         return slots
 
     def confirm_booking(self, booking_id: str, instructor_id: str) -> Booking:
+        """Move a PENDENTE booking to CONFIRMADA and notify the student by email.
+
+        Raises ``ValueError`` if the booking does not exist, belongs to another instructor or
+        cannot transition to CONFIRMADA.
+        """
         booking = self._get_booking_or_raise(booking_id)
         if booking.instructor_id != instructor_id:
             msg = "Only the instructor can confirm this booking"
@@ -176,6 +196,11 @@ class BookingService:
         cancelled_by: str,
         reason: str | None = None,
     ) -> Booking:
+        """Cancel a booking, release its reserved slots and notify the affected parties.
+
+        When the student cancels less than 24 hours before the first slot, a 7-day penalty is
+        applied (RN04). Raises ``ValueError`` if the booking does not exist or cannot be cancelled.
+        """
         booking = self._get_booking_or_raise(booking_id)
 
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CANCELADA)
@@ -253,6 +278,7 @@ class BookingService:
         return recipients
 
     def get_booking(self, booking_id: str) -> Booking | None:
+        """Return the booking with the given ID, or ``None`` if it does not exist."""
         return self._db.query(Booking).filter(Booking.id == booking_id).first()
 
     def list_bookings(
@@ -261,6 +287,7 @@ class BookingService:
         role: str,
         status_filter: str | None = None,
     ) -> list[Booking]:
+        """Return the user's bookings as student (``ALUNO``) or instructor, newest first."""
         if role == "ALUNO":
             query = self._db.query(Booking).filter(Booking.student_id == user_id)
         else:

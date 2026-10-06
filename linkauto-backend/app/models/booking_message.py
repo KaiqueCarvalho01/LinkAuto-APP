@@ -1,3 +1,5 @@
+"""Chat message model attached to a booking."""
+
 from __future__ import annotations
 
 from sqlalchemy import ForeignKey, Index, String, Text
@@ -7,6 +9,8 @@ from app.models.base import AuditUUIDBase
 
 
 class BookingMessage(AuditUUIDBase):
+    """Message sent by a user within a booking's conversation (``booking_messages`` table)."""
+
     __tablename__ = "booking_messages"
 
     booking_id: Mapped[str] = mapped_column(

@@ -1,3 +1,5 @@
+"""Instructor dashboard statistics endpoint."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Response
@@ -14,6 +16,10 @@ def get_instructor_stats(
     user: CurrentInstrutor,
     db: DbSession,
 ) -> Response:
+    """Return the calling instructor's lesson, hour, student and pending-booking counts.
+
+    Requires the INSTRUTOR role.
+    """
     service = InstructorStatsService(db)
     stats = service.get_stats(instructor_id=user.user_id)
     return success_response(stats.model_dump())

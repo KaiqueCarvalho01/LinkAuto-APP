@@ -1,3 +1,5 @@
+"""Admin review of instructor credentials (DETRAN approval or rejection)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -18,11 +20,15 @@ if TYPE_CHECKING:
 
 @dataclass
 class AdminValidationResult:
+    """Outcome of an admin decision: the updated instructor payload and the document purge."""
+
     instructor: dict
     cleanup: DocumentCleanupResult
 
 
 class AdminValidationService:
+    """List instructors for review and approve or reject their DETRAN credentials."""
+
     def __init__(
         self,
         *,
@@ -31,6 +37,7 @@ class AdminValidationService:
         cleanup_service: DocumentCleanupService,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Wire the collaborators; without a notification service no e-mail is sent."""
         self._store = store
         self._profile_service = profile_service
         self._cleanup_service = cleanup_service
@@ -39,6 +46,7 @@ class AdminValidationService:
     def list_instructors(
         self, *, status: str | None = None, page: int = 1, page_size: int = 20
     ) -> dict:
+        """Return a page of instructor profiles, optionally filtered by DETRAN status."""
         instructors = self._store.list_instructors(status=status)
         start = (page - 1) * page_size
         end = start + page_size
@@ -48,6 +56,10 @@ class AdminValidationService:
         return {"items": items, "total": len(instructors), "page": page, "page_size": page_size}
 
     def approve(self, *, instructor_id: str, admin_id: str) -> AdminValidationResult:
+        """Set the instructor's DETRAN status to APROVADO, required for public visibility.
+
+        Also purges the submitted documents and notifies the instructor by e-mail.
+        """
         self._store.review_instructor(
             instructor_id,
             status=DetranStatus.APROVADO.value,
@@ -64,6 +76,10 @@ class AdminValidationService:
     def reject(
         self, *, instructor_id: str, admin_id: str, reason: str | None
     ) -> AdminValidationResult:
+        """Set the instructor's DETRAN status to REJEITADO with an optional reason.
+
+        Also purges the submitted documents and e-mails the instructor the reason.
+        """
         self._store.review_instructor(
             instructor_id,
             status=DetranStatus.REJEITADO.value,

@@ -1,3 +1,5 @@
+"""SQLAlchemy persistence adapter for the booking scheduler."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -17,10 +19,14 @@ if TYPE_CHECKING:
 
 
 class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
+    """SQLAlchemy implementation of the booking scheduler's persistence port."""
+
     def __init__(self, db: Session) -> None:
+        """Store the database session."""
         self._db = db
 
     def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
+        """Return IDs of PENDENTE bookings created at or before ``cutoff_utc``."""
         bookings = (
             self._db.query(Booking)
             .filter(
@@ -33,7 +39,6 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
 
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
         """Find confirmed bookings whose last slot ended before cutoff_utc."""
-
         results = (
             self._db.query(Booking.id)
             .join(BookingSlot, BookingSlot.booking_id == Booking.id)
@@ -46,6 +51,10 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         return [r[0] for r in results]
 
     def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
+        """Transition a booking to ``status``, ignoring unknown booking IDs.
+
+        Cancellations are attributed to ``SISTEMA`` with ``reason`` as the cancellation reason.
+        """
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
             return
@@ -57,7 +66,7 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         self._db.flush()
 
     def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
-
+        """Return IDs of unreminded CONFIRMADA bookings whose first slot starts in the window."""
         results = (
             self._db.query(Booking.id)
             .join(BookingSlot, BookingSlot.booking_id == Booking.id)
@@ -74,12 +83,14 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         return [r[0] for r in results]
 
     def mark_reminder_sent(self, booking_id: str) -> None:
+        """Flag the booking's lesson reminder as sent, if the booking exists."""
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if booking:
             booking.reminder_sent = True
             self._db.flush()
 
     def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
+        """Return the student and instructor emails of a booking, ``None`` when unknown."""
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
             return None, None

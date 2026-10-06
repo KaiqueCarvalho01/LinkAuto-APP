@@ -1,3 +1,5 @@
+"""Admin-only endpoints that trigger the booking automation jobs on demand."""
+
 from fastapi import APIRouter, Response
 
 from app.api.deps.types import CurrentAdmin, DbSession
@@ -14,6 +16,7 @@ def run_booking_timeout(
     _: CurrentAdmin,
     db: DbSession,
 ) -> Response:
+    """Cancel PENDENTE bookings created more than 24 hours ago. Admin only."""
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
     result = scheduler.run_pending_timeout()
@@ -29,6 +32,7 @@ def run_booking_completion(
     _: CurrentAdmin,
     db: DbSession,
 ) -> Response:
+    """Mark CONFIRMADA bookings as REALIZADA once their last slot ended 2+ hours ago. Admin only."""
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
     result = scheduler.run_confirmed_completion()
@@ -44,6 +48,11 @@ def run_booking_reminder(
     _: CurrentAdmin,
     db: DbSession,
 ) -> Response:
+    """E-mail a reminder for bookings whose lesson starts in about 24 hours. Admin only.
+
+    Covers bookings starting 23 to 25 hours from now that have not been reminded yet,
+    and returns the number of bookings reminded and their IDs.
+    """
     port = SqlAlchemyBookingAutomationPort(db)
 
     scheduler = BookingScheduler(port, notification_service=get_notification_service())

@@ -1,3 +1,5 @@
+"""FastAPI application factory and ASGI entry point for the LinkAuto API."""
+
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -22,6 +24,11 @@ if TYPE_CHECKING:
 
 
 def create_app() -> FastAPI:
+    """Build the FastAPI app with middleware, API routes, error handlers and a health check.
+
+    On startup the lifespan hook initializes the SQLite development database. Errors are
+    returned in the standard error envelope (429, HTTP errors, 422 validation, 409 conflict).
+    """
     setup_logging()
     settings = get_settings()
 

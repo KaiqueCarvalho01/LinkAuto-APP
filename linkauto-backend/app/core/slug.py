@@ -1,3 +1,5 @@
+"""Helpers for generating URL-friendly profile slugs."""
+
 from __future__ import annotations
 
 import re

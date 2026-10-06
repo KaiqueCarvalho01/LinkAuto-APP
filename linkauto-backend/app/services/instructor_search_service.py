@@ -1,3 +1,5 @@
+"""Geographic search of approved instructors with rating, price and specialty filters."""
+
 from __future__ import annotations
 
 import math
@@ -23,10 +25,20 @@ def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> f
 
 
 class InstructorSearchService:
+    """Find publicly visible instructors near a location."""
+
     def __init__(self, db: Session) -> None:
+        """Store the DB session used to query instructor profiles."""
         self._db = db
 
     def search(self, filters: InstructorSearchFilters) -> list[InstructorProfile]:
+        """Return active, DETRAN-approved instructors within ``radius_km`` of the given point.
+
+        Rating and price are filtered in SQL; distance (Haversine) and specialties
+        (case-insensitive substring match on any requested specialty) are filtered in
+        Python. Results are sorted by distance unless ``sort_by`` is ``rating``,
+        ``price_asc`` or ``price_desc``.
+        """
         latitude, longitude = filters.latitude, filters.longitude
         radius_km, min_rating, max_price = filters.radius_km, filters.min_rating, filters.max_price
         specialties, sort_by = filters.specialties, filters.sort_by

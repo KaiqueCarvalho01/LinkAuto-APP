@@ -1,3 +1,5 @@
+"""Read and update the authenticated user's profile and list approved instructors."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -9,7 +11,10 @@ if TYPE_CHECKING:
 
 
 class ProfileService:
+    """Serialize user profiles from the identity store into API payloads."""
+
     def __init__(self, store: IdentityStore) -> None:
+        """Store the identity store used to look up and update users."""
         self._store = store
 
     @staticmethod
@@ -26,6 +31,7 @@ class ProfileService:
         }
 
     def get_me(self, user_id: str) -> dict:
+        """Return the serialized user; raise ``ValueError`` if the user does not exist."""
         user = self._store.get_user(user_id)
         if user is None:
             msg = "User not found."
@@ -33,10 +39,15 @@ class ProfileService:
         return self._serialize_user(user)
 
     def update_me(self, user_id: str, payload: dict) -> dict:
+        """Merge the student/instructor profile updates in ``payload`` and return the user.
+
+        The store raises ``ValueError`` if the user is missing or lacks the matching role.
+        """
         user = self._store.update_profile(user_id, payload)
         return self._serialize_user(user)
 
     def list_public_instructors(self) -> list[dict]:
+        """Return active instructors whose DETRAN status is APROVADO (approved by an admin)."""
         instructors = self._store.list_public_instructors()
         response: list[dict] = []
         for user in instructors:

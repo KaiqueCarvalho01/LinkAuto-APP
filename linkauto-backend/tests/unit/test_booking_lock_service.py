@@ -9,8 +9,9 @@ from app.services.booking_lock_service import SqlAlchemySlotReservationStore
 
 
 def test_sqlalchemy_slot_reservation_store_has_static_table_name() -> None:
-    """D08 - P2: SqlAlchemySlotReservationStore deve possuir _TABLE_NAME estático como slots
-    e não deve aceitar o parâmetro table_name no construtor.
+    """D08 - P2: SqlAlchemySlotReservationStore deve possuir _TABLE_NAME estático.
+
+    O valor deve ser "slots", e o construtor não deve aceitar o parâmetro table_name.
     """
     # 1. Verifica se existe o atributo de classe privado _TABLE_NAME
     assert getattr(SqlAlchemySlotReservationStore, "_TABLE_NAME", None) == "slots"

@@ -1,3 +1,5 @@
+"""Alembic migration environment wired to the application settings and model metadata."""
+
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -25,6 +27,7 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
+    """Run migrations in offline mode, emitting SQL with literal binds instead of connecting."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -38,6 +41,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run migrations in online mode against a live database connection (no pooling)."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

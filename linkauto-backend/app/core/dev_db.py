@@ -1,3 +1,5 @@
+"""Local development SQLite bootstrap and demo data seeding."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -307,6 +309,11 @@ def seed_dev_data(session: Session) -> None:
 
 
 def initialize_sqlite_dev_database(settings: Settings) -> None:
+    """Create (and optionally reset and seed) the SQLite database in development.
+
+    No-op outside APP_ENV=development or for non-file SQLite URLs. When
+    RESET_SQLITE_ON_STARTUP is set, the file is deleted, recreated and seeded with demo data.
+    """
     if settings.app_env.lower() != "development":
         return
 

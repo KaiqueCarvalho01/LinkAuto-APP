@@ -1,3 +1,5 @@
+"""HTTP middleware that adds security headers to every response."""
+
 from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -8,7 +10,10 @@ if TYPE_CHECKING:
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add hardening headers (nosniff, frame denial, referrer/permissions policy, no-cache)."""
+
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        """Call the next handler and set the security headers on its response."""
         response = await call_next(request)
 
         # D04: Injetar cabeçalhos de segurança recomendados (SECURITY_TECHNIQUES.md)

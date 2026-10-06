@@ -1,3 +1,5 @@
+"""UTC-normalized datetime type for Pydantic schemas."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -7,6 +9,10 @@ from pydantic import BeforeValidator, PlainSerializer
 
 
 def parse_datetime(v: object) -> datetime:
+    """Parse a datetime or ISO 8601 string (``Z`` suffix allowed) into an aware UTC datetime.
+
+    Naive values are assumed to be UTC; any other input raises ValueError.
+    """
     if isinstance(v, datetime):
         if v.tzinfo is None:
             return v.replace(tzinfo=UTC)
@@ -23,6 +29,7 @@ def parse_datetime(v: object) -> datetime:
 
 
 def serialize_datetime(dt: datetime) -> str:
+    """Format a datetime as UTC ``YYYY-MM-DDTHH:MM:SSZ``, treating naive values as UTC."""
     dt = dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt.astimezone(UTC)
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
