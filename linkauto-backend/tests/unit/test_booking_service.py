@@ -218,3 +218,25 @@ class TestBookingServiceNotifications:
         assert email["recipients"] == ["inst@test.com"]
         assert "cancelado" in email["body"]
         assert "Preciso cancelar" in email["body"]
+
+    @pytest.mark.parametrize(
+        ("cancelled_by", "user_id", "expected_recipients"),
+        [
+            ("ALUNO", "stu-001", ["inst@test.com"]),
+            ("INSTRUTOR", "inst-001", ["stu@test.com"]),
+            ("SISTEMA", "system", ["stu@test.com", "inst@test.com"]),
+        ],
+    )
+    def test_cancel_booking_notifies_the_other_party(
+        self, db_session, cancelled_by, user_id, expected_recipients
+    ):
+        gateway = InMemoryEmailGateway()
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001", base_offset_hours=48)
+        service = BookingService(db_session, notification_service=NotificationService(gateway))
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+        gateway.sent_messages.clear()
+
+        service.cancel_booking(booking.id, user_id, cancelled_by)
+
+        assert [m["recipients"] for m in gateway.sent_messages] == [expected_recipients]

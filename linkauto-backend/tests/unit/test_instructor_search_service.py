@@ -4,6 +4,7 @@ from app.models.user import (
     User,
     UserRole,
 )
+from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
 
 
@@ -41,7 +42,9 @@ class TestInstructorSearch:
         _seed_instructors(db_session)
         service = InstructorSearchService(db_session)
 
-        results = service.search(latitude=-22.43, longitude=-46.95, radius_km=50)
+        results = service.search(
+            InstructorSearchFilters(latitude=-22.43, longitude=-46.95, radius_km=50)
+        )
 
         statuses = {r.detran_status for r in results}
         assert DetranStatus.PENDENTE.value not in statuses
@@ -51,7 +54,9 @@ class TestInstructorSearch:
         _seed_instructors(db_session)
         service = InstructorSearchService(db_session)
 
-        results = service.search(latitude=-22.43, longitude=-46.95, radius_km=5)
+        results = service.search(
+            InstructorSearchFilters(latitude=-22.43, longitude=-46.95, radius_km=5)
+        )
 
         # Only the very close ones (Mogi Mirim area), not São Paulo
         assert len(results) <= 2

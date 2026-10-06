@@ -1,4 +1,5 @@
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
+from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
 
 
@@ -48,10 +49,12 @@ class TestInstructorSearchAdvanced:
         service = InstructorSearchService(db_session)
 
         results = service.search(
-            latitude=-22.4319,
-            longitude=-46.9578,
-            radius_km=30,
-            specialties=["Rodovias"],
+            InstructorSearchFilters(
+                latitude=-22.4319,
+                longitude=-46.9578,
+                radius_km=30,
+                specialties=["Rodovias"],
+            )
         )
         assert len(results) == 1
         assert results[0].full_name == "Ana Rodovia"
@@ -61,10 +64,12 @@ class TestInstructorSearchAdvanced:
         service = InstructorSearchService(db_session)
 
         results = service.search(
-            latitude=-22.4319,
-            longitude=-46.9578,
-            radius_km=30,
-            specialties=["baliza"],
+            InstructorSearchFilters(
+                latitude=-22.4319,
+                longitude=-46.9578,
+                radius_km=30,
+                specialties=["baliza"],
+            )
         )
         assert len(results) == 2
         names = {r.full_name for r in results}
@@ -75,10 +80,12 @@ class TestInstructorSearchAdvanced:
         service = InstructorSearchService(db_session)
 
         results = service.search(
-            latitude=-22.4319,
-            longitude=-46.9578,
-            radius_km=30,
-            sort_by="price_asc",
+            InstructorSearchFilters(
+                latitude=-22.4319,
+                longitude=-46.9578,
+                radius_km=30,
+                sort_by="price_asc",
+            )
         )
         prices = [float(r.price_per_hour) for r in results]
         assert prices == [70.0, 80.0, 110.0]
@@ -88,10 +95,12 @@ class TestInstructorSearchAdvanced:
         service = InstructorSearchService(db_session)
 
         results = service.search(
-            latitude=-22.4319,
-            longitude=-46.9578,
-            radius_km=30,
-            sort_by="price_desc",
+            InstructorSearchFilters(
+                latitude=-22.4319,
+                longitude=-46.9578,
+                radius_km=30,
+                sort_by="price_desc",
+            )
         )
         prices = [float(r.price_per_hour) for r in results]
         assert prices == [110.0, 80.0, 70.0]
@@ -101,10 +110,12 @@ class TestInstructorSearchAdvanced:
         service = InstructorSearchService(db_session)
 
         results = service.search(
-            latitude=-22.4319,
-            longitude=-46.9578,
-            radius_km=30,
-            sort_by="rating",
+            InstructorSearchFilters(
+                latitude=-22.4319,
+                longitude=-46.9578,
+                radius_km=30,
+                sort_by="rating",
+            )
         )
         ratings = [r.rating_avg for r in results]
         assert ratings == [5.0, 4.9, 4.2]
@@ -115,9 +126,11 @@ class TestInstructorSearchAdvanced:
 
         # Origin is exactly Carlos Baliza's position (-22.4319, -46.9578)
         results = service.search(
-            latitude=-22.4319,
-            longitude=-46.9578,
-            radius_km=30,
-            sort_by="distance",
+            InstructorSearchFilters(
+                latitude=-22.4319,
+                longitude=-46.9578,
+                radius_km=30,
+                sort_by="distance",
+            )
         )
         assert results[0].full_name == "Carlos Baliza"

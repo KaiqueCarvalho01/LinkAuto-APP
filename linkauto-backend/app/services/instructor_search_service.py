@@ -8,6 +8,8 @@ from app.models.user import DetranStatus, InstructorProfile
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
+    from app.schemas.instructor_search import InstructorSearchFilters
+
 EARTH_RADIUS_KM = 6371.0
 
 
@@ -24,16 +26,10 @@ class InstructorSearchService:
     def __init__(self, db: Session):
         self._db = db
 
-    def search(
-        self,
-        latitude: float,
-        longitude: float,
-        radius_km: float = 20.0,
-        min_rating: float | None = None,
-        max_price: float | None = None,
-        specialties: list[str] | None = None,
-        sort_by: str | None = None,
-    ) -> list[InstructorProfile]:
+    def search(self, filters: InstructorSearchFilters) -> list[InstructorProfile]:
+        latitude, longitude = filters.latitude, filters.longitude
+        radius_km, min_rating, max_price = filters.radius_km, filters.min_rating, filters.max_price
+        specialties, sort_by = filters.specialties, filters.sort_by
         query = self._db.query(InstructorProfile).filter(
             InstructorProfile.detran_status == DetranStatus.APROVADO.value,
             InstructorProfile.is_active.is_(True),

@@ -61,6 +61,29 @@ class TestBookingContract:
         data = resp.json()["data"]
         assert data["status"] == "PENDENTE"
 
+    def test_create_booking_persists_meeting_location(self, client):
+        get_identity_store().reset()
+        inst_id, inst_token = _register_login("INSTRUTOR", "locinst@test.com", client)
+        _, stu_token = _register_login("ALUNO", "locstu@test.com", client)
+        slot_ids = _setup_instructor_with_slots(inst_token, client)
+
+        resp = client.post(
+            "/api/v1/bookings",
+            json={
+                "instructor_id": inst_id,
+                "slot_ids": slot_ids[:2],
+                "location_description": "Praça central",
+                "latitude": -22.43,
+                "longitude": -46.95,
+            },
+            headers={"Authorization": f"Bearer {stu_token}"},
+        )
+        assert resp.status_code == 201
+        data = resp.json()["data"]
+        assert data["location_description"] == "Praça central"
+        assert data["latitude"] == -22.43
+        assert data["longitude"] == -46.95
+
     def test_list_bookings_returns_200(self, client):
         get_identity_store().reset()
         _, stu_token = _register_login("ALUNO", "liststu@test.com", client)

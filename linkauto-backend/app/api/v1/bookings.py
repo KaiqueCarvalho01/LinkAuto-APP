@@ -11,6 +11,7 @@ from app.schemas.booking import (
 )
 from app.schemas.common import success_response
 from app.services.booking_service import (
+    BookingLocation,
     BookingService,
     PenalizedStudentError,
     SlotValidationError,
@@ -31,9 +32,11 @@ def create_booking(
             student_id=current_user.user_id,
             instructor_id=body.instructor_id,
             slot_ids=body.slot_ids,
-            location_description=body.location_description,
-            latitude=body.latitude,
-            longitude=body.longitude,
+            location=BookingLocation(
+                description=body.location_description,
+                latitude=body.latitude,
+                longitude=body.longitude,
+            ),
         )
         db.commit()
         return success_response(
