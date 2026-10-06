@@ -24,13 +24,21 @@ class TokenPayload(BaseModel):
     jti: str
 
 
+BCRYPT_MAX_PASSWORD_BYTES = 72
+
+
+def _password_bytes(password: str) -> bytes:
+    # bcrypt only uses the first 72 bytes. bcrypt<5 truncated silently; bcrypt>=5 raises instead.
+    # Truncate explicitly to keep existing hashes and long passwords working.
+    return password.encode("utf-8")[:BCRYPT_MAX_PASSWORD_BYTES]
+
+
 def hash_password(password: str) -> str:
-    password_bytes = password.encode("utf-8")
-    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(_password_bytes(password), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
+    return bcrypt.checkpw(_password_bytes(plain_password), password_hash.encode("utf-8"))
 
 
 def _epoch_seconds(value: datetime) -> int:
