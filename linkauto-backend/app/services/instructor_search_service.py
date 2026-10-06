@@ -23,7 +23,7 @@ def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> f
 
 
 class InstructorSearchService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def search(self, filters: InstructorSearchFilters) -> list[InstructorProfile]:

@@ -18,7 +18,7 @@ def _login(email: str, password: str = "strong-password"):
     return client.post("/api/v1/auth/login", json={"email": email, "password": password})
 
 
-def test_auth_register_login_refresh_and_reset_contract():
+def test_auth_register_login_refresh_and_reset_contract() -> None:
     _register_user("contract-user@example.com", ["ALUNO"])
 
     login_response = _login("contract-user@example.com")
@@ -60,7 +60,7 @@ def test_auth_register_login_refresh_and_reset_contract():
     assert reset_payload["data"]["status"] == "accepted"
 
 
-def test_users_me_get_and_patch_contract():
+def test_users_me_get_and_patch_contract() -> None:
     _register_user("profile-contract@example.com", ["ALUNO", "INSTRUTOR"])
     login_response = _login("profile-contract@example.com")
     access_token = login_response.json()["data"]["access_token"]

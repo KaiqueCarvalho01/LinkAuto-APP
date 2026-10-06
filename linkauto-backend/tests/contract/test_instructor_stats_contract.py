@@ -9,7 +9,7 @@ def _create_token_for(user_id: str, roles: list[str]) -> str:
 
 
 class TestInstructorStatsContract:
-    def test_instructor_stats_success_for_instructor(self, client, db_session):
+    def test_instructor_stats_success_for_instructor(self, client, db_session) -> None:
         inst_id = "contract-inst-stat-id"
         user = User(
             id=inst_id,
@@ -41,7 +41,7 @@ class TestInstructorStatsContract:
         assert "unique_students" in data
         assert "pending_bookings" in data
 
-    def test_instructor_stats_forbidden_for_student(self, client, db_session):
+    def test_instructor_stats_forbidden_for_student(self, client, db_session) -> None:
         student_id = "contract-student-id"
         user = User(
             id=student_id,
@@ -57,6 +57,6 @@ class TestInstructorStatsContract:
 
         assert resp.status_code == 403
 
-    def test_instructor_stats_unauthorized_without_token(self, client):
+    def test_instructor_stats_unauthorized_without_token(self, client) -> None:
         resp = client.get("/api/v1/instructor/stats")
         assert resp.status_code == 401

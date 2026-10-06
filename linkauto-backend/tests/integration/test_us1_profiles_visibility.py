@@ -22,7 +22,7 @@ def _login(email: str, password: str = "strong-password"):
     return response
 
 
-def test_multi_role_profile_updates_keep_other_profile_intact():
+def test_multi_role_profile_updates_keep_other_profile_intact() -> None:
     _register_user("multirole@example.com", ["ALUNO", "INSTRUTOR"])
     login_response = _login("multirole@example.com")
     headers = {"Authorization": f"Bearer {login_response.json()['data']['access_token']}"}
@@ -57,7 +57,7 @@ def test_multi_role_profile_updates_keep_other_profile_intact():
     assert data["instructor_profile"]["bio"] == "Especialista em direção defensiva"
 
 
-def test_non_approved_instructor_hidden_from_public_list_until_admin_approval():
+def test_non_approved_instructor_hidden_from_public_list_until_admin_approval() -> None:
 
     instructor = _register_user("hidden-instructor@example.com", ["INSTRUTOR"])
     get_identity_store().create_user(

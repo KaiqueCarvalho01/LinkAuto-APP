@@ -25,18 +25,18 @@ def _seed_student(db_session, student_id="stu-001"):
 
 
 class TestPenaltyService:
-    def test_no_active_penalty(self, db_session):
+    def test_no_active_penalty(self, db_session) -> None:
         student_id = _seed_student(db_session)
         service = PenaltyService(db_session)
         assert service.is_penalized(student_id) is False
 
-    def test_active_penalty_blocks(self, db_session):
+    def test_active_penalty_blocks(self, db_session) -> None:
         student_id = _seed_student(db_session)
         service = PenaltyService(db_session)
         service.apply_penalty(student_id, reason="Late cancellation RN04")
         assert service.is_penalized(student_id) is True
 
-    def test_expired_penalty_does_not_block(self, db_session):
+    def test_expired_penalty_does_not_block(self, db_session) -> None:
         student_id = _seed_student(db_session)
         penalty = StudentPenalty(
             student_id=student_id,

@@ -17,7 +17,7 @@ correlation_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
 class CorrelationIDFilter(logging.Filter):
     """Logging filter to inject the current correlation ID into log records."""
 
-    def filter(self, record):
+    def filter(self, record) -> bool:
         record.correlation_id = correlation_id_ctx.get() or "no-trace"
         return True
 
@@ -41,7 +41,7 @@ class CorrelationIDMiddleware(BaseHTTPMiddleware):
             correlation_id_ctx.reset(token)
 
 
-def setup_logging():
+def setup_logging() -> None:
     """Configure logging with the trace/correlation ID filter and the standard format."""
     # Create the filter
     corr_filter = CorrelationIDFilter()

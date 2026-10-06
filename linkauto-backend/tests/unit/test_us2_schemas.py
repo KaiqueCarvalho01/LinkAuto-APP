@@ -8,7 +8,7 @@ from app.schemas.slot import SlotCreateRequest, SlotResource
 
 
 class TestSlotSchemas:
-    def test_slot_create_valid(self):
+    def test_slot_create_valid(self) -> None:
         now = datetime.now(UTC)
         req = SlotCreateRequest(
             starts_at=now + timedelta(hours=1),
@@ -16,7 +16,7 @@ class TestSlotSchemas:
         )
         assert req.starts_at is not None
 
-    def test_slot_create_rejects_past_starts_at(self):
+    def test_slot_create_rejects_past_starts_at(self) -> None:
         past = datetime.now(UTC) - timedelta(hours=1)
         with pytest.raises(ValidationError):
             SlotCreateRequest(
@@ -24,7 +24,7 @@ class TestSlotSchemas:
                 ends_at=past + timedelta(hours=1),
             )
 
-    def test_slot_create_rejects_non_1h_duration(self):
+    def test_slot_create_rejects_non_1h_duration(self) -> None:
         now = datetime.now(UTC) + timedelta(hours=1)
         with pytest.raises(ValidationError):
             SlotCreateRequest(
@@ -32,7 +32,7 @@ class TestSlotSchemas:
                 ends_at=now + timedelta(hours=2),
             )
 
-    def test_slot_resource_serializes(self):
+    def test_slot_resource_serializes(self) -> None:
         now = datetime.now(UTC)
         res = SlotResource(
             id="slot-001",
@@ -45,21 +45,21 @@ class TestSlotSchemas:
 
 
 class TestBookingSchemas:
-    def test_booking_create_valid(self):
+    def test_booking_create_valid(self) -> None:
         req = BookingCreateRequest(
             instructor_id="inst-001",
             slot_ids=["slot-001", "slot-002"],
         )
         assert len(req.slot_ids) == 2
 
-    def test_booking_create_rejects_less_than_2_slots(self):
+    def test_booking_create_rejects_less_than_2_slots(self) -> None:
         with pytest.raises(ValidationError):
             BookingCreateRequest(
                 instructor_id="inst-001",
                 slot_ids=["slot-001"],
             )
 
-    def test_booking_resource_serializes(self):
+    def test_booking_resource_serializes(self) -> None:
         now = datetime.now(UTC)
         res = BookingResource(
             id="book-001",

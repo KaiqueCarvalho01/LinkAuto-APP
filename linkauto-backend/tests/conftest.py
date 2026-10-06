@@ -14,5 +14,5 @@ def reset_identity_store():
 
 
 @pytest.fixture(autouse=True)
-def reset_limiter_global():
+def reset_limiter_global() -> None:
     limiter.reset()

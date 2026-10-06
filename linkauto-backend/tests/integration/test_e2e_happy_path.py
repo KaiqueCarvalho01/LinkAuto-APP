@@ -48,7 +48,7 @@ def _create_consecutive_slots(client, headers_instructor):
     return slot_ids
 
 
-def _complete_booking(client, db_session, booking_id, slot_ids, headers_admin):
+def _complete_booking(client, db_session, booking_id, slot_ids, headers_admin) -> None:
     """Backdate the slots (simulating time passing) and run the completion job."""
     db_session.query(Slot).filter(Slot.id.in_(slot_ids)).update(
         {
@@ -70,7 +70,7 @@ def _post(client, url, payload, headers):
     return resp
 
 
-def test_happy_path_e2e_journey(client, db_session):
+def test_happy_path_e2e_journey(client, db_session) -> None:
     """End-to-end happy-path integration smoke test for student-instructor-admin lifecycle."""
     # 1. Register users and authenticate all roles
     _register(client, "student_e2e@test.com", UserRole.ALUNO, "Student E2E", "11999999999")

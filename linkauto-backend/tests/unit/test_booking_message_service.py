@@ -12,7 +12,9 @@ def mock_notification_service():
     return NotificationService(email_gateway=gateway), gateway
 
 
-def test_send_message_creates_record_and_dispatches_email(db_session, mock_notification_service):
+def test_send_message_creates_record_and_dispatches_email(
+    db_session, mock_notification_service
+) -> None:
     """send_message persists the message and notifies the opposing party (new_booking_message)."""
     notification_svc, gateway = mock_notification_service
 
@@ -49,7 +51,7 @@ def test_send_message_creates_record_and_dispatches_email(db_session, mock_notif
     assert "student-456" in email["body"]
 
 
-def test_send_message_rejects_unauthorized_sender(db_session):
+def test_send_message_rejects_unauthorized_sender(db_session) -> None:
     """send_message raises access error if sender is not part of the booking."""
     booking = Booking(
         id="booking-123",
@@ -71,7 +73,7 @@ def test_send_message_rejects_unauthorized_sender(db_session):
         )
 
 
-def test_list_messages_retrieves_chronologically(db_session):
+def test_list_messages_retrieves_chronologically(db_session) -> None:
     """list_messages returns all messages in chronological order and checks authorization."""
     booking = Booking(
         id="booking-123",

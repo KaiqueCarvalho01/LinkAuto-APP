@@ -6,7 +6,7 @@ from app.models.user import DetranStatus, InstructorProfile, StudentProfile, Use
 from app.services.instructor_stats_service import InstructorStatsService
 
 
-def _seed_instructor_stats(db_session, instructor_id="inst-stats-1"):
+def _seed_instructor_stats(db_session, instructor_id="inst-stats-1") -> None:
     # Create instructor
     u_inst = User(
         id=instructor_id,
@@ -69,7 +69,7 @@ def _seed_instructor_stats(db_session, instructor_id="inst-stats-1"):
 
 
 class TestInstructorStatsService:
-    def test_get_instructor_stats(self, db_session):
+    def test_get_instructor_stats(self, db_session) -> None:
         inst_id = "inst-stats-1"
         _seed_instructor_stats(db_session, instructor_id=inst_id)
         service = InstructorStatsService(db_session)

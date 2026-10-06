@@ -20,7 +20,7 @@ def _login(email: str, password: str = "strong-password"):
     return response
 
 
-def test_document_upload_rejects_invalid_mime_type():
+def test_document_upload_rejects_invalid_mime_type() -> None:
     instructor = _register_user("doc-invalid-mime@example.com", ["INSTRUTOR"])
     login = _login("doc-invalid-mime@example.com")
     headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
@@ -38,7 +38,7 @@ def test_document_upload_rejects_invalid_mime_type():
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
 
 
-def test_document_upload_rejects_file_over_10mb():
+def test_document_upload_rejects_file_over_10mb() -> None:
     instructor = _register_user("doc-oversize@example.com", ["INSTRUTOR"])
     login = _login("doc-oversize@example.com")
     headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
@@ -57,7 +57,7 @@ def test_document_upload_rejects_file_over_10mb():
     assert response.json()["error"]["code"] == "PAYLOAD_TOO_LARGE"
 
 
-def test_document_upload_accepts_allowed_mime_within_limit():
+def test_document_upload_accepts_allowed_mime_within_limit() -> None:
     instructor = _register_user("doc-valid@example.com", ["INSTRUTOR"])
     login = _login("doc-valid@example.com")
     headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}

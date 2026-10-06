@@ -27,7 +27,7 @@ def _register_and_login_instructor(client):
 
 
 class TestSlotEndpoints:
-    def test_create_slot_returns_201(self, client):
+    def test_create_slot_returns_201(self, client) -> None:
         token = _register_and_login_instructor(client)
         now = datetime.now(UTC) + timedelta(hours=2)
         resp = client.post(
@@ -41,7 +41,7 @@ class TestSlotEndpoints:
         assert resp.status_code == 201
         assert resp.json()["data"]["status"] == "DISPONIVEL"
 
-    def test_list_slots_returns_200(self, client):
+    def test_list_slots_returns_200(self, client) -> None:
         token = _register_and_login_instructor(client)
         resp = client.get(
             "/api/v1/instructors/me/slots",
@@ -50,7 +50,7 @@ class TestSlotEndpoints:
         assert resp.status_code == 200
         assert "data" in resp.json()
 
-    def test_create_slot_rejects_unauthenticated(self, client):
+    def test_create_slot_rejects_unauthenticated(self, client) -> None:
         now = datetime.now(UTC) + timedelta(hours=2)
         resp = client.post(
             "/api/v1/instructors/me/slots",

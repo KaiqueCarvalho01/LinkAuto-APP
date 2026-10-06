@@ -16,7 +16,7 @@ from app.services.booking_scheduler import BookingScheduler
 from app.services.booking_service import BookingService
 
 
-def _full_seed(db_session):
+def _full_seed(db_session) -> None:
     inst = User(
         id="reg-inst", email="reginst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
     )
@@ -35,7 +35,7 @@ def _full_seed(db_session):
 
 
 class TestBookingCascadeRegression:
-    def test_full_happy_path_lifecycle(self, db_session):
+    def test_full_happy_path_lifecycle(self, db_session) -> None:
         """PENDENTE → CONFIRMADA → REALIZADA via service layer."""
         _full_seed(db_session)
         now = datetime.now(UTC) + timedelta(hours=4)
@@ -58,7 +58,7 @@ class TestBookingCascadeRegression:
         booking = service.confirm_booking(booking.id, "reg-inst")
         assert booking.status == BookingStatus.CONFIRMADA.value
 
-    def test_domain_transition_invariants_hold(self):
+    def test_domain_transition_invariants_hold(self) -> None:
         """Domain state machine rejects invalid transitions."""
         with pytest.raises(BookingTransitionError):
             transition_booking(BookingStatus.REALIZADA, BookingStatus.PENDENTE)
@@ -66,7 +66,7 @@ class TestBookingCascadeRegression:
         with pytest.raises(BookingTransitionError):
             transition_booking(BookingStatus.CANCELADA, BookingStatus.CONFIRMADA)
 
-    def test_scheduler_integration(self, db_session):
+    def test_scheduler_integration(self, db_session) -> None:
         """Scheduler uses automation port correctly."""
         _full_seed(db_session)
         port = SqlAlchemyBookingAutomationPort(db_session)

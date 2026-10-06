@@ -9,7 +9,7 @@ def _create_token_for(user_id: str, roles: list[str]) -> str:
 
 
 class TestAdminStatsContract:
-    def test_admin_stats_endpoint_success_for_admin(self, client, db_session):
+    def test_admin_stats_endpoint_success_for_admin(self, client, db_session) -> None:
         # Create an admin user
         admin = User(
             id="admin-stat-user",
@@ -51,7 +51,7 @@ class TestAdminStatsContract:
         assert "total_bookings" in data
         assert data["pending_instructors"] >= 1
 
-    def test_admin_stats_forbidden_for_non_admin(self, client, db_session):
+    def test_admin_stats_forbidden_for_non_admin(self, client, db_session) -> None:
         student = User(
             id="student-stat-user",
             email="stud@stats.com",
@@ -66,6 +66,6 @@ class TestAdminStatsContract:
 
         assert resp.status_code == 403
 
-    def test_admin_stats_unauthorized_without_token(self, client):
+    def test_admin_stats_unauthorized_without_token(self, client) -> None:
         resp = client.get("/api/v1/admin/stats")
         assert resp.status_code == 401

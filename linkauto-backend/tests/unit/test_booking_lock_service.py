@@ -8,7 +8,7 @@ from app.models import Base, InstructorProfile, Slot, SlotStatus, User
 from app.services.booking_lock_service import SqlAlchemySlotReservationStore
 
 
-def test_sqlalchemy_slot_reservation_store_has_static_table_name():
+def test_sqlalchemy_slot_reservation_store_has_static_table_name() -> None:
     """D08 - P2: SqlAlchemySlotReservationStore deve possuir _TABLE_NAME estático como slots
     e não deve aceitar o parâmetro table_name no construtor.
     """
@@ -26,7 +26,7 @@ def test_sqlalchemy_slot_reservation_store_has_static_table_name():
         SqlAlchemySlotReservationStore(session, table_name="custom_table")
 
 
-def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing():
+def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing() -> None:
 
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)

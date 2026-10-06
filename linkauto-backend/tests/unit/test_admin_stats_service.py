@@ -3,7 +3,7 @@ from app.models.user import DetranStatus, InstructorProfile, StudentProfile, Use
 from app.services.admin_stats_service import AdminStatsService
 
 
-def _seed_stats_data(db_session):
+def _seed_stats_data(db_session) -> None:
     # 2 Approved instructors, 1 Pending, 1 Rejected
     for i, status in enumerate(
         [
@@ -50,7 +50,7 @@ def _seed_stats_data(db_session):
 
 
 class TestAdminStatsService:
-    def test_get_admin_stats_aggregation(self, db_session):
+    def test_get_admin_stats_aggregation(self, db_session) -> None:
         _seed_stats_data(db_session)
         service = AdminStatsService(db_session)
 

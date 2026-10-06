@@ -18,7 +18,7 @@ class SlotOverlapError(ValueError):
 
 
 class SlotService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def create_slot(

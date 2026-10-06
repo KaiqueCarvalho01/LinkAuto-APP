@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class PublicProfileService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def _ensure_instructor_slug(self, prof: InstructorProfile) -> str:

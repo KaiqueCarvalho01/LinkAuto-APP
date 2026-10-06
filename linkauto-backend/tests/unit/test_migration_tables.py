@@ -1,7 +1,7 @@
 from sqlalchemy import inspect
 
 
-def test_all_us2_tables_exist(test_engine):
+def test_all_us2_tables_exist(test_engine) -> None:
     """Migration must create slots, bookings, booking_slots, student_penalties tables."""
     inspector = inspect(test_engine)
     tables = inspector.get_table_names()
@@ -11,7 +11,7 @@ def test_all_us2_tables_exist(test_engine):
     assert "student_penalties" in tables
 
 
-def test_slot_unique_constraint_on_booking_slots(test_engine):
+def test_slot_unique_constraint_on_booking_slots(test_engine) -> None:
     """booking_slots.slot_id must be unique (a slot belongs to at most one booking)."""
     inspector = inspect(test_engine)
     columns = {c["name"] for c in inspector.get_columns("booking_slots")}
@@ -19,7 +19,7 @@ def test_slot_unique_constraint_on_booking_slots(test_engine):
     assert "booking_id" in columns
 
 
-def test_all_us3_tables_exist(test_engine):
+def test_all_us3_tables_exist(test_engine) -> None:
     """Migration must create booking_messages and reviews tables."""
     inspector = inspect(test_engine)
     tables = inspector.get_table_names()
@@ -27,7 +27,7 @@ def test_all_us3_tables_exist(test_engine):
     assert "reviews" in tables
 
 
-def test_review_unique_constraint_on_reviewer(test_engine):
+def test_review_unique_constraint_on_reviewer(test_engine) -> None:
     """Reviews must have a unique constraint/index on booking_id + reviewer_id."""
     inspector = inspect(test_engine)
     unique_constraints = inspector.get_unique_constraints("reviews")

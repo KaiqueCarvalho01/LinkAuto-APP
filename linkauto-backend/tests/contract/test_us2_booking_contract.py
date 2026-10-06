@@ -43,7 +43,7 @@ def _register_login(role, email, client):
 
 
 class TestBookingContract:
-    def test_create_booking_returns_201(self, client):
+    def test_create_booking_returns_201(self, client) -> None:
         get_identity_store().reset()
         inst_id, inst_token = _register_login("INSTRUTOR", "bookinst@test.com", client)
         _, stu_token = _register_login("ALUNO", "bookstu@test.com", client)
@@ -61,7 +61,7 @@ class TestBookingContract:
         data = resp.json()["data"]
         assert data["status"] == "PENDENTE"
 
-    def test_create_booking_persists_meeting_location(self, client):
+    def test_create_booking_persists_meeting_location(self, client) -> None:
         get_identity_store().reset()
         inst_id, inst_token = _register_login("INSTRUTOR", "locinst@test.com", client)
         _, stu_token = _register_login("ALUNO", "locstu@test.com", client)
@@ -84,7 +84,7 @@ class TestBookingContract:
         assert data["latitude"] == -22.43
         assert data["longitude"] == -46.95
 
-    def test_list_bookings_returns_200(self, client):
+    def test_list_bookings_returns_200(self, client) -> None:
         get_identity_store().reset()
         _, stu_token = _register_login("ALUNO", "liststu@test.com", client)
         resp = client.get(
@@ -94,6 +94,6 @@ class TestBookingContract:
         assert resp.status_code == 200
         assert "data" in resp.json()
 
-    def test_create_booking_unauthenticated_returns_401(self, client):
+    def test_create_booking_unauthenticated_returns_401(self, client) -> None:
         resp = client.post("/api/v1/bookings", json={"instructor_id": "x", "slot_ids": ["a", "b"]})
         assert resp.status_code == 401

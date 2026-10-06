@@ -39,7 +39,7 @@ def _seed_booking(db_session):
 
 
 class TestAdminBookingOverride:
-    def test_admin_overrides_terminal_to_terminal(self, db_session):
+    def test_admin_overrides_terminal_to_terminal(self, db_session) -> None:
         booking = _seed_booking(db_session)
         service = AdminBookingService(db_session)
 
@@ -51,7 +51,7 @@ class TestAdminBookingOverride:
 
         assert result.status == BookingStatus.REALIZADA.value
 
-    def test_admin_override_rejects_non_terminal(self, db_session):
+    def test_admin_override_rejects_non_terminal(self, db_session) -> None:
         booking = _seed_booking(db_session)
         service = AdminBookingService(db_session)
 

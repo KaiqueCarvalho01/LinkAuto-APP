@@ -12,7 +12,7 @@ PENALTY_DAYS = 7
 
 
 class PenaltyService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def is_penalized(self, student_id: str) -> bool:

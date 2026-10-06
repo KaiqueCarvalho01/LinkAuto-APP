@@ -7,7 +7,7 @@ from app.services.us1_store import get_identity_store
 client = TestClient(create_app())
 
 
-def test_register_with_admin_role_is_blocked():
+def test_register_with_admin_role_is_blocked() -> None:
     """D01 - P0: Bloquear ADMIN no registro público
     Tenta registrar uma conta enviando a role 'ADMIN'. Deve retornar 400 Bad Request.
     """
@@ -42,7 +42,7 @@ def _register_and_login_user(email: str, roles: list[str]) -> tuple[str, str]:
     return login_resp.json()["data"]["access_token"], user_id
 
 
-def test_patch_profile_rejects_extra_and_system_fields():
+def test_patch_profile_rejects_extra_and_system_fields() -> None:
     """D03 - P1: Fechar schema de profile update (mass assignment)
     Tentativas de atualizar campos restritos como detran_status, rating_avg, rating_count,
     ou campos não declarados (is_admin) devem retornar erro de validação.
@@ -70,7 +70,7 @@ def test_patch_profile_rejects_extra_and_system_fields():
     assert response.status_code in (400, 422)
 
 
-def test_security_headers_are_present():
+def test_security_headers_are_present() -> None:
     """D04 - P1: Security headers middleware
     Verifica se os cabeçalhos de segurança essenciais estão presentes nas respostas HTTP.
     """
@@ -85,7 +85,7 @@ def test_security_headers_are_present():
     assert "no-store" in headers.get("Cache-Control", "")
 
 
-def test_upload_with_fake_mime_is_rejected():
+def test_upload_with_fake_mime_is_rejected() -> None:
     """D06 - P1: Elevar validação de upload (magic bytes)
     Tenta realizar upload de um arquivo com MIME 'application/pdf' contendo dados
     comuns que não começam com a assinatura PDF (%PDF). Deve retornar 400 Bad Request.
@@ -110,7 +110,7 @@ def test_upload_with_fake_mime_is_rejected():
     assert "INVALID_FILE_CONTENT" in payload["error"]["message"]
 
 
-def test_rate_limit_on_login():
+def test_rate_limit_on_login() -> None:
     """D09 - P2: Rate limiting com slowapi
     Simula uma rajada de requisições no endpoint de login.
     A partir da 11ª requisição no mesmo minuto, o servidor deve responder com 429 Too Many Requests.

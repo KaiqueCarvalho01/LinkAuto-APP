@@ -6,7 +6,7 @@ from app.services.dependencies import get_notification_service
 from app.services.review_service import ReviewService
 
 
-def _setup_integration_data(db_session):
+def _setup_integration_data(db_session) -> None:
     student = User(
         id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
     )
@@ -35,7 +35,7 @@ def _setup_integration_data(db_session):
     db_session.flush()
 
 
-def test_integration_messages_and_reviews_lifecycle(db_session):
+def test_integration_messages_and_reviews_lifecycle(db_session) -> None:
     """Verify chronological chat messages, email notifications and rating recalculation."""
     _setup_integration_data(db_session)
 

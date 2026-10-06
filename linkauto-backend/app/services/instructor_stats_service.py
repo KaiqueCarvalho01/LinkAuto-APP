@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class InstructorStatsService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def get_stats(self, instructor_id: str) -> InstructorStatsResponse:

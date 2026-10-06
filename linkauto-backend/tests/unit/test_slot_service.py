@@ -28,7 +28,7 @@ def _seed_instructor(db_session, instructor_id="inst-001"):
 
 
 class TestSlotServiceCreate:
-    def test_creates_slot_successfully(self, db_session):
+    def test_creates_slot_successfully(self, db_session) -> None:
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
         now = datetime.now(UTC) + timedelta(hours=1)
@@ -43,7 +43,7 @@ class TestSlotServiceCreate:
         assert slot.status == SlotStatus.DISPONIVEL.value
         assert slot.instructor_id == instructor_id
 
-    def test_rejects_overlapping_slot(self, db_session):
+    def test_rejects_overlapping_slot(self, db_session) -> None:
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
         now = datetime.now(UTC) + timedelta(hours=2)
@@ -55,7 +55,7 @@ class TestSlotServiceCreate:
 
 
 class TestSlotServiceList:
-    def test_lists_slots_for_instructor(self, db_session):
+    def test_lists_slots_for_instructor(self, db_session) -> None:
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
         now = datetime.now(UTC) + timedelta(hours=1)
@@ -68,7 +68,7 @@ class TestSlotServiceList:
 
 
 class TestSlotServiceDelete:
-    def test_deletes_available_slot(self, db_session):
+    def test_deletes_available_slot(self, db_session) -> None:
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
         now = datetime.now(UTC) + timedelta(hours=1)
@@ -79,7 +79,7 @@ class TestSlotServiceDelete:
         slots = service.list_slots(instructor_id)
         assert len(slots) == 0
 
-    def test_cannot_delete_reserved_slot(self, db_session):
+    def test_cannot_delete_reserved_slot(self, db_session) -> None:
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
         now = datetime.now(UTC) + timedelta(hours=1)

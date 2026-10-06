@@ -5,7 +5,7 @@ from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.models.slot import Slot, SlotStatus
 
 
-def test_slot_model_creation(db_session):
+def test_slot_model_creation(db_session) -> None:
     """Slot model persists with required fields."""
     now = datetime.now(UTC)
     slot = Slot(
@@ -22,7 +22,7 @@ def test_slot_model_creation(db_session):
     assert slot.ends_at - slot.starts_at == timedelta(hours=1)
 
 
-def test_booking_model_creation(db_session):
+def test_booking_model_creation(db_session) -> None:
     """Booking model persists with required fields and default status."""
     booking = Booking(
         student_id="student-001",
@@ -37,7 +37,7 @@ def test_booking_model_creation(db_session):
     assert booking.cancelled_by is None
 
 
-def test_booking_slot_association(db_session):
+def test_booking_slot_association(db_session) -> None:
     """BookingSlot links a Booking to a Slot."""
     now = datetime.now(UTC)
     slot = Slot(
@@ -62,7 +62,7 @@ def test_booking_slot_association(db_session):
     assert link.slot_id == slot.id
 
 
-def test_student_penalty_model(db_session):
+def test_student_penalty_model(db_session) -> None:
     """StudentPenalty persists with blocking date."""
     penalty = StudentPenalty(
         student_id="student-001",

@@ -8,7 +8,7 @@ from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
 
 
-def _seed_instructors(db_session):
+def _seed_instructors(db_session) -> None:
     for i, (lat, lon, status) in enumerate(
         [
             (-22.43, -46.95, DetranStatus.APROVADO),  # Mogi Mirim
@@ -38,7 +38,7 @@ def _seed_instructors(db_session):
 
 
 class TestInstructorSearch:
-    def test_returns_only_approved_instructors(self, db_session):
+    def test_returns_only_approved_instructors(self, db_session) -> None:
         _seed_instructors(db_session)
         service = InstructorSearchService(db_session)
 
@@ -50,7 +50,7 @@ class TestInstructorSearch:
         assert DetranStatus.PENDENTE.value not in statuses
         assert len(results) >= 2  # At least the two nearby approved ones
 
-    def test_filters_by_distance(self, db_session):
+    def test_filters_by_distance(self, db_session) -> None:
         _seed_instructors(db_session)
         service = InstructorSearchService(db_session)
 

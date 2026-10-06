@@ -5,7 +5,7 @@ from app.models.booking_message import BookingMessage
 from app.models.review import Review
 
 
-def test_booking_message_model_persists(db_session):
+def test_booking_message_model_persists(db_session) -> None:
     """BookingMessage model persists with required fields."""
     message = BookingMessage(
         booking_id="booking-uuid-placeholder",
@@ -20,7 +20,7 @@ def test_booking_message_model_persists(db_session):
     assert message.created_at is not None
 
 
-def test_review_model_persists_and_enforces_unicity(db_session):
+def test_review_model_persists_and_enforces_unicity(db_session) -> None:
     """Review model persists and composition constraint restricts duplicate reviewer per booking."""
     review1 = Review(
         booking_id="booking-uuid-placeholder",

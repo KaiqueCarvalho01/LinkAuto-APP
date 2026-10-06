@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:

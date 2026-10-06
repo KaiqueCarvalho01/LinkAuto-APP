@@ -5,7 +5,7 @@ from app.main import create_app
 client = TestClient(create_app())
 
 
-def test_ping_returns_standard_success_envelope():
+def test_ping_returns_standard_success_envelope() -> None:
     response = client.get("/api/v1/foundation/ping")
 
     assert response.status_code == 200
@@ -15,7 +15,7 @@ def test_ping_returns_standard_success_envelope():
     assert payload["data"]["message"] == "foundation_ok"
 
 
-def test_login_returns_auth_envelope_and_refresh_cookie():
+def test_login_returns_auth_envelope_and_refresh_cookie() -> None:
     register_response = client.post(
         "/api/v1/auth/register",
         json={"email": "student@example.com", "password": "strong-password", "roles": ["ALUNO"]},
@@ -39,7 +39,7 @@ def test_login_returns_auth_envelope_and_refresh_cookie():
     assert "SameSite=strict" in set_cookie
 
 
-def test_conflict_returns_standard_error_envelope():
+def test_conflict_returns_standard_error_envelope() -> None:
     response = client.post("/api/v1/foundation/conflict")
 
     assert response.status_code == 409
@@ -49,7 +49,7 @@ def test_conflict_returns_standard_error_envelope():
     assert "First-write-wins" in payload["error"]["message"]
 
 
-def test_protected_endpoint_requires_bearer_token():
+def test_protected_endpoint_requires_bearer_token() -> None:
     response = client.get("/api/v1/foundation/protected")
 
     assert response.status_code == 401

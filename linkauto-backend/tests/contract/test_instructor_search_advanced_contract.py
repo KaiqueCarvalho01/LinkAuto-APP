@@ -1,7 +1,7 @@
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
 
 
-def _seed_contract_instructors(db_session):
+def _seed_contract_instructors(db_session) -> None:
     instructors_data = [
         (
             "c-inst-1",
@@ -41,7 +41,7 @@ def _seed_contract_instructors(db_session):
 
 
 class TestInstructorSearchAdvancedContract:
-    def test_search_with_specialty_and_sort(self, client, db_session):
+    def test_search_with_specialty_and_sort(self, client, db_session) -> None:
         _seed_contract_instructors(db_session)
 
         resp = client.get(
@@ -61,7 +61,7 @@ class TestInstructorSearchAdvancedContract:
         assert "c-inst-1" not in str(data)
         assert "c-inst-2" not in str(data)
 
-    def test_search_with_multiple_specialties(self, client, db_session):
+    def test_search_with_multiple_specialties(self, client, db_session) -> None:
         _seed_contract_instructors(db_session)
 
         resp = client.get(

@@ -51,7 +51,7 @@ def _seed_auth_users(db_session):
     return student_token, instructor_token, intruder_token
 
 
-def test_booking_messages_endpoints_contract_and_auth(client, db_session):
+def test_booking_messages_endpoints_contract_and_auth(client, db_session) -> None:
     """POST and GET /bookings/{id}/messages validate participants and the response envelope."""
     student_token, _, intruder_token = _seed_auth_users(db_session)
 
@@ -104,7 +104,7 @@ def test_booking_messages_endpoints_contract_and_auth(client, db_session):
     assert json_data["data"][0]["created_at"].endswith("Z")
 
 
-def test_booking_reviews_endpoints_contract_and_auth(client, db_session):
+def test_booking_reviews_endpoints_contract_and_auth(client, db_session) -> None:
     """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce rules and contract."""
     student_token, _, intruder_token = _seed_auth_users(db_session)
 

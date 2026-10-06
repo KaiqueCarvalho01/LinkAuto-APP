@@ -70,7 +70,7 @@ def _seed_full_booking(db_session, status, starts_offset_hours, booking_id="book
 
 
 class TestBookingAutomationPort:
-    def test_pending_timeout_cancels_old_bookings(self, db_session):
+    def test_pending_timeout_cancels_old_bookings(self, db_session) -> None:
         booking = _seed_full_booking(
             db_session, BookingStatus.PENDENTE.value, starts_offset_hours=-48
         )
@@ -83,7 +83,7 @@ class TestBookingAutomationPort:
         assert booking.status == BookingStatus.CANCELADA.value
         assert result.processed == 1
 
-    def test_confirmed_completion_after_2h(self, db_session):
+    def test_confirmed_completion_after_2h(self, db_session) -> None:
         booking = _seed_full_booking(
             db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=-6
         )
@@ -96,7 +96,7 @@ class TestBookingAutomationPort:
         assert booking.status == BookingStatus.REALIZADA.value
         assert result.processed == 1
 
-    def test_lesson_reminder_cron_triggers(self, db_session):
+    def test_lesson_reminder_cron_triggers(self, db_session) -> None:
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
@@ -154,7 +154,7 @@ class FailingBookingAutomationPort(BookingAutomationPort):
         return None, None
 
 
-def test_scheduler_pending_timeout_resilience_per_item():
+def test_scheduler_pending_timeout_resilience_per_item() -> None:
     """D13 - P2: Resiliência per-item no scheduler.
     Garante que se uma transição de booking falhar, o lote continue sendo processado
     para os próximos itens, retornando contadores adequados de processados e falhos.

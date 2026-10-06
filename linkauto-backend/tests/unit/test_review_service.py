@@ -18,7 +18,7 @@ def mock_notification_service():
     return NotificationService(email_gateway=gateway), gateway
 
 
-def test_create_review_valid_student_to_instructor(db_session, mock_notification_service):
+def test_create_review_valid_student_to_instructor(db_session, mock_notification_service) -> None:
     """create_review creates review, updates instructor average and dispatches notification."""
     notification_svc, gateway = mock_notification_service
 
@@ -78,7 +78,7 @@ def test_create_review_valid_student_to_instructor(db_session, mock_notification
     assert "5" in email["body"]
 
 
-def test_create_review_rejects_non_realizada_booking(db_session):
+def test_create_review_rejects_non_realizada_booking(db_session) -> None:
     """create_review raises error if booking status is not REALIZADA."""
     booking = Booking(
         id="booking-123",
@@ -100,7 +100,7 @@ def test_create_review_rejects_non_realizada_booking(db_session):
         )
 
 
-def test_create_review_rejects_duplicate_submission(db_session):
+def test_create_review_rejects_duplicate_submission(db_session) -> None:
     """create_review raises error if reviewer already submitted a review for this booking."""
     booking = Booking(
         id="booking-123",
@@ -132,7 +132,7 @@ def test_create_review_rejects_duplicate_submission(db_session):
         )
 
 
-def test_create_review_rejects_unauthorized_user(db_session):
+def test_create_review_rejects_unauthorized_user(db_session) -> None:
     """create_review raises error if reviewer is not part of the booking."""
     booking = Booking(
         id="booking-123",

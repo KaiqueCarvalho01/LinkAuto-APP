@@ -19,7 +19,7 @@ from app.services.booking_service import (
 from app.services.penalty_service import PenaltyService
 
 
-def _seed_scenario(db_session):
+def _seed_scenario(db_session) -> None:
     inst = User(
         id="rn-inst", email="rninst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
     )
@@ -56,7 +56,7 @@ def _make_slots(db_session, count=3, offset_hours=4):
 
 
 class TestRN02MinimumSlots:
-    def test_2_consecutive_slots_succeeds(self, db_session):
+    def test_2_consecutive_slots_succeeds(self, db_session) -> None:
         _seed_scenario(db_session)
         slots = _make_slots(db_session, count=2)
         service = BookingService(db_session)
@@ -64,7 +64,7 @@ class TestRN02MinimumSlots:
         booking = service.create_booking("rn-stu", "rn-inst", [s.id for s in slots])
         assert booking.status == BookingStatus.PENDENTE.value
 
-    def test_1_slot_fails(self, db_session):
+    def test_1_slot_fails(self, db_session) -> None:
         _seed_scenario(db_session)
         slots = _make_slots(db_session, count=1)
         service = BookingService(db_session)
@@ -72,7 +72,7 @@ class TestRN02MinimumSlots:
         with pytest.raises(SlotValidationError, match="minimum 2"):
             service.create_booking("rn-stu", "rn-inst", [slots[0].id])
 
-    def test_non_consecutive_fails(self, db_session):
+    def test_non_consecutive_fails(self, db_session) -> None:
         _seed_scenario(db_session)
         now = datetime.now(UTC) + timedelta(hours=10)
         s1 = Slot(
@@ -96,7 +96,7 @@ class TestRN02MinimumSlots:
 
 
 class TestRN03NoOverlap:
-    def test_second_booking_same_slots_fails(self, db_session):
+    def test_second_booking_same_slots_fails(self, db_session) -> None:
         _seed_scenario(db_session)
         slots = _make_slots(db_session, count=4)
         service = BookingService(db_session)
@@ -108,7 +108,7 @@ class TestRN03NoOverlap:
 
 
 class TestRN04CancellationPenalty:
-    def test_cancel_gt_24h_no_penalty(self, db_session):
+    def test_cancel_gt_24h_no_penalty(self, db_session) -> None:
         _seed_scenario(db_session)
         slots = _make_slots(db_session, count=2, offset_hours=48)
         service = BookingService(db_session)
@@ -119,7 +119,7 @@ class TestRN04CancellationPenalty:
 
         assert PenaltyService(db_session).is_penalized("rn-stu") is False
 
-    def test_cancel_lt_24h_applies_penalty(self, db_session):
+    def test_cancel_lt_24h_applies_penalty(self, db_session) -> None:
         _seed_scenario(db_session)
         slots = _make_slots(db_session, count=2, offset_hours=2)
         service = BookingService(db_session)
@@ -132,7 +132,7 @@ class TestRN04CancellationPenalty:
 
 
 class TestPenalizedStudentBlock:
-    def test_penalized_student_cannot_book(self, db_session):
+    def test_penalized_student_cannot_book(self, db_session) -> None:
         _seed_scenario(db_session)
         PenaltyService(db_session).apply_penalty("rn-stu", "test")
         slots = _make_slots(db_session, count=2)

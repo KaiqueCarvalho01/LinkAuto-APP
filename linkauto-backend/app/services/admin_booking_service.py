@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class AdminBookingService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self._db = db
 
     def override_status(
