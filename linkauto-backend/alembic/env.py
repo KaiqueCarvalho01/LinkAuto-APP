@@ -1,39 +1,50 @@
 """Alembic migration environment wired to the application settings and model metadata."""
 
-import sys
 from logging.config import fileConfig
-from pathlib import Path
-
-from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from app.core import get_settings  # noqa: E402
-from app.models import Base  # noqa: E402
+from app.core import get_settings
+from app.models import Base
 
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
-settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Tests (and other callers) may pass an explicit URL; otherwise use the app settings.
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 target_metadata = Base.metadata
 
 
+def include_name(name: str | None, type_: str, _parent_names: object) -> bool:
+    """Compare only tables owned by the app.
+
+    Ignores e.g. PostGIS' ``spatial_ref_sys`` so autogenerate never tries to drop it.
+    """
+    if type_ == "table":
+        return name in target_metadata.tables
+    return True
+
+
+CONFIGURE_OPTS = {
+    "target_metadata": target_metadata,
+    "include_name": include_name,
+    # SQLite cannot ALTER most constraints; batch mode recreates the table instead.
+    "render_as_batch": True,
+}
+
+
 def run_migrations_offline() -> None:
     """Run migrations in offline mode, emitting SQL with literal binds instead of connecting."""
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
-        target_metadata=target_metadata,
+        url=config.get_main_option("sqlalchemy.url"),
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        **CONFIGURE_OPTS,
     )
 
     with context.begin_transaction():
@@ -49,7 +60,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(connection=connection, **CONFIGURE_OPTS)
 
         with context.begin_transaction():
             context.run_migrations()
