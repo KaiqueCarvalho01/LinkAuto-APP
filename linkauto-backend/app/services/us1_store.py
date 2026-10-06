@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from app.core.database import SessionLocal
 from app.models import DetranStatus, LicenseType, UserRole, generate_uuid7
@@ -32,8 +32,8 @@ class UserRecord:
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    student_profile: dict | None = None
-    instructor_profile: dict | None = None
+    student_profile: dict[str, Any] | None = None
+    instructor_profile: dict[str, Any] | None = None
 
 
 @dataclass
@@ -114,7 +114,7 @@ class IdentityStore:
             return user
 
     @staticmethod
-    def _default_student_profile() -> dict:
+    def _default_student_profile() -> dict[str, Any]:
         return {
             "full_name": None,
             "phone": None,
@@ -125,7 +125,7 @@ class IdentityStore:
         }
 
     @staticmethod
-    def _default_instructor_profile() -> dict:
+    def _default_instructor_profile() -> dict[str, Any]:
         return {
             "full_name": None,
             "phone": None,
@@ -244,7 +244,7 @@ class IdentityStore:
             self._email_to_id[user.email] = user.id
             return user
 
-    def update_profile(self, user_id: str, payload: dict) -> UserRecord:
+    def update_profile(self, user_id: str, payload: dict[str, Any]) -> UserRecord:
         """Merge ``student_profile``/``instructor_profile`` updates from ``payload`` into the user.
 
         Raises ``ValueError`` if the user does not exist or lacks the role matching a profile.

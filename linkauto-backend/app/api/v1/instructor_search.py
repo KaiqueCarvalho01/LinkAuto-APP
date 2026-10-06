@@ -31,8 +31,10 @@ def search_instructors(
 
     def _resolve_slug(p: InstructorProfile) -> str:
         if not p.slug:
-            p.slug = generate_profile_slug(p.full_name, p.city, default_prefix="instrutor")
+            slug = generate_profile_slug(p.full_name, p.city, default_prefix="instrutor")
+            p.slug = slug
             db.flush()
+            return slug
         return p.slug
 
     data = [
@@ -46,8 +48,8 @@ def search_instructors(
             "price_per_hour": float(p.price_per_hour) if p.price_per_hour else None,
             "rating_avg": p.rating_avg,
             "rating_count": p.rating_count,
-            "latitude": float(p.latitude),
-            "longitude": float(p.longitude),
+            "latitude": p.latitude,
+            "longitude": p.longitude,
             "action_radius_km": p.action_radius_km,
         }
         for p in results

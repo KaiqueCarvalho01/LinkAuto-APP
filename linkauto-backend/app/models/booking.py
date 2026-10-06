@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 
 from sqlalchemy import DateTime, ForeignKey, Index, Numeric, String, Text
@@ -37,8 +38,8 @@ class Booking(AuditUUIDBase):
     location_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
     longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
-    confirmed_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    cancelled_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancelled_by: Mapped[str | None] = mapped_column(String(20), nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     reminder_sent: Mapped[bool] = mapped_column(nullable=False, default=False)
@@ -81,5 +82,5 @@ class StudentPenalty(AuditUUIDBase):
     student_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("student_profiles.user_id"), nullable=False, index=True
     )
-    blocked_until: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=False)
+    blocked_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     reason: Mapped[str] = mapped_column(Text, nullable=False)

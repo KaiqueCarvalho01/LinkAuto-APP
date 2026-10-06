@@ -35,7 +35,9 @@ def _register_and_login_user(email: str, roles: list[str]) -> tuple[str, str]:
         )
         user_id = user.id
     except ValueError:
-        user_id = get_identity_store().get_user_by_email(email).id
+        existing = get_identity_store().get_user_by_email(email)
+        assert existing is not None
+        user_id = existing.id
 
     login_resp = client.post(
         "/api/v1/auth/login", json={"email": email, "password": "strong-password"}

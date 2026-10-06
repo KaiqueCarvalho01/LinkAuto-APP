@@ -5,6 +5,7 @@ from app.models.booking import Booking
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
 from app.services.booking_message_service import BookingMessageService
 from app.services.dependencies import get_notification_service
+from app.services.notification_service import InMemoryEmailGateway
 from app.services.review_service import ReviewService
 
 if TYPE_CHECKING:
@@ -56,7 +57,9 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
 
     # Get notification singleton and clear its gateway list
     notification_svc = get_notification_service()
-    notification_svc.email_gateway.sent_messages.clear()
+    gateway = notification_svc.email_gateway
+    assert isinstance(gateway, InMemoryEmailGateway)
+    gateway.sent_messages.clear()
 
     message_svc = BookingMessageService(db_session, notification_service=notification_svc)
     review_svc = ReviewService(db_session, notification_service=notification_svc)
@@ -73,7 +76,7 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
     assert msg.id is not None
 
     # Verify new booking message email notification was sent
-    sent_emails = notification_svc.email_gateway.sent_messages
+    sent_emails = gateway.sent_messages
     assert len(sent_emails) == 1
     assert sent_emails[0]["recipients"] == ["instructor@test.com"]
     assert "chego em 5 minutos" in sent_emails[0]["body"]
@@ -83,7 +86,7 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
     db_session.flush()
 
     # Clear sent emails list
-    notification_svc.email_gateway.sent_messages.clear()
+    gateway.sent_messages.clear()
 
     # 4. Student reviews Instructor (Rating = 5)
     review_student = review_svc.create_review(
@@ -103,6 +106,7 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
         .filter(InstructorProfile.user_id == "instructor-1")
         .first()
     )
+    assert inst_profile is not None
     assert inst_profile.rating_count == 1
     assert float(inst_profile.rating_avg) == 5.0
 
@@ -114,7 +118,7 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
 
     # 5. Instructor reviews Student (Rating = 4)
     # Clear sent emails list
-    notification_svc.email_gateway.sent_messages.clear()
+    gateway.sent_messages.clear()
 
     review_instructor = review_svc.create_review(
         booking_id="booking-123",

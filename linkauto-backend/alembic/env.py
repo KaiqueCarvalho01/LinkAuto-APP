@@ -30,21 +30,15 @@ def include_name(name: str | None, type_: str, _parent_names: object) -> bool:
     return True
 
 
-CONFIGURE_OPTS = {
-    "target_metadata": target_metadata,
-    "include_name": include_name,
-    # SQLite cannot ALTER most constraints; batch mode recreates the table instead.
-    "render_as_batch": True,
-}
-
-
 def run_migrations_offline() -> None:
     """Run migrations in offline mode, emitting SQL with literal binds instead of connecting."""
     context.configure(
         url=config.get_main_option("sqlalchemy.url"),
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        **CONFIGURE_OPTS,
+        target_metadata=target_metadata,
+        include_name=include_name,
+        render_as_batch=True,
     )
 
     with context.begin_transaction():
@@ -60,7 +54,13 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, **CONFIGURE_OPTS)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_name=include_name,
+            # SQLite cannot ALTER most constraints; batch mode recreates the table instead.
+            render_as_batch=True,
+        )
 
         with context.begin_transaction():
             context.run_migrations()

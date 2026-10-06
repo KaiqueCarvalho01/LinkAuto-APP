@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from sqlalchemy import bindparam, text
 
@@ -13,6 +13,7 @@ from app.domain.booking import MIN_SLOTS_PER_BOOKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from sqlalchemy import CursorResult
     from sqlalchemy.orm import Session
 
 
@@ -88,13 +89,17 @@ class SqlAlchemySlotReservationStore:
 
         transaction = self._session.begin()
         try:
-            result = self._session.execute(
-                self._RESERVE_STATEMENT,
-                {
-                    "reserved_status": self._reserved_status,
-                    "available_status": self._available_status,
-                    "slot_ids": unique_slot_ids,
-                },
+            # A text() UPDATE always yields a CursorResult, which carries rowcount
+            result = cast(
+                "CursorResult[Any]",
+                self._session.execute(
+                    self._RESERVE_STATEMENT,
+                    {
+                        "reserved_status": self._reserved_status,
+                        "available_status": self._available_status,
+                        "slot_ids": unique_slot_ids,
+                    },
+                ),
             )
         except Exception:
             transaction.rollback()

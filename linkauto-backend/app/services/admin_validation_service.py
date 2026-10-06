@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from app.models import DetranStatus
 from app.services.notification_service import (
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 class AdminValidationResult:
     """Outcome of an admin decision: the updated instructor payload and the document purge."""
 
-    instructor: dict
+    instructor: dict[str, Any]
     cleanup: DocumentCleanupResult
 
 
@@ -45,7 +45,7 @@ class AdminValidationService:
 
     def list_instructors(
         self, *, status: str | None = None, page: int = 1, page_size: int = 20
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Return a page of instructor profiles, optionally filtered by DETRAN status."""
         instructors = self._store.list_instructors(status=status)
         start = (page - 1) * page_size
