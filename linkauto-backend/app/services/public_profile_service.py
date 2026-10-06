@@ -16,7 +16,7 @@ from app.schemas.public_profile import (
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class PublicProfileService:

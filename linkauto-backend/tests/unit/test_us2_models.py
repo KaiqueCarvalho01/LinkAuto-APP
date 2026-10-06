@@ -9,7 +9,7 @@ from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.models.slot import Slot, SlotStatus
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def test_slot_model_creation(db_session: Session) -> None:

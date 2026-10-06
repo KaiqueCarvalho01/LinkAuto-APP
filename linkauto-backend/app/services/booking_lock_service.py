@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from sqlalchemy import CursorResult
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class SlotReservationConflictError(RuntimeError):

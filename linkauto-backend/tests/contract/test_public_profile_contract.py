@@ -13,7 +13,7 @@ from app.models.user import (
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_contract_profiles(db_session: Session) -> None:

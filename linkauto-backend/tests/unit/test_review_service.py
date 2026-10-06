@@ -14,7 +14,7 @@ from app.services.review_service import (
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 @pytest.fixture

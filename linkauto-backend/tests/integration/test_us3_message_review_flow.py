@@ -9,7 +9,7 @@ from app.services.notification_service import InMemoryEmailGateway
 from app.services.review_service import ReviewService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _setup_integration_data(db_session: Session) -> None:

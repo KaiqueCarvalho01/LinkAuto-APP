@@ -15,7 +15,7 @@ from app.services.booking_scheduler import BookingAutomationPort
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class SqlAlchemyBookingAutomationPort(BookingAutomationPort):

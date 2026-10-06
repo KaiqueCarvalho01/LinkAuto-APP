@@ -16,7 +16,7 @@ from app.services.notification_service import (
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 logger = logging.getLogger(__name__)
 

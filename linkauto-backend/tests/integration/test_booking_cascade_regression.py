@@ -17,7 +17,7 @@ from app.services.booking_scheduler import BookingScheduler
 from app.services.booking_service import BookingService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _full_seed(db_session: Session) -> None:

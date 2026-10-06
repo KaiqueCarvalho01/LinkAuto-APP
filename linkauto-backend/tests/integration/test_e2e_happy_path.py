@@ -10,7 +10,7 @@ from app.models.user import UserRole
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
     from httpx2 import Response
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _register(client: TestClient, email: str, role: UserRole, full_name: str, phone: str) -> str:

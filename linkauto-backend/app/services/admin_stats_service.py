@@ -9,7 +9,7 @@ from app.models.user import DetranStatus, InstructorProfile, StudentProfile
 from app.schemas.admin_stats import AdminStatsResponse
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class AdminStatsService:

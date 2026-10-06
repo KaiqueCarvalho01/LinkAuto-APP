@@ -8,7 +8,7 @@ from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class AdminBookingService:

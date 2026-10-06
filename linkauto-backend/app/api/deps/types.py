@@ -3,7 +3,7 @@
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.orm import Session
+from sqlmodel import Session
 
 from app.api.deps.authn import AuthenticatedUser, get_current_user
 from app.api.deps.authz import require_roles

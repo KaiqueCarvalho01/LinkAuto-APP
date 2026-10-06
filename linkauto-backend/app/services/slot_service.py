@@ -12,7 +12,7 @@ from app.models.user import InstructorProfile
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class SlotOverlapError(ValueError):

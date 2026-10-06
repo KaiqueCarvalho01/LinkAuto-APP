@@ -19,7 +19,7 @@ from app.services.notification_service import (
 from app.services.penalty_service import PenaltyService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 CANCELLATION_NOTICE_HOURS = 24
 

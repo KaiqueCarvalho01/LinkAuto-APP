@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from app.models.user import DetranStatus, InstructorProfile
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
     from app.schemas.instructor_search import InstructorSearchFilters
 

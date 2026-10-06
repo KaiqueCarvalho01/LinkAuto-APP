@@ -5,7 +5,7 @@ from app.models.user import DetranStatus, InstructorProfile, StudentProfile, Use
 from app.services.admin_stats_service import AdminStatsService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_stats_data(db_session: Session) -> None:

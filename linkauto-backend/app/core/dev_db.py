@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session
+from sqlmodel import Session
 
 from app.core.security import hash_password
 from app.domain.booking import MIN_SLOTS_PER_BOOKING

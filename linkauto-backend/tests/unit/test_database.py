@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import text
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def test_get_db_yields_valid_session(db_session: Session) -> None:

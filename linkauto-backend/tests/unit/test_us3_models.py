@@ -7,7 +7,7 @@ from app.models.booking_message import BookingMessage
 from app.models.review import Review
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def test_booking_message_model_persists(db_session: Session) -> None:

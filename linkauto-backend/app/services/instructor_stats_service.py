@@ -8,7 +8,7 @@ from app.models.booking import Booking, BookingSlot
 from app.schemas.instructor_stats import InstructorStatsResponse
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class InstructorStatsService:

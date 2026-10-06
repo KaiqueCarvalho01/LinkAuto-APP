@@ -11,7 +11,7 @@ from app.models.user import DetranStatus, InstructorProfile, StudentProfile, Use
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 JOB_SUMMARY_KEYS = {"processed", "booking_ids", "failed", "failed_booking_ids"}
 

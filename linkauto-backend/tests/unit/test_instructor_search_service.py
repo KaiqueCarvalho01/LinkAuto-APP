@@ -10,7 +10,7 @@ from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_instructors(db_session: Session) -> None:

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from app.models.booking import StudentPenalty
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 PENALTY_DAYS = 7
 

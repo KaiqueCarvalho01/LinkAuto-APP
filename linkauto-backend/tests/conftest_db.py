@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import Session
 
 from app.core.database import get_db
 from app.main import create_app
@@ -28,7 +29,7 @@ def test_engine() -> Iterator[Engine]:
 def db_session(test_engine: Engine) -> Iterator[Session]:
     connection = test_engine.connect()
     transaction = connection.begin()
-    session_factory = sessionmaker(bind=connection)
+    session_factory = sessionmaker(class_=Session, bind=connection)
     session = session_factory()
     yield session
     session.close()

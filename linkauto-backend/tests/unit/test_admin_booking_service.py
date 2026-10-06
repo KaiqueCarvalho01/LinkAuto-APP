@@ -14,7 +14,7 @@ from app.models.user import (
 from app.services.admin_booking_service import AdminBookingService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_booking(db_session: Session) -> Booking:
