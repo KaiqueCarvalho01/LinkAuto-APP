@@ -1,16 +1,14 @@
 """Instructor verification documents model and its repository."""
 
-from __future__ import annotations
-
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, select
-from sqlalchemy.orm import Mapped, Session, mapped_column
+from sqlalchemy import String
+from sqlmodel import Field, Session, select
 
 from app.models.base import AuditUUIDBase
 
 
-class InstructorDocument(AuditUUIDBase):
+class InstructorDocument(AuditUUIDBase, table=True):
     """Uploaded DETRAN credential and criminal record of an instructor.
 
     Tracks the admin review: reviewer, review time, ``review_status`` (default PENDENTE)
@@ -19,21 +17,21 @@ class InstructorDocument(AuditUUIDBase):
 
     __tablename__ = "instructor_documents"
 
-    instructor_id: Mapped[str] = mapped_column(
-        String(36),
-        ForeignKey("instructor_profiles.user_id", ondelete="CASCADE"),
-        nullable=False,
+    instructor_id: str = Field(
+        sa_type=String(36),
+        foreign_key="instructor_profiles.user_id",
+        ondelete="CASCADE",
         index=True,
     )
-    reviewed_by: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    reviewed_by: str | None = Field(
+        default=None, sa_type=String(36), foreign_key="users.id", ondelete="SET NULL"
     )
-    detran_credential_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    criminal_record_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    review_status: Mapped[str] = mapped_column(String(20), nullable=False, default="PENDENTE")
-    review_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    detran_credential_url: str | None = Field(default=None, sa_type=String(500))
+    criminal_record_url: str | None = Field(default=None, sa_type=String(500))
+    uploaded_at: datetime
+    reviewed_at: datetime | None = None
+    review_status: str = Field(default="PENDENTE", sa_type=String(20))
+    review_reason: str | None = Field(default=None, sa_type=String(500))
 
 
 class InstructorDocumentRepository:
@@ -56,7 +54,7 @@ class InstructorDocumentRepository:
             .where(InstructorDocument.instructor_id == instructor_id)
             .order_by(InstructorDocument.uploaded_at.desc())
         )
-        return list(self._session.scalars(statement))
+        return list(self._session.exec(statement))
 
     def mark_reviewed(
         self,

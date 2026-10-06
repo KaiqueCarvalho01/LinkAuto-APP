@@ -253,10 +253,8 @@ class BookingService:
         )
         if not first_slot:
             return
-        first_slot_starts = first_slot.starts_at
-        if first_slot_starts.tzinfo is None:
-            first_slot_starts = first_slot_starts.replace(tzinfo=UTC)
-        if first_slot_starts - now < timedelta(hours=CANCELLATION_NOTICE_HOURS):
+        # Datetime columns use SQLModel's UTCDateTime, so loaded values are aware UTC
+        if first_slot.starts_at - now < timedelta(hours=CANCELLATION_NOTICE_HOURS):
             self._penalty.apply_penalty(
                 booking.student_id,
                 reason=f"Cancelamento tardio (< 24h) do booking {booking.id} conforme RN04",

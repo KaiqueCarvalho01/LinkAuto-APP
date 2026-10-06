@@ -1,12 +1,10 @@
-"""Declarative base, primary-key and audit-timestamp mixins shared by all models."""
-
-from __future__ import annotations
+"""Shared SQLModel bases: UUID primary key and audit timestamps."""
 
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, String, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String, func
+from sqlmodel import Field, SQLModel
 
 
 def generate_uuid7() -> str:
@@ -22,32 +20,23 @@ def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-class Base(DeclarativeBase):
-    """Declarative base for all ORM models."""
+# SQLModel table models share one MetaData; kept under this name for Alembic and tests.
+Base = SQLModel
 
 
-class UUIDPrimaryKeyMixin:
-    """Add a 36-char string ``id`` primary key defaulting to a generated UUIDv7."""
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid7)
-
-
-class AuditTimestampsMixin:
+class AuditTimestampsMixin(SQLModel):
     """Add non-null UTC ``created_at`` and ``updated_at`` columns (updated on change)."""
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=utc_now, server_default=func.now()
+    created_at: datetime = Field(
+        default_factory=utc_now, sa_column_kwargs={"server_default": func.now()}
     )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=utc_now,
-        onupdate=utc_now,
-        server_default=func.now(),
+    updated_at: datetime = Field(
+        default_factory=utc_now,
+        sa_column_kwargs={"server_default": func.now(), "onupdate": utc_now},
     )
 
 
-class AuditUUIDBase(Base, UUIDPrimaryKeyMixin, AuditTimestampsMixin):
-    """Abstract base for models with a UUID primary key and audit timestamps."""
+class AuditUUIDBase(AuditTimestampsMixin):
+    """Base for models with a UUIDv7 string primary key and audit timestamps."""
 
-    __abstract__ = True
+    id: str = Field(default_factory=generate_uuid7, sa_type=String(36), primary_key=True)
