@@ -27,6 +27,6 @@ def admin_override_booking(
     except BookingTransitionError as e:
         raise HTTPException(
             status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
-        )
+        ) from e
     except ValueError as e:
-        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)})
+        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)}) from e

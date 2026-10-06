@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import AuditUUIDBase
 
 
-class SlotStatus(str, Enum):
+class SlotStatus(StrEnum):
     DISPONIVEL = "DISPONIVEL"
     RESERVADO = "RESERVADO"
     BLOQUEADO = "BLOQUEADO"

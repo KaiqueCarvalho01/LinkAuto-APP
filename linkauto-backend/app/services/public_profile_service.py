@@ -80,13 +80,15 @@ class PublicProfileService:
             .first()
         )
         if not prof:
-            raise ValueError("Instructor not found or not approved")
+            msg = "Instructor not found or not approved"
+            raise ValueError(msg)
 
         user = (
             self._db.query(User).filter(User.id == prof.user_id, User.is_active.is_(True)).first()
         )
         if not user:
-            raise ValueError("Instructor not found or not approved")
+            msg = "Instructor not found or not approved"
+            raise ValueError(msg)
 
         raw_reviews = (
             self._db.query(Review)
@@ -133,13 +135,15 @@ class PublicProfileService:
         # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
         prof = self._db.query(StudentProfile).filter(StudentProfile.slug == slug).first()
         if not prof:
-            raise ValueError("Student not found")
+            msg = "Student not found"
+            raise ValueError(msg)
 
         user = (
             self._db.query(User).filter(User.id == prof.user_id, User.is_active.is_(True)).first()
         )
         if not user:
-            raise ValueError("Student not found")
+            msg = "Student not found"
+            raise ValueError(msg)
 
         completed_lessons = (
             self._db.query(Booking)

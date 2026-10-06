@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Generic, TypeVar
+from typing import Any
 
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-
-T = TypeVar("T")
 
 
 class PaginationMeta(BaseModel):
@@ -20,7 +18,7 @@ class ErrorDetail(BaseModel):
     message: str
 
 
-class SuccessEnvelope(BaseModel, Generic[T]):
+class SuccessEnvelope[T](BaseModel):
     data: T
     error: None = None
     meta: dict[str, Any] = Field(default_factory=dict)

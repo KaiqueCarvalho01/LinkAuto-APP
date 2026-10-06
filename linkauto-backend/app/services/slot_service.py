@@ -38,10 +38,11 @@ class SlotService:
             .first()
         )
         if overlap:
-            raise SlotOverlapError(
+            msg = (
                 f"Slot overlaps with existing slot {overlap.id} "
                 f"({overlap.starts_at} - {overlap.ends_at})"
             )
+            raise SlotOverlapError(msg)
 
         slot = Slot(
             instructor_id=instructor_id,
@@ -79,9 +80,11 @@ class SlotService:
             .first()
         )
         if not slot:
-            raise ValueError(f"Slot {slot_id} not found for instructor {instructor_id}")
+            msg = f"Slot {slot_id} not found for instructor {instructor_id}"
+            raise ValueError(msg)
         if slot.status == SlotStatus.RESERVADO.value:
-            raise ValueError(f"Cannot delete reserved slot {slot_id}")
+            msg = f"Cannot delete reserved slot {slot_id}"
+            raise ValueError(msg)
         self._db.delete(slot)
         self._db.flush()
 

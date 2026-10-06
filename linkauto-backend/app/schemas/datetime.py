@@ -18,7 +18,8 @@ def parse_datetime(v: Any) -> datetime:
         if dt.tzinfo is None:
             return dt.replace(tzinfo=UTC)
         return dt.astimezone(UTC)
-    raise ValueError("Invalid datetime format")
+    msg = "Invalid datetime format"
+    raise ValueError(msg)
 
 
 def serialize_datetime(dt: datetime) -> str:

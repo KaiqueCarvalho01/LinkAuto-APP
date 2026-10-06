@@ -17,7 +17,8 @@ class BookingCreateRequest(BaseModel):
     @classmethod
     def minimum_2_slots(cls, v: list[str]) -> list[str]:
         if len(v) < 2:
-            raise ValueError("Minimum 2 consecutive slots required (RN02)")
+            msg = "Minimum 2 consecutive slots required (RN02)"
+            raise ValueError(msg)
         return v
 
 
@@ -37,14 +38,16 @@ class BookingAdminOverrideRequest(BaseModel):
     @classmethod
     def reason_min_length(cls, v: str) -> str:
         if len(v.strip()) < 3:
-            raise ValueError("Reason must be at least 3 characters")
+            msg = "Reason must be at least 3 characters"
+            raise ValueError(msg)
         return v
 
     @field_validator("status")
     @classmethod
     def status_must_be_terminal(cls, v: str) -> str:
         if v not in ("REALIZADA", "CANCELADA"):
-            raise ValueError("Override status must be REALIZADA or CANCELADA")
+            msg = "Override status must be REALIZADA or CANCELADA"
+            raise ValueError(msg)
         return v
 
 

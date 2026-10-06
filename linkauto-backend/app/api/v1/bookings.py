@@ -42,11 +42,13 @@ def create_booking(
             status_code=201,
         )
     except SlotValidationError as e:
-        raise HTTPException(status_code=422, detail={"code": "SLOT_VALIDATION", "message": str(e)})
+        raise HTTPException(
+            status_code=422, detail={"code": "SLOT_VALIDATION", "message": str(e)}
+        ) from e
     except PenalizedStudentError as e:
         raise HTTPException(
             status_code=403, detail={"code": "STUDENT_PENALIZED", "message": str(e)}
-        )
+        ) from e
 
 
 @router.get("/bookings")
@@ -104,9 +106,9 @@ def confirm_booking(
     except BookingTransitionError as e:
         raise HTTPException(
             status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
-        )
+        ) from e
     except ValueError as e:
-        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": str(e)})
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": str(e)}) from e
 
 
 @router.patch("/bookings/{booking_id}/cancel")
@@ -130,6 +132,6 @@ def cancel_booking(
     except BookingTransitionError as e:
         raise HTTPException(
             status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
-        )
+        ) from e
     except ValueError as e:
-        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)})
+        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)}) from e

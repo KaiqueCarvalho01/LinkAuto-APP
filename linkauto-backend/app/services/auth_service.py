@@ -43,7 +43,8 @@ class AuthService:
 
     def register(self, *, email: str, password: str, roles: list[str]) -> UserRecord:
         if "ADMIN" in [role.upper() for role in roles]:
-            raise ValueError("FORBIDDEN_ROLE: Public registration with ADMIN role is not allowed.")
+            msg = "FORBIDDEN_ROLE: Public registration with ADMIN role is not allowed."
+            raise ValueError(msg)
         user = self._store.create_user(
             email=email, password_hash=hash_password(password), roles=roles
         )
@@ -62,7 +63,8 @@ class AuthService:
     def login(self, *, email: str, password: str) -> AuthTokens:
         user = self._store.get_user_by_email(email)
         if user is None or not verify_password(password, user.password_hash):
-            raise ValueError("Invalid credentials.")
+            msg = "Invalid credentials."
+            raise ValueError(msg)
 
         access_token = create_access_token(user.id, settings=self._settings, roles=user.roles)
         refresh_token = create_refresh_token(user.id, settings=self._settings, roles=user.roles)
@@ -72,7 +74,8 @@ class AuthService:
         payload = decode_token(refresh_token, self._settings, expected_type="refresh")
         user = self._store.get_user(payload.sub)
         if user is None:
-            raise ValueError("Invalid refresh token subject.")
+            msg = "Invalid refresh token subject."
+            raise ValueError(msg)
         access_token = create_access_token(user.id, settings=self._settings, roles=user.roles)
         rotated_refresh = create_refresh_token(user.id, settings=self._settings, roles=user.roles)
         return AuthTokens(access_token=access_token, refresh_token=rotated_refresh)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import TYPE_CHECKING
@@ -10,6 +11,8 @@ from app.models.base import utc_now
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from datetime import datetime
+
+logger = logging.getLogger("app.services.us1_store")
 
 ALLOWED_ROLES = {role.value for role in UserRole}
 
@@ -59,14 +62,17 @@ class IdentityStore:
         normalized_email = email.strip().lower()
         role_list = sorted(set(roles))
         if not role_list:
-            raise ValueError("At least one role is required.")
+            msg = "At least one role is required."
+            raise ValueError(msg)
         invalid_roles = sorted(set(role_list) - ALLOWED_ROLES)
         if invalid_roles:
-            raise ValueError(f"Unsupported role(s): {', '.join(invalid_roles)}")
+            msg = f"Unsupported role(s): {', '.join(invalid_roles)}"
+            raise ValueError(msg)
 
         with self._lock:
             if normalized_email in self._email_to_id:
-                raise ValueError("Email already registered.")
+                msg = "Email already registered."
+                raise ValueError(msg)
 
             now = utc_now()
             user = UserRecord(
@@ -144,7 +150,7 @@ class IdentityStore:
                 self._sync_db_user_to_memory(db_user)
                 return db_user.id
         except Exception:
-            pass
+            logger.warning("Failed to load user by email from the database", exc_info=True)
         finally:
             db.close()
         return None
@@ -159,7 +165,7 @@ class IdentityStore:
             if db_user:
                 return self._sync_db_user_to_memory(db_user)
         except Exception:
-            pass
+            logger.warning("Failed to load user by id from the database", exc_info=True)
         finally:
             db.close()
         return None
@@ -226,21 +232,24 @@ class IdentityStore:
     def update_profile(self, user_id: str, payload: dict) -> UserRecord:
         user = self.get_user(user_id)
         if user is None:
-            raise ValueError("User not found.")
+            msg = "User not found."
+            raise ValueError(msg)
 
         student_update = payload.get("student_profile")
         instructor_update = payload.get("instructor_profile")
 
         if student_update is not None:
             if UserRole.ALUNO.value not in user.roles:
-                raise ValueError("User does not have ALUNO role.")
+                msg = "User does not have ALUNO role."
+                raise ValueError(msg)
             if user.student_profile is None:
                 user.student_profile = self._default_student_profile()
             user.student_profile.update(student_update)
 
         if instructor_update is not None:
             if UserRole.INSTRUTOR.value not in user.roles:
-                raise ValueError("User does not have INSTRUTOR role.")
+                msg = "User does not have INSTRUTOR role."
+                raise ValueError(msg)
             if user.instructor_profile is None:
                 user.instructor_profile = self._default_instructor_profile()
             user.instructor_profile.update(instructor_update)
@@ -272,7 +281,8 @@ class IdentityStore:
     ) -> InstructorDocumentRecord:
         instructor = self.get_user(instructor_id)
         if instructor is None or instructor.instructor_profile is None:
-            raise ValueError("Instructor not found.")
+            msg = "Instructor not found."
+            raise ValueError(msg)
 
         document = InstructorDocumentRecord(
             id=generate_uuid7(),
@@ -294,7 +304,8 @@ class IdentityStore:
     ) -> UserRecord:
         instructor = self.get_user(instructor_id)
         if instructor is None or instructor.instructor_profile is None:
-            raise ValueError("Instructor not found.")
+            msg = "Instructor not found."
+            raise ValueError(msg)
 
         instructor.instructor_profile["detran_status"] = status
         instructor.updated_at = utc_now()

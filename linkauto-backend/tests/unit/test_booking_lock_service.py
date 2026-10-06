@@ -21,3 +21,44 @@ def test_sqlalchemy_slot_reservation_store_has_static_table_name():
         # Essa chamada deve falhar na fase GREEN quando o construtor for ajustado.
         # Na fase RED ela não vai levantar erro se o construtor aceitar **kwargs ou table_name.
         SqlAlchemySlotReservationStore(session, table_name="custom_table")
+
+
+def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing():
+    from datetime import UTC, datetime, timedelta
+
+    from app.models import Base, InstructorProfile, Slot, SlotStatus, User
+
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session = sessionmaker(bind=engine)()
+
+    user = User(email="lock@test.com", password_hash="x", roles=["INSTRUTOR"])
+    session.add(user)
+    session.flush()
+    session.add(InstructorProfile(user_id=user.id))
+    start = datetime(2030, 1, 1, 9, tzinfo=UTC)
+    slots = [
+        Slot(
+            instructor_id=user.id,
+            starts_at=start + timedelta(hours=i),
+            ends_at=start + timedelta(hours=i + 1),
+        )
+        for i in range(3)
+    ]
+    session.add_all(slots)
+    session.commit()
+    first, second, third = (slot.id for slot in slots)
+    session.close()  # the store begins its own transaction
+
+    store = SqlAlchemySlotReservationStore(session)
+    assert store.reserve_if_all_available([first, second]) is True
+    # `second` is already reserved, so nothing is reserved
+    assert store.reserve_if_all_available([second, third]) is False
+
+    session.expire_all()
+    statuses = {slot.id: slot.status for slot in session.query(Slot).all()}
+    assert statuses == {
+        first: SlotStatus.RESERVADO,
+        second: SlotStatus.RESERVADO,
+        third: SlotStatus.DISPONIVEL,
+    }

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Protocol
 
 import boto3
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("app.services.notification_service")
 
 
-class NotificationEvent(str, Enum):
+class NotificationEvent(StrEnum):
     INSTRUCTOR_REGISTERED = "instructor_registered_waiting_validation"
     INSTRUCTOR_VALIDATION_DECISION = "instructor_validation_decision"
     NEW_PENDING_BOOKING = "new_pending_booking_for_instructor"
@@ -56,7 +56,8 @@ class SESEmailGateway:
 
     def send(self, subject: str, body: str, recipients: list[str]) -> str:
         if not self._from_email:
-            raise ValueError("SES sender email is not configured.")
+            msg = "SES sender email is not configured."
+            raise ValueError(msg)
 
         response = self._client.send_email(
             Source=self._from_email,
@@ -105,12 +106,14 @@ class NotificationService:
             )
         except Exception as exc:
             logger.warning(
-                f"Failed to dispatch notification [event={payload.event.value}]: {exc!s}",
+                "Failed to dispatch notification [event=%s]",
+                payload.event.value,
                 extra={
                     "event": "notification.dispatch.failure",
                     "notification_event": payload.event.value,
                     "error": str(exc),
                 },
+                exc_info=True,
             )
             return NotificationDispatchResult(
                 event=payload.event,

@@ -41,14 +41,18 @@ class BookingMessageService:
         # Fetch booking to check existence and authorization
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
-            raise ValueError(f"Booking {booking_id} not found")
+            msg = f"Booking {booking_id} not found"
+            raise ValueError(msg)
 
         # Validate access control: sender must be student or instructor
         if sender_id not in (booking.student_id, booking.instructor_id):
             logger.warning(
-                f"Access denied: User {sender_id} is not authorized to message on booking {booking_id}"
+                "Access denied: User %s is not authorized to message on booking %s",
+                sender_id,
+                booking_id,
             )
-            raise BookingMessageAccessError("You are not a participant in this booking")
+            msg = "You are not a participant in this booking"
+            raise BookingMessageAccessError(msg)
 
         # Create the message
         message = BookingMessage(
@@ -84,14 +88,18 @@ class BookingMessageService:
         # Fetch booking to check existence and authorization
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
-            raise ValueError(f"Booking {booking_id} not found")
+            msg = f"Booking {booking_id} not found"
+            raise ValueError(msg)
 
         # Validate access control
         if user_id not in (booking.student_id, booking.instructor_id):
             logger.warning(
-                f"Access denied: User {user_id} is not authorized to list messages on booking {booking_id}"
+                "Access denied: User %s is not authorized to list messages on booking %s",
+                user_id,
+                booking_id,
             )
-            raise BookingMessageAccessError("You are not a participant in this booking")
+            msg = "You are not a participant in this booking"
+            raise BookingMessageAccessError(msg)
 
         # Query messages chronologically
         offset = (page - 1) * page_size

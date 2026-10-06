@@ -72,12 +72,14 @@ class BookingScheduler:
                 success_ids.append(booking_id)
             except Exception as exc:
                 logger.warning(
-                    f"Scheduler failed to cancel expired booking {booking_id}: {exc!s}",
+                    "Scheduler failed to cancel expired booking %s",
+                    booking_id,
                     extra={
                         "event": "scheduler.pending_timeout.failure",
                         "booking_id": booking_id,
                         "error": str(exc),
                     },
+                    exc_info=True,
                 )
                 failed_ids.append(booking_id)
 
@@ -104,12 +106,14 @@ class BookingScheduler:
                 success_ids.append(booking_id)
             except Exception as exc:
                 logger.warning(
-                    f"Scheduler failed to complete finished booking {booking_id}: {exc!s}",
+                    "Scheduler failed to complete finished booking %s",
+                    booking_id,
                     extra={
                         "event": "scheduler.confirmed_completion.failure",
                         "booking_id": booking_id,
                         "error": str(exc),
                     },
+                    exc_info=True,
                 )
                 failed_ids.append(booking_id)
 
@@ -157,12 +161,14 @@ class BookingScheduler:
                 success_ids.append(booking_id)
             except Exception as exc:
                 logger.warning(
-                    f"Scheduler failed to send lesson reminder for booking {booking_id}: {exc!s}",
+                    "Scheduler failed to send lesson reminder for booking %s",
+                    booking_id,
                     extra={
                         "event": "scheduler.lesson_reminder.failure",
                         "booking_id": booking_id,
                         "error": str(exc),
                     },
+                    exc_info=True,
                 )
                 failed_ids.append(booking_id)
 

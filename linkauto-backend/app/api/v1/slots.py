@@ -28,7 +28,9 @@ def create_slot(
             status_code=201,
         )
     except SlotOverlapError as e:
-        raise HTTPException(status_code=409, detail={"code": "SLOT_OVERLAP", "message": str(e)})
+        raise HTTPException(
+            status_code=409, detail={"code": "SLOT_OVERLAP", "message": str(e)}
+        ) from e
 
 
 @router.get("/instructors/me/slots")
@@ -71,4 +73,4 @@ def delete_slot(
     except ValueError as e:
         raise HTTPException(
             status_code=400, detail={"code": "SLOT_DELETE_ERROR", "message": str(e)}
-        )
+        ) from e

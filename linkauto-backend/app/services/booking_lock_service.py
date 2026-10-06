@@ -42,6 +42,14 @@ class InMemorySlotReservationStore:
 
 class SqlAlchemySlotReservationStore:
     _TABLE_NAME: str = "slots"
+    _RESERVE_STATEMENT = text(
+        """
+        UPDATE slots
+        SET status = :reserved_status
+        WHERE id IN :slot_ids
+          AND status = :available_status
+        """
+    ).bindparams(bindparam("slot_ids", expanding=True))
 
     def __init__(
         self,
@@ -61,32 +69,22 @@ class SqlAlchemySlotReservationStore:
 
         transaction = self._session.begin()
         try:
-            statement = text(
-                f"""
-                UPDATE {self._TABLE_NAME}
-                SET status = :reserved_status
-                WHERE id IN :slot_ids
-                  AND status = :available_status
-                """
-            ).bindparams(bindparam("slot_ids", expanding=True))
-
             result = self._session.execute(
-                statement,
+                self._RESERVE_STATEMENT,
                 {
                     "reserved_status": self._reserved_status,
                     "available_status": self._available_status,
                     "slot_ids": unique_slot_ids,
                 },
             )
-            success = result.rowcount == len(unique_slot_ids)
-            if success:
-                transaction.commit()
-                return True
-            transaction.rollback()
-            return False
         except Exception:
             transaction.rollback()
             raise
+        if result.rowcount != len(unique_slot_ids):
+            transaction.rollback()
+            return False
+        transaction.commit()
+        return True
 
 
 class BookingLockService:
@@ -96,9 +94,9 @@ class BookingLockService:
     def reserve_slots(self, slot_ids: Sequence[str]) -> None:
         unique_slot_ids = list(dict.fromkeys(slot_ids))
         if len(unique_slot_ids) < 2:
-            raise ValueError("Booking requires at least two unique slots.")
+            msg = "Booking requires at least two unique slots."
+            raise ValueError(msg)
 
         if not self._store.reserve_if_all_available(unique_slot_ids):
-            raise SlotReservationConflictError(
-                "One or more requested slots are no longer available."
-            )
+            msg = "One or more requested slots are no longer available."
+            raise SlotReservationConflictError(msg)

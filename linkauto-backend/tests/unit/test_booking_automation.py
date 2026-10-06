@@ -131,7 +131,8 @@ class FailingBookingAutomationPort:
 
     def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
         if booking_id == "book-failed":
-            raise RuntimeError("Database connection timed out for this item")
+            msg = "Database connection timed out for this item"
+            raise RuntimeError(msg)
 
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
         return []

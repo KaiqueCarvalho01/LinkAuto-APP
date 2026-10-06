@@ -49,7 +49,8 @@ class BookingService:
     ) -> Booking:
         # RN04: penalized student cannot book
         if self._penalty.is_penalized(student_id):
-            raise PenalizedStudentError("Student is currently penalized and cannot create bookings")
+            msg = "Student is currently penalized and cannot create bookings"
+            raise PenalizedStudentError(msg)
 
         # Resolve instructor slug if necessary
         from app.models.user import InstructorProfile
@@ -63,29 +64,32 @@ class BookingService:
 
         # RN02: minimum 2 slots
         if len(slot_ids) < 2:
-            raise SlotValidationError("Booking requires minimum 2 consecutive slots (RN02)")
+            msg = "Booking requires minimum 2 consecutive slots (RN02)"
+            raise SlotValidationError(msg)
 
         # Fetch and validate slots
         slots = self._db.query(Slot).filter(Slot.id.in_(slot_ids)).order_by(Slot.starts_at).all()
 
         if len(slots) != len(slot_ids):
-            raise SlotValidationError("One or more slot IDs not found")
+            msg = "One or more slot IDs not found"
+            raise SlotValidationError(msg)
 
         # All slots must belong to same instructor
         if not all(s.instructor_id == effective_instructor_id for s in slots):
-            raise SlotValidationError("All slots must belong to the specified instructor")
+            msg = "All slots must belong to the specified instructor"
+            raise SlotValidationError(msg)
 
         # All slots must be available
         unavailable = [s for s in slots if s.status != SlotStatus.DISPONIVEL.value]
         if unavailable:
-            raise SlotValidationError(f"Slots not available: {[s.id for s in unavailable]}")
+            msg = f"Slots not available: {[s.id for s in unavailable]}"
+            raise SlotValidationError(msg)
 
         # RN02: slots must be consecutive (each starts when previous ends)
         for i in range(1, len(slots)):
             if slots[i].starts_at != slots[i - 1].ends_at:
-                raise SlotValidationError(
-                    "Slots must be consecutive — each slot must start when the previous ends"
-                )
+                msg = "Slots must be consecutive — each slot must start when the previous ends"
+                raise SlotValidationError(msg)
 
         # Reserve slots atomically (first-write-wins)
         for slot in slots:
@@ -127,7 +131,8 @@ class BookingService:
     def confirm_booking(self, booking_id: str, instructor_id: str) -> Booking:
         booking = self._get_booking_or_raise(booking_id)
         if booking.instructor_id != instructor_id:
-            raise ValueError("Only the instructor can confirm this booking")
+            msg = "Only the instructor can confirm this booking"
+            raise ValueError(msg)
 
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CONFIRMADA)
         booking.status = new_status.value
@@ -247,5 +252,6 @@ class BookingService:
     def _get_booking_or_raise(self, booking_id: str) -> Booking:
         booking = self.get_booking(booking_id)
         if not booking:
-            raise ValueError(f"Booking {booking_id} not found")
+            msg = f"Booking {booking_id} not found"
+            raise ValueError(msg)
         return booking

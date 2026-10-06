@@ -28,7 +28,8 @@ class ProfileService:
     def get_me(self, user_id: str) -> dict:
         user = self._store.get_user(user_id)
         if user is None:
-            raise ValueError("User not found.")
+            msg = "User not found."
+            raise ValueError(msg)
         return self._serialize_user(user)
 
     def update_me(self, user_id: str, payload: dict) -> dict:

@@ -87,9 +87,11 @@ def decode_token(
     try:
         raw_payload = jwt.decode(token, settings.jwt_secret, algorithms=[DEFAULT_ALGORITHM])
     except JWTError as exc:
-        raise ValueError("Invalid token") from exc
+        msg = "Invalid token"
+        raise ValueError(msg) from exc
 
     payload = TokenPayload.model_validate(raw_payload)
     if expected_type and payload.typ != expected_type:
-        raise ValueError(f"Invalid token type: expected {expected_type}")
+        msg = f"Invalid token type: expected {expected_type}"
+        raise ValueError(msg)
     return payload

@@ -44,13 +44,13 @@ class InstructorDocumentService:
     @staticmethod
     async def _read_and_validate(upload: UploadFile) -> bytes:
         if upload.content_type not in ALLOWED_MIME_TYPES:
-            raise DocumentValidationError(
-                f"Unsupported MIME type '{upload.content_type}'. Allowed: {', '.join(sorted(ALLOWED_MIME_TYPES))}."
-            )
+            msg = f"Unsupported MIME type '{upload.content_type}'. Allowed: {', '.join(sorted(ALLOWED_MIME_TYPES))}."
+            raise DocumentValidationError(msg)
 
         content = await upload.read()
         if len(content) > MAX_FILE_SIZE_BYTES:
-            raise DocumentTooLargeError("File exceeds 10MB limit.")
+            msg = "File exceeds 10MB limit."
+            raise DocumentTooLargeError(msg)
 
         # D06: Validar Magic Bytes para evitar MIME spoofing
         mime = upload.content_type
@@ -58,9 +58,8 @@ class InstructorDocumentService:
             signatures = MAGIC_BYTES[mime]
             matched = any(content.startswith(sig) for sig in signatures)
             if not matched:
-                raise DocumentValidationError(
-                    f"INVALID_FILE_CONTENT: File content does not match declared MIME type '{mime}'."
-                )
+                msg = f"INVALID_FILE_CONTENT: File content does not match declared MIME type '{mime}'."
+                raise DocumentValidationError(msg)
 
         return content
 

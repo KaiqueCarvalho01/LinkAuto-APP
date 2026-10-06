@@ -15,7 +15,8 @@ class SlotCreateRequest(BaseModel):
     @classmethod
     def starts_at_must_be_future(cls, v: datetime) -> datetime:
         if v <= datetime.now(UTC):
-            raise ValueError("starts_at must be in the future")
+            msg = "starts_at must be in the future"
+            raise ValueError(msg)
         return v
 
     @model_validator(mode="after")
@@ -23,7 +24,8 @@ class SlotCreateRequest(BaseModel):
         expected = timedelta(hours=1)
         actual = self.ends_at - self.starts_at
         if actual != expected:
-            raise ValueError(f"Slot duration must be exactly 1 hour, got {actual}")
+            msg = f"Slot duration must be exactly 1 hour, got {actual}"
+            raise ValueError(msg)
         return self
 
 

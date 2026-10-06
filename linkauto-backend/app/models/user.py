@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import JSON, Boolean, ForeignKey, Numeric, String
 from sqlalchemy import Enum as SqlEnum
@@ -10,13 +10,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import AuditTimestampsMixin, AuditUUIDBase, Base
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     ALUNO = "ALUNO"
     INSTRUTOR = "INSTRUTOR"
     ADMIN = "ADMIN"
 
 
-class LicenseType(str, Enum):
+class LicenseType(StrEnum):
     NENHUMA = "NENHUMA"
     A = "A"
     B = "B"
@@ -27,7 +27,7 @@ class LicenseType(str, Enum):
     EM_PROCESSO = "EM_PROCESSO"
 
 
-class DetranStatus(str, Enum):
+class DetranStatus(StrEnum):
     PENDENTE = "PENDENTE"
     APROVADO = "APROVADO"
     REJEITADO = "REJEITADO"

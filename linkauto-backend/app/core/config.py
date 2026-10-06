@@ -35,16 +35,17 @@ class Settings(BaseSettings):
     def validate_production_security(self) -> Settings:
         if self.app_env.lower() == "production":
             if self.jwt_secret == "change-me":
-                raise ValueError("JWT_SECRET cannot be 'change-me' in production environment.")
+                msg = "JWT_SECRET cannot be 'change-me' in production environment."
+                raise ValueError(msg)
             if self.reset_sqlite_on_startup:
-                raise ValueError(
-                    "RESET_SQLITE_ON_STARTUP cannot be True in production environment."
-                )
+                msg = "RESET_SQLITE_ON_STARTUP cannot be True in production environment."
+                raise ValueError(msg)
 
             # CORS checks
             if "localhost" in self.cors_origins.lower() or "127.0.0.1" in self.cors_origins:
                 logger.warning(
-                    f"Localhost detected in CORS_ORIGINS ({self.cors_origins}) in production environment!"
+                    "Localhost detected in CORS_ORIGINS (%s) in production environment!",
+                    self.cors_origins,
                 )
         return self
 

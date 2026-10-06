@@ -15,11 +15,13 @@ class AdminBookingService:
 
     def override_status(self, booking_id: str, target_status: str, reason: str) -> Booking:
         if target_status not in (BookingStatus.REALIZADA.value, BookingStatus.CANCELADA.value):
-            raise ValueError("Admin override target must be REALIZADA or CANCELADA")
+            msg = "Admin override target must be REALIZADA or CANCELADA"
+            raise ValueError(msg)
 
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
-            raise ValueError(f"Booking {booking_id} not found")
+            msg = f"Booking {booking_id} not found"
+            raise ValueError(msg)
 
         new_status = transition_booking(
             BookingStatus(booking.status),

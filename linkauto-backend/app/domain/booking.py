@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class BookingStatus(str, Enum):
+class BookingStatus(StrEnum):
     PENDENTE = "PENDENTE"
     CONFIRMADA = "CONFIRMADA"
     REALIZADA = "REALIZADA"
@@ -38,9 +38,8 @@ def ensure_transition_allowed(
     current: BookingStatus, target: BookingStatus, *, admin_override: bool = False
 ) -> None:
     if not can_transition(current, target, admin_override=admin_override):
-        raise BookingTransitionError(
-            f"Invalid booking transition: {current.value} -> {target.value}"
-        )
+        msg = f"Invalid booking transition: {current.value} -> {target.value}"
+        raise BookingTransitionError(msg)
 
 
 def transition_booking(

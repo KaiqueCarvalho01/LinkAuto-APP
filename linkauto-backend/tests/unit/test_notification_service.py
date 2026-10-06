@@ -12,7 +12,8 @@ class FailureEmailGateway:
     """Mock email gateway that always fails."""
 
     def send(self, subject: str, body: str, recipients: list[str]) -> str:
-        raise ConnectionError("Gateway is offline")
+        msg = "Gateway is offline"
+        raise ConnectionError(msg)
 
 
 def test_notification_service_handles_gateway_failure(caplog):

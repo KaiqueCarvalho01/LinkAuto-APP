@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import DateTime, ForeignKey, Index, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import AuditUUIDBase
 
 
-class CancelledBy(str, Enum):
+class CancelledBy(StrEnum):
     ALUNO = "ALUNO"
     INSTRUTOR = "INSTRUTOR"
     SISTEMA = "SISTEMA"

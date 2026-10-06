@@ -30,7 +30,8 @@ def get_current_user(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> AuthenticatedUser:
     if credentials is None:
-        raise _unauthorized("Missing bearer token.")
+        msg = "Missing bearer token."
+        raise _unauthorized(msg)
 
     try:
         payload = decode_token(credentials.credentials, settings, expected_type="access")
