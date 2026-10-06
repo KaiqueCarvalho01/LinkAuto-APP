@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
@@ -14,6 +13,9 @@ from app.services.notification_service import (
     NotificationService,
 )
 from app.services.penalty_service import PenaltyService
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 CANCELLATION_NOTICE_HOURS = 24
 

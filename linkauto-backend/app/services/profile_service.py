@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from app.models import DetranStatus
-from app.services.us1_store import IdentityStore, UserRecord
+
+if TYPE_CHECKING:
+    from app.services.us1_store import IdentityStore, UserRecord
 
 
 class ProfileService:

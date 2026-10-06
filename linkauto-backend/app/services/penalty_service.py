@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.models.booking import StudentPenalty
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 PENALTY_DAYS = 7
 

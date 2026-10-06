@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from fastapi import Depends, HTTPException, status
 
 from app.api.deps.authn import AuthenticatedUser, get_current_user
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def require_roles(*allowed_roles: str) -> Callable[[AuthenticatedUser], AuthenticatedUser]:

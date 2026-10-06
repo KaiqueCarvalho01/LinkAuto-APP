@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import datetime
 from threading import Lock
+from typing import TYPE_CHECKING
 
 from app.models import DetranStatus, LicenseType, UserRole, generate_uuid7
 from app.models.base import utc_now
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from datetime import datetime
 
 ALLOWED_ROLES = {role.value for role in UserRole}
 

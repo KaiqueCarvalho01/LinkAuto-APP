@@ -3,12 +3,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
-from app.core.config import Settings
 from app.core.security import hash_password
 from app.models import (
     Base,
@@ -24,6 +24,9 @@ from app.models import (
     User,
     UserRole,
 )
+
+if TYPE_CHECKING:
+    from app.core.config import Settings
 
 
 def _sqlite_file_from_url(database_url: str) -> Path | None:

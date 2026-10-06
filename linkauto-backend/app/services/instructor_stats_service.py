@@ -1,8 +1,12 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import func
-from sqlalchemy.orm import Session
 
 from app.models.booking import Booking, BookingSlot
 from app.schemas.instructor_stats import InstructorStatsResponse
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class InstructorStatsService:

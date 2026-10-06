@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from app.services.us1_store import IdentityStore
+if TYPE_CHECKING:
+    from app.services.us1_store import IdentityStore
 
 
 @dataclass

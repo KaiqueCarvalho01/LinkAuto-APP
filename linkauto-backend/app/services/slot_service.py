@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import and_
-from sqlalchemy.orm import Session
 
 from app.models.slot import Slot, SlotStatus
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from sqlalchemy.orm import Session
 
 
 class SlotOverlapError(ValueError):

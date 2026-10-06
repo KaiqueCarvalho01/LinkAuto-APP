@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot
 from app.models.user import User
 from app.services.booking_scheduler import BookingAutomationPort
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from sqlalchemy.orm import Session
 
 
 class SqlAlchemyBookingAutomationPort(BookingAutomationPort):

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class AdminBookingService:

@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from app.models import DetranStatus
-from app.services.document_cleanup_service import DocumentCleanupResult, DocumentCleanupService
 from app.services.notification_service import (
     NotificationEvent,
     NotificationPayload,
     NotificationService,
 )
-from app.services.profile_service import ProfileService
-from app.services.us1_store import IdentityStore
+
+if TYPE_CHECKING:
+    from app.services.document_cleanup_service import DocumentCleanupResult, DocumentCleanupService
+    from app.services.profile_service import ProfileService
+    from app.services.us1_store import IdentityStore
 
 
 @dataclass

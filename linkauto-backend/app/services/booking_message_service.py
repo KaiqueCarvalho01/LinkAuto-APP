@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import logging
-
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
@@ -11,6 +10,9 @@ from app.services.notification_service import (
     NotificationPayload,
     NotificationService,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

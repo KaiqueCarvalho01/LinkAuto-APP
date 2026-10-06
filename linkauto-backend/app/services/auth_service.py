@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from app.core import Settings
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -16,7 +16,10 @@ from app.services.notification_service import (
     NotificationPayload,
     NotificationService,
 )
-from app.services.us1_store import IdentityStore, UserRecord
+
+if TYPE_CHECKING:
+    from app.core import Settings
+    from app.services.us1_store import IdentityStore, UserRecord
 
 
 @dataclass

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import bcrypt
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
-from app.core.config import Settings
+if TYPE_CHECKING:
+    from app.core.config import Settings
 
 TokenType = Literal["access", "refresh"]
 

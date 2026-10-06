@@ -1,9 +1,12 @@
 import contextvars
 import logging
 import uuid
+from typing import TYPE_CHECKING
 
-from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 # ContextVar to store the correlation/trace ID async-safely
 correlation_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import math
-
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.models.user import DetranStatus, InstructorProfile
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 EARTH_RADIUS_KM = 6371.0
 

@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from fastapi import UploadFile
+if TYPE_CHECKING:
+    from fastapi import UploadFile
 
-from app.core import Settings
-from app.services.us1_store import IdentityStore
+    from app.core import Settings
+    from app.services.us1_store import IdentityStore
 
 ALLOWED_MIME_TYPES = {"application/pdf", "image/jpeg", "image/png"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024

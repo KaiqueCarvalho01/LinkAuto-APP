@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from sqlalchemy import bindparam, text
-from sqlalchemy.orm import Session
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from sqlalchemy.orm import Session
 
 
 class SlotReservationConflictError(RuntimeError):

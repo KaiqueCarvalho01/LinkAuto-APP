@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 import boto3
 
-from app.core import Settings
+if TYPE_CHECKING:
+    from app.core import Settings
 
 logger = logging.getLogger("app.services.notification_service")
 

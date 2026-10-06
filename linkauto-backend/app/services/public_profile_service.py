@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.core.slug import generate_profile_slug
 from app.models.booking import Booking
@@ -12,6 +12,9 @@ from app.schemas.public_profile import (
     PublicReviewItem,
     PublicStudentProfileResponse,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class PublicProfileService:

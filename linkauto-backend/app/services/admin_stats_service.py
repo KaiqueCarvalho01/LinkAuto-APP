@@ -1,9 +1,13 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import func
-from sqlalchemy.orm import Session
 
 from app.models.booking import Booking
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile
 from app.schemas.admin_stats import AdminStatsResponse
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class AdminStatsService:
