@@ -18,6 +18,10 @@ class SlotValidationError(ValueError):
     pass
 
 
+class BookingAccessError(PermissionError):
+    pass
+
+
 class PenalizedStudentError(ValueError):
     pass
 
@@ -152,6 +156,12 @@ class BookingService:
         reason: str | None = None,
     ) -> Booking:
         booking = self._get_booking_or_raise(booking_id)
+        participant_id = {
+            CancelledBy.ALUNO.value: booking.student_id,
+            CancelledBy.INSTRUTOR.value: booking.instructor_id,
+        }.get(cancelled_by)
+        if participant_id is not None and participant_id != user_id:
+            raise BookingAccessError("Only a participant can cancel this booking")
 
         new_status = transition_booking(
             BookingStatus(booking.status), BookingStatus.CANCELADA
