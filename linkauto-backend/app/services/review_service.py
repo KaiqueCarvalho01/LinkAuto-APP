@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, select
+
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.review import Review
@@ -66,7 +68,7 @@ class ReviewService:
 
         """
         # Fetch booking to check existence, status and access
-        booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
+        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
         if not booking:
             msg = f"Booking {booking_id} not found"
             raise ValueError(msg)
@@ -92,11 +94,11 @@ class ReviewService:
             raise ReviewAccessError(msg)
 
         # FR-020: enforce one review per reviewer-reviewed pair per booking
-        existing = (
-            self._db.query(Review)
-            .filter(Review.booking_id == booking_id, Review.reviewer_id == reviewer_id)
-            .first()
-        )
+        existing = self._db.exec(
+            select(Review).where(
+                col(Review.booking_id) == booking_id, col(Review.reviewer_id) == reviewer_id
+            )
+        ).first()
         if existing:
             logger.warning(
                 "Validation failed: User %s has already reviewed booking %s",
@@ -124,11 +126,9 @@ class ReviewService:
 
         # If reviewed is the instructor, update their average rating and count on InstructorProfile
         if reviewed_id == booking.instructor_id:
-            profile = (
-                self._db.query(InstructorProfile)
-                .filter(InstructorProfile.user_id == reviewed_id)
-                .first()
-            )
+            profile = self._db.exec(
+                select(InstructorProfile).where(col(InstructorProfile.user_id) == reviewed_id)
+            ).first()
             if profile:
                 current_count = profile.rating_count
                 current_avg = float(profile.rating_avg)
@@ -164,11 +164,12 @@ class ReviewService:
     ) -> list[Review]:
         """Return a page of reviews received by the instructor, newest first."""
         offset = (page - 1) * page_size
-        return (
-            self._db.query(Review)
-            .filter(Review.reviewed_id == instructor_id)
-            .order_by(Review.created_at.desc())
-            .offset(offset)
-            .limit(page_size)
-            .all()
+        return list(
+            self._db.exec(
+                select(Review)
+                .where(col(Review.reviewed_id) == instructor_id)
+                .order_by(col(Review.created_at).desc())
+                .offset(offset)
+                .limit(page_size)
+            ).all()
         )

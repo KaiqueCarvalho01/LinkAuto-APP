@@ -4,16 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Protocol
 
-from sqlalchemy import bindparam, text
+from sqlmodel import col, update
 
 from app.domain.booking import MIN_SLOTS_PER_BOOKING
+from app.models.slot import Slot
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from sqlalchemy import CursorResult
     from sqlmodel import Session
 
 
@@ -56,15 +56,7 @@ class InMemorySlotReservationStore:
 class SqlAlchemySlotReservationStore:
     """Slot reservation store backed by a conditional ``UPDATE`` on the ``slots`` table."""
 
-    _TABLE_NAME: str = "slots"
-    _RESERVE_STATEMENT = text(
-        """
-        UPDATE slots
-        SET status = :reserved_status
-        WHERE id IN :slot_ids
-          AND status = :available_status
-        """
-    ).bindparams(bindparam("slot_ids", expanding=True))
+    _TABLE_NAME: str = Slot.__tablename__
 
     def __init__(
         self,
@@ -89,17 +81,15 @@ class SqlAlchemySlotReservationStore:
 
         transaction = self._session.begin()
         try:
-            # A text() UPDATE always yields a CursorResult, which carries rowcount
-            result = cast(
-                "CursorResult[Any]",
-                self._session.execute(
-                    self._RESERVE_STATEMENT,
-                    {
-                        "reserved_status": self._reserved_status,
-                        "available_status": self._available_status,
-                        "slot_ids": unique_slot_ids,
-                    },
-                ),
+            # Only rows still available are updated, so rowcount tells whether all were free
+            result = self._session.exec(
+                update(Slot)
+                .where(
+                    col(Slot.id).in_(unique_slot_ids),
+                    col(Slot.status) == self._available_status,
+                )
+                .values(status=self._reserved_status)
+                .execution_options(synchronize_session=False)
             )
         except Exception:
             transaction.rollback()

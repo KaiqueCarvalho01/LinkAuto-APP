@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, select
+
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
@@ -101,11 +103,9 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
     assert review_student.id is not None
 
     # Verify instructor profile has been recalculated
-    inst_profile = (
-        db_session.query(InstructorProfile)
-        .filter(InstructorProfile.user_id == "instructor-1")
-        .first()
-    )
+    inst_profile = db_session.exec(
+        select(InstructorProfile).where(col(InstructorProfile.user_id) == "instructor-1")
+    ).first()
     assert inst_profile is not None
     assert inst_profile.rating_count == 1
     assert float(inst_profile.rating_avg) == 5.0

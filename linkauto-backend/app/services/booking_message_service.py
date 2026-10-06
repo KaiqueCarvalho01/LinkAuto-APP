@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, select
+
 from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
 from app.services.notification_service import (
@@ -49,7 +51,7 @@ class BookingMessageService:
         ``BookingMessageAccessError`` if the sender is not a participant.
         """
         # Fetch booking to check existence and authorization
-        booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
+        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
         if not booking:
             msg = f"Booking {booking_id} not found"
             raise ValueError(msg)
@@ -104,7 +106,7 @@ class BookingMessageService:
         if the user is not a participant.
         """
         # Fetch booking to check existence and authorization
-        booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
+        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
         if not booking:
             msg = f"Booking {booking_id} not found"
             raise ValueError(msg)
@@ -121,11 +123,12 @@ class BookingMessageService:
 
         # Query messages chronologically
         offset = (page - 1) * page_size
-        return (
-            self._db.query(BookingMessage)
-            .filter(BookingMessage.booking_id == booking_id)
-            .order_by(BookingMessage.created_at.asc())
-            .offset(offset)
-            .limit(page_size)
-            .all()
+        return list(
+            self._db.exec(
+                select(BookingMessage)
+                .where(col(BookingMessage.booking_id) == booking_id)
+                .order_by(col(BookingMessage.created_at).asc())
+                .offset(offset)
+                .limit(page_size)
+            ).all()
         )

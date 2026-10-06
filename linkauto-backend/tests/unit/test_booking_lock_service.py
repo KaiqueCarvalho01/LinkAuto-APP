@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlmodel import Session, select
 
 from app.models import Base, InstructorProfile, Slot, SlotStatus, User
 from app.services.booking_lock_service import SqlAlchemySlotReservationStore
@@ -19,7 +19,7 @@ def test_sqlalchemy_slot_reservation_store_has_static_table_name() -> None:
     # 2. Verifica que tentar instanciar passando table_name levanta TypeError
     # (pois o parâmetro foi removido)
     engine = create_engine("sqlite:///:memory:")
-    session = sessionmaker(bind=engine)()
+    session = Session(engine)
 
     with pytest.raises(TypeError):
         # Essa chamada deve falhar na fase GREEN quando o construtor for ajustado.
@@ -28,10 +28,9 @@ def test_sqlalchemy_slot_reservation_store_has_static_table_name() -> None:
 
 
 def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing() -> None:
-
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    session = sessionmaker(bind=engine)()
+    session = Session(engine)
 
     user = User(email="lock@test.com", password_hash="x", roles=["INSTRUTOR"])
     session.add(user)
@@ -49,6 +48,7 @@ def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing() -> None:
     session.add_all(slots)
     session.commit()
     first, second, third = (slot.id for slot in slots)
+    created_updated_at = {slot.id: slot.updated_at for slot in slots}
     session.close()  # the store begins its own transaction
 
     store = SqlAlchemySlotReservationStore(session)
@@ -57,9 +57,12 @@ def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing() -> None:
     assert store.reserve_if_all_available([second, third]) is False
 
     session.expire_all()
-    statuses = {slot.id: slot.status for slot in session.query(Slot).all()}
-    assert statuses == {
+    loaded = {slot.id: slot for slot in session.exec(select(Slot)).all()}
+    assert {slot_id: slot.status for slot_id, slot in loaded.items()} == {
         first: SlotStatus.RESERVADO,
         second: SlotStatus.RESERVADO,
         third: SlotStatus.DISPONIVEL,
     }
+    # Reserved slots record when they changed; the untouched one keeps its timestamp
+    assert loaded[first].updated_at > created_updated_at[first]
+    assert loaded[third].updated_at == created_updated_at[third]

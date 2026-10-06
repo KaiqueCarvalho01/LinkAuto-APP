@@ -5,6 +5,8 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, select
+
 from app.models.user import DetranStatus, InstructorProfile
 
 if TYPE_CHECKING:
@@ -60,23 +62,23 @@ class InstructorSearchService:
         latitude, longitude = filters.latitude, filters.longitude
         radius_km, min_rating, max_price = filters.radius_km, filters.min_rating, filters.max_price
         specialties, sort_by = filters.specialties, filters.sort_by
-        query = self._db.query(InstructorProfile).filter(
-            InstructorProfile.detran_status == DetranStatus.APROVADO.value,
-            InstructorProfile.is_active.is_(True),
-            InstructorProfile.latitude.isnot(None),
-            InstructorProfile.longitude.isnot(None),
+        stmt = select(InstructorProfile).where(
+            col(InstructorProfile.detran_status) == DetranStatus.APROVADO.value,
+            col(InstructorProfile.is_active).is_(True),
+            col(InstructorProfile.latitude).is_not(None),
+            col(InstructorProfile.longitude).is_not(None),
         )
 
         if min_rating is not None:
-            query = query.filter(InstructorProfile.rating_avg >= min_rating)
+            stmt = stmt.where(col(InstructorProfile.rating_avg) >= min_rating)
         if max_price is not None:
-            query = query.filter(InstructorProfile.price_per_hour <= max_price)
+            stmt = stmt.where(col(InstructorProfile.price_per_hour) <= max_price)
 
         target_specialties = [s.strip().lower() for s in (specialties or []) if s.strip()]
 
         # SQLite fallback: filter by Haversine and specialties in Python
         matched_entries: list[tuple[InstructorProfile, float]] = []
-        for p in query.all():
+        for p in self._db.exec(stmt).all():
             # Coordinates are guaranteed by the SQL filter; checked again for the type checker
             if p.latitude is None or p.longitude is None:
                 continue

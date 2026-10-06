@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from sqlalchemy import String
-from sqlmodel import Field, Session, select
+from sqlmodel import Field, Session, col, select
 
 from app.models.base import AuditUUIDBase
 
@@ -51,8 +51,8 @@ class InstructorDocumentRepository:
         """Return the instructor's documents, most recently uploaded first."""
         statement = (
             select(InstructorDocument)
-            .where(InstructorDocument.instructor_id == instructor_id)
-            .order_by(InstructorDocument.uploaded_at.desc())
+            .where(col(InstructorDocument.instructor_id) == instructor_id)
+            .order_by(col(InstructorDocument.uploaded_at).desc())
         )
         return list(self._session.exec(statement))
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import and_
+from sqlmodel import col, select
 
 from app.models.slot import Slot, SlotStatus
 from app.models.user import InstructorProfile
@@ -33,17 +34,15 @@ class SlotService:
         ends_at: datetime,
     ) -> Slot:
         """Create a DISPONIVEL slot, raising ``SlotOverlapError`` if it overlaps an existing one."""
-        overlap = (
-            self._db.query(Slot)
-            .filter(
+        overlap = self._db.exec(
+            select(Slot).where(
                 and_(
-                    Slot.instructor_id == instructor_id,
-                    Slot.starts_at < ends_at,
-                    Slot.ends_at > starts_at,
+                    col(Slot.instructor_id) == instructor_id,
+                    col(Slot.starts_at) < ends_at,
+                    col(Slot.ends_at) > starts_at,
                 )
             )
-            .first()
-        )
+        ).first()
         if overlap:
             msg = (
                 f"Slot overlaps with existing slot {overlap.id} "
@@ -70,28 +69,24 @@ class SlotService:
 
         ``instructor_id`` may be either the instructor's user ID or profile slug.
         """
-        prof = (
-            self._db.query(InstructorProfile)
-            .filter(InstructorProfile.slug == instructor_id)
-            .first()
-        )
+        prof = self._db.exec(
+            select(InstructorProfile).where(col(InstructorProfile.slug) == instructor_id)
+        ).first()
         effective_id = prof.user_id if prof else instructor_id
 
-        query = self._db.query(Slot).filter(Slot.instructor_id == effective_id)
+        stmt = select(Slot).where(col(Slot.instructor_id) == effective_id)
         if status:
-            query = query.filter(Slot.status == status.value)
-        return query.order_by(Slot.starts_at).all()
+            stmt = stmt.where(col(Slot.status) == status.value)
+        return list(self._db.exec(stmt.order_by(col(Slot.starts_at))).all())
 
     def delete_slot(self, instructor_id: str, slot_id: str) -> None:
         """Delete an instructor's slot.
 
         Raises ``ValueError`` if the slot is not found for the instructor or is reserved.
         """
-        slot = (
-            self._db.query(Slot)
-            .filter(Slot.id == slot_id, Slot.instructor_id == instructor_id)
-            .first()
-        )
+        slot = self._db.exec(
+            select(Slot).where(col(Slot.id) == slot_id, col(Slot.instructor_id) == instructor_id)
+        ).first()
         if not slot:
             msg = f"Slot {slot_id} not found for instructor {instructor_id}"
             raise ValueError(msg)
@@ -103,4 +98,4 @@ class SlotService:
 
     def get_slots_by_ids(self, slot_ids: list[str]) -> list[Slot]:
         """Return the slots matching the given IDs."""
-        return self._db.query(Slot).filter(Slot.id.in_(slot_ids)).all()
+        return list(self._db.exec(select(Slot).where(col(Slot.id).in_(slot_ids))).all())
