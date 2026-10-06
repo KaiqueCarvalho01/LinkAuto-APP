@@ -73,7 +73,7 @@ def _complete_booking(
     resp_job = client.post("/api/v1/jobs/booking-completion", headers=headers_admin)
     assert resp_job.status_code == 200
     assert resp_job.json()["data"]["processed"] == 1
-    assert booking_id in resp_job.json()["data"]["errors"]
+    assert resp_job.json()["data"]["booking_ids"] == [booking_id]
 
 
 def _post(
