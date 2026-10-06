@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -17,7 +17,7 @@ class TestBookingMessageSchemas:
             BookingMessageCreateRequest(content="")
 
     def test_message_resource_serialization(self):
-        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=timezone.utc)
+        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=UTC)
         res = MessageResource(
             id="msg-uuid-placeholder",
             booking_id="booking-uuid-placeholder",
@@ -47,7 +47,7 @@ class TestReviewSchemas:
             ReviewCreateRequest(rating=5, comment="A" * 1001)
 
     def test_review_resource_serialization(self):
-        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=timezone.utc)
+        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=UTC)
         res = ReviewResource(
             id="rev-uuid-placeholder",
             booking_id="booking-uuid-placeholder",

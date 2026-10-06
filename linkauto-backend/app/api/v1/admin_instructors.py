@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
 
 from app.api.deps import AuthenticatedUser, require_roles
+from app.core.security_logger import log_admin_action
+from app.schemas.common import success_response
 from app.services.admin_validation_service import AdminValidationService
 from app.services.dependencies import get_admin_validation_service
-from app.schemas.common import success_response
-from app.core.security_logger import log_admin_action
 
 router = APIRouter(prefix="/admin/instructors", tags=["admin-instructors"])
 

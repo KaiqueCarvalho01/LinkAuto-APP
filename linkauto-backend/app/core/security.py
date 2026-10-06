@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Any, Literal
 import uuid
+from datetime import UTC, datetime, timedelta
+from typing import Any, Literal
 
 import bcrypt
 from jose import JWTError, jwt
@@ -48,7 +48,7 @@ def _epoch_seconds(value: datetime) -> int:
 def _build_payload(
     subject: str, token_type: TokenType, expires_delta: timedelta, roles: list[str] | None = None
 ) -> dict[str, Any]:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires_at = now + expires_delta
     return {
         "sub": subject,

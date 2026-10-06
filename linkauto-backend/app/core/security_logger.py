@@ -4,8 +4,7 @@ logger = logging.getLogger("app.security")
 
 
 def mask_token(token: str | None) -> str:
-    """
-    Oculta segredos sensíveis exibindo apenas os últimos 4 caracteres.
+    """Oculta segredos sensíveis exibindo apenas os últimos 4 caracteres.
     Retorna '...' para tokens nulos ou vazios.
     """
     if not token:

@@ -2,8 +2,8 @@ import pytest
 
 from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
-from app.services.booking_message_service import BookingMessageService, BookingMessageAccessError
-from app.services.notification_service import NotificationService, InMemoryEmailGateway
+from app.services.booking_message_service import BookingMessageAccessError, BookingMessageService
+from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
 
 @pytest.fixture

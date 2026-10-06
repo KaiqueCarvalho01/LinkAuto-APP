@@ -6,6 +6,7 @@ from app.api.v1 import (
     admin_stats,
     auth,
     booking_messages,
+    bookings,
     foundation,
     instructor_documents,
     instructor_search,
@@ -13,7 +14,6 @@ from app.api.v1 import (
     public_profiles,
     reviews,
     slots,
-    bookings,
     users,
 )
 from app.jobs import booking_jobs

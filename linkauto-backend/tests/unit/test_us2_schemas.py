@@ -1,15 +1,15 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.slot import SlotCreateRequest, SlotResource
 from app.schemas.booking import BookingCreateRequest, BookingResource
+from app.schemas.slot import SlotCreateRequest, SlotResource
 
 
 class TestSlotSchemas:
     def test_slot_create_valid(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         req = SlotCreateRequest(
             starts_at=now + timedelta(hours=1),
             ends_at=now + timedelta(hours=2),
@@ -17,7 +17,7 @@ class TestSlotSchemas:
         assert req.starts_at is not None
 
     def test_slot_create_rejects_past_starts_at(self):
-        past = datetime.now(timezone.utc) - timedelta(hours=1)
+        past = datetime.now(UTC) - timedelta(hours=1)
         with pytest.raises(ValidationError):
             SlotCreateRequest(
                 starts_at=past,
@@ -25,7 +25,7 @@ class TestSlotSchemas:
             )
 
     def test_slot_create_rejects_non_1h_duration(self):
-        now = datetime.now(timezone.utc) + timedelta(hours=1)
+        now = datetime.now(UTC) + timedelta(hours=1)
         with pytest.raises(ValidationError):
             SlotCreateRequest(
                 starts_at=now,
@@ -33,7 +33,7 @@ class TestSlotSchemas:
             )
 
     def test_slot_resource_serializes(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         res = SlotResource(
             id="slot-001",
             instructor_id="inst-001",
@@ -60,7 +60,7 @@ class TestBookingSchemas:
             )
 
     def test_booking_resource_serializes(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         res = BookingResource(
             id="book-001",
             student_id="stu-001",

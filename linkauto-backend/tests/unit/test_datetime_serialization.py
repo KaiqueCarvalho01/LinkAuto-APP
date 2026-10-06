@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import BaseModel
 
@@ -11,7 +11,7 @@ class MockSchema(BaseModel):
 
 def test_datetime_serializes_with_utc_z():
     """Any datetime returned by the API must be serialized as ISO 8601 ending in Z."""
-    dt = datetime(2026, 5, 28, 12, 0, 0, tzinfo=timezone.utc)
+    dt = datetime(2026, 5, 28, 12, 0, 0, tzinfo=UTC)
     schema = MockSchema(timestamp=dt)
     json_data = schema.model_dump(mode="json")
 

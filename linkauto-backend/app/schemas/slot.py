@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -14,7 +14,7 @@ class SlotCreateRequest(BaseModel):
     @field_validator("starts_at")
     @classmethod
     def starts_at_must_be_future(cls, v: datetime) -> datetime:
-        if v <= datetime.now(timezone.utc):
+        if v <= datetime.now(UTC):
             raise ValueError("starts_at must be in the future")
         return v
 

@@ -1,4 +1,5 @@
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+
 from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot, SlotStatus
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
@@ -36,7 +37,7 @@ def _seed_instructor_stats(db_session, instructor_id="inst-stats-1"):
         db_session.add_all([u_s, sp])
 
     # Create 4 slots for this instructor
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     slots = []
     for i in range(4):
         slot = Slot(

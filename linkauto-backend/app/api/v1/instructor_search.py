@@ -35,7 +35,7 @@ def search_instructors(
         radius_km=radius_km,
         min_rating=min_rating,
         max_price=max_price,
-        specialties=cleaned_specialties if cleaned_specialties else None,
+        specialties=cleaned_specialties or None,
         sort_by=sort_by,
     )
 

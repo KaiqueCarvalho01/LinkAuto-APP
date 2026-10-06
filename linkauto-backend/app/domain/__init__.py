@@ -8,9 +8,9 @@ from app.domain.booking import (
 )
 
 __all__ = [
+    "ALLOWED_TRANSITIONS",
     "BookingStatus",
     "BookingTransitionError",
-    "ALLOWED_TRANSITIONS",
     "can_transition",
     "ensure_transition_allowed",
     "transition_booking",

@@ -16,7 +16,7 @@ def test_engine():
     engine.dispose()
 
 
-@pytest.fixture()
+@pytest.fixture
 def db_session(test_engine):
     connection = test_engine.connect()
     transaction = connection.begin()
@@ -28,11 +28,12 @@ def db_session(test_engine):
     connection.close()
 
 
-@pytest.fixture()
+@pytest.fixture
 def client(db_session):
     from fastapi.testclient import TestClient
-    from app.main import create_app
+
     from app.core.database import get_db
+    from app.main import create_app
 
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db_session

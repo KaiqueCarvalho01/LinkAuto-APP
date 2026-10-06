@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
-import logging
 from typing import Protocol
 
 import boto3
@@ -104,7 +104,7 @@ class NotificationService:
             )
         except Exception as exc:
             logger.warning(
-                f"Failed to dispatch notification [event={payload.event.value}]: {str(exc)}",
+                f"Failed to dispatch notification [event={payload.event.value}]: {exc!s}",
                 extra={
                     "event": "notification.dispatch.failure",
                     "notification_event": payload.event.value,

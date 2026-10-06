@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
 import logging
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from typing import Protocol
 
 from app.domain.booking import BookingStatus
 from app.services.notification_service import (
-    NotificationService,
-    NotificationPayload,
     NotificationEvent,
+    NotificationPayload,
+    NotificationService,
 )
 
 logger = logging.getLogger("app.services.booking_scheduler")
@@ -51,10 +51,10 @@ class BookingScheduler:
     @staticmethod
     def _now_utc(now_utc: datetime | None = None) -> datetime:
         if now_utc is None:
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
         if now_utc.tzinfo is None:
-            return now_utc.replace(tzinfo=timezone.utc)
-        return now_utc.astimezone(timezone.utc)
+            return now_utc.replace(tzinfo=UTC)
+        return now_utc.astimezone(UTC)
 
     def run_pending_timeout(self, now_utc: datetime | None = None) -> BookingSchedulerResult:
         reference = self._now_utc(now_utc)
@@ -72,7 +72,7 @@ class BookingScheduler:
                 success_ids.append(booking_id)
             except Exception as exc:
                 logger.warning(
-                    f"Scheduler failed to cancel expired booking {booking_id}: {str(exc)}",
+                    f"Scheduler failed to cancel expired booking {booking_id}: {exc!s}",
                     extra={
                         "event": "scheduler.pending_timeout.failure",
                         "booking_id": booking_id,
@@ -104,7 +104,7 @@ class BookingScheduler:
                 success_ids.append(booking_id)
             except Exception as exc:
                 logger.warning(
-                    f"Scheduler failed to complete finished booking {booking_id}: {str(exc)}",
+                    f"Scheduler failed to complete finished booking {booking_id}: {exc!s}",
                     extra={
                         "event": "scheduler.confirmed_completion.failure",
                         "booking_id": booking_id,
@@ -157,7 +157,7 @@ class BookingScheduler:
                 success_ids.append(booking_id)
             except Exception as exc:
                 logger.warning(
-                    f"Scheduler failed to send lesson reminder for booking {booking_id}: {str(exc)}",
+                    f"Scheduler failed to send lesson reminder for booking {booking_id}: {exc!s}",
                     extra={
                         "event": "scheduler.lesson_reminder.failure",
                         "booking_id": booking_id,

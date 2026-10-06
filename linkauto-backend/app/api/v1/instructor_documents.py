@@ -3,13 +3,13 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.api.deps import AuthenticatedUser, get_current_user
+from app.schemas.common import success_response
 from app.services.dependencies import get_instructor_document_service
 from app.services.instructor_document_service import (
     DocumentTooLargeError,
     DocumentValidationError,
     InstructorDocumentService,
 )
-from app.schemas.common import success_response
 
 router = APIRouter(prefix="/instructors", tags=["instructor-documents"])
 

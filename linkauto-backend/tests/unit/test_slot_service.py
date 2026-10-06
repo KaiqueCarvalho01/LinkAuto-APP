@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from app.models.slot import SlotStatus
-from app.models.user import InstructorProfile, User, UserRole, DetranStatus
-from app.services.slot_service import SlotService, SlotOverlapError
+from app.models.user import DetranStatus, InstructorProfile, User, UserRole
+from app.services.slot_service import SlotOverlapError, SlotService
 
 
 def _seed_instructor(db_session, instructor_id="inst-001"):
@@ -31,7 +31,7 @@ class TestSlotServiceCreate:
     def test_creates_slot_successfully(self, db_session):
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=1)
+        now = datetime.now(UTC) + timedelta(hours=1)
 
         slot = service.create_slot(
             instructor_id=instructor_id,
@@ -46,7 +46,7 @@ class TestSlotServiceCreate:
     def test_rejects_overlapping_slot(self, db_session):
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=2)
+        now = datetime.now(UTC) + timedelta(hours=2)
 
         service.create_slot(instructor_id, now, now + timedelta(hours=1))
 
@@ -58,7 +58,7 @@ class TestSlotServiceList:
     def test_lists_slots_for_instructor(self, db_session):
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=1)
+        now = datetime.now(UTC) + timedelta(hours=1)
 
         service.create_slot(instructor_id, now, now + timedelta(hours=1))
         service.create_slot(instructor_id, now + timedelta(hours=1), now + timedelta(hours=2))
@@ -71,7 +71,7 @@ class TestSlotServiceDelete:
     def test_deletes_available_slot(self, db_session):
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=1)
+        now = datetime.now(UTC) + timedelta(hours=1)
 
         slot = service.create_slot(instructor_id, now, now + timedelta(hours=1))
         service.delete_slot(instructor_id, slot.id)
@@ -82,7 +82,7 @@ class TestSlotServiceDelete:
     def test_cannot_delete_reserved_slot(self, db_session):
         instructor_id = _seed_instructor(db_session)
         service = SlotService(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=1)
+        now = datetime.now(UTC) + timedelta(hours=1)
 
         slot = service.create_slot(instructor_id, now, now + timedelta(hours=1))
         slot.status = SlotStatus.RESERVADO.value

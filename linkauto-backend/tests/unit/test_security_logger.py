@@ -1,18 +1,17 @@
 import logging
+
 from app.core.security_logger import (
-    log_auth_success,
+    log_admin_action,
     log_auth_failure,
+    log_auth_success,
     log_forbidden,
     log_upload_rejected,
-    log_admin_action,
     mask_token,
 )
 
 
 def test_mask_token_leaves_only_last_four_characters():
-    """
-    D07 - P2: mask_token deve mascarar segredos exibindo apenas os 4 últimos caracteres.
-    """
+    """D07 - P2: mask_token deve mascarar segredos exibindo apenas os 4 últimos caracteres."""
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIi"
     masked = mask_token(token)
     assert masked.startswith("...")
@@ -23,9 +22,7 @@ def test_mask_token_leaves_only_last_four_characters():
 
 
 def test_log_auth_success_emits_structured_info_log(caplog):
-    """
-    D07 - P2: log_auth_success deve emitir log INFO com dados estruturados.
-    """
+    """D07 - P2: log_auth_success deve emitir log INFO com dados estruturados."""
     with caplog.at_level(logging.INFO):
         log_auth_success("user@example.com", "192.168.1.1")
 
@@ -38,9 +35,7 @@ def test_log_auth_success_emits_structured_info_log(caplog):
 
 
 def test_log_auth_failure_emits_structured_warning_log(caplog):
-    """
-    D07 - P2: log_auth_failure deve emitir log WARNING com dados estruturados.
-    """
+    """D07 - P2: log_auth_failure deve emitir log WARNING com dados estruturados."""
     with caplog.at_level(logging.WARNING):
         log_auth_failure("attacker@example.com", "10.0.0.5")
 
@@ -53,9 +48,7 @@ def test_log_auth_failure_emits_structured_warning_log(caplog):
 
 
 def test_log_forbidden_emits_structured_warning_log(caplog):
-    """
-    D07 - P2: log_forbidden deve emitir log WARNING com dados estruturados.
-    """
+    """D07 - P2: log_forbidden deve emitir log WARNING com dados estruturados."""
     with caplog.at_level(logging.WARNING):
         log_forbidden("user-123", "/admin/stats", "172.16.0.2")
 
@@ -69,9 +62,7 @@ def test_log_forbidden_emits_structured_warning_log(caplog):
 
 
 def test_log_upload_rejected_emits_structured_warning_log(caplog):
-    """
-    D07 - P2: log_upload_rejected deve emitir log WARNING com dados estruturados.
-    """
+    """D07 - P2: log_upload_rejected deve emitir log WARNING com dados estruturados."""
     with caplog.at_level(logging.WARNING):
         log_upload_rejected("instructor-456", "INVALID_FILE_CONTENT")
 
@@ -84,9 +75,7 @@ def test_log_upload_rejected_emits_structured_warning_log(caplog):
 
 
 def test_log_admin_action_emits_structured_info_log(caplog):
-    """
-    D07 - P2: log_admin_action deve emitir log INFO com dados estruturados.
-    """
+    """D07 - P2: log_admin_action deve emitir log INFO com dados estruturados."""
     with caplog.at_level(logging.INFO):
         log_admin_action("admin-789", "approve_instructor", "instructor-012")
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -41,7 +41,7 @@ def _seed_users(db_session):
 
 
 def _create_consecutive_slots(db_session, instructor_id, count=2, base_offset_hours=2):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     base = now + timedelta(hours=base_offset_hours)
     slots = []
     for i in range(count):
@@ -85,7 +85,7 @@ class TestBookingServiceCreate:
 
     def test_rejects_non_consecutive_slots(self, db_session):
         _seed_users(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=2)
+        now = datetime.now(UTC) + timedelta(hours=2)
         s1 = Slot(
             instructor_id="inst-001",
             starts_at=now,
@@ -162,7 +162,7 @@ class TestBookingServiceCancel:
 
 class TestBookingServiceNotifications:
     def test_create_booking_dispatches_notification(self, db_session):
-        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
@@ -180,7 +180,7 @@ class TestBookingServiceNotifications:
         assert "pendente" in email["body"]
 
     def test_confirm_booking_dispatches_notification(self, db_session):
-        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
@@ -201,7 +201,7 @@ class TestBookingServiceNotifications:
         assert "confirmada" in email["body"]
 
     def test_cancel_booking_dispatches_notification(self, db_session):
-        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)

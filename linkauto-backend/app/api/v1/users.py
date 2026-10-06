@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict
 
 from app.api.deps import AuthenticatedUser, get_current_user
+from app.schemas.common import success_response
 from app.services.dependencies import get_profile_service
 from app.services.profile_service import ProfileService
-from app.schemas.common import success_response
 
 router = APIRouter(prefix="/users", tags=["users"])
 

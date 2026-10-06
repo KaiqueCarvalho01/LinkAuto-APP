@@ -12,9 +12,9 @@ from app.core.security import (
 )
 from app.models import UserRole
 from app.services.notification_service import (
+    NotificationEvent,
     NotificationPayload,
     NotificationService,
-    NotificationEvent,
 )
 from app.services.us1_store import IdentityStore, UserRecord
 
@@ -78,4 +78,4 @@ class AuthService:
         user = self._store.get_user_by_email(email)
         if user is None:
             return
-        return None
+        return

@@ -8,7 +8,6 @@ from threading import Lock
 from app.models import DetranStatus, LicenseType, UserRole, generate_uuid7
 from app.models.base import utc_now
 
-
 ALLOWED_ROLES = {role.value for role in UserRole}
 
 
@@ -163,8 +162,8 @@ class IdentityStore:
         return None
 
     def _sync_db_user_to_memory(self, db_user) -> UserRecord:
-        from app.models.user import LicenseType
         from app.models import DetranStatus
+        from app.models.user import LicenseType
 
         with self._lock:
             # StudentProfile map

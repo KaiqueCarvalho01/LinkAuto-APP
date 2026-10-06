@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -38,7 +38,7 @@ class TestBookingCascadeRegression:
     def test_full_happy_path_lifecycle(self, db_session):
         """PENDENTE → CONFIRMADA → REALIZADA via service layer."""
         _full_seed(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=4)
+        now = datetime.now(UTC) + timedelta(hours=4)
         slots = []
         for i in range(2):
             s = Slot(

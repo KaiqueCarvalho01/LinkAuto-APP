@@ -5,7 +5,11 @@ from app.models.base import (
     UUIDPrimaryKeyMixin,
     generate_uuid7,
 )
+from app.models.booking import Booking, BookingSlot, CancelledBy, StudentPenalty
+from app.models.booking_message import BookingMessage
 from app.models.instructor_document import InstructorDocument, InstructorDocumentRepository
+from app.models.review import Review
+from app.models.slot import Slot, SlotStatus
 from app.models.user import (
     DetranStatus,
     InstructorProfile,
@@ -14,31 +18,27 @@ from app.models.user import (
     User,
     UserRole,
 )
-from app.models.slot import Slot, SlotStatus
-from app.models.booking import Booking, BookingSlot, StudentPenalty, CancelledBy
-from app.models.booking_message import BookingMessage
-from app.models.review import Review
 
 __all__ = [
-    "Base",
-    "AuditUUIDBase",
     "AuditTimestampsMixin",
-    "UUIDPrimaryKeyMixin",
-    "generate_uuid7",
-    "UserRole",
-    "LicenseType",
+    "AuditUUIDBase",
+    "Base",
+    "Booking",
+    "BookingMessage",
+    "BookingSlot",
+    "CancelledBy",
     "DetranStatus",
-    "User",
-    "StudentProfile",
-    "InstructorProfile",
     "InstructorDocument",
     "InstructorDocumentRepository",
+    "InstructorProfile",
+    "LicenseType",
+    "Review",
     "Slot",
     "SlotStatus",
-    "Booking",
-    "BookingSlot",
     "StudentPenalty",
-    "CancelledBy",
-    "BookingMessage",
-    "Review",
+    "StudentProfile",
+    "UUIDPrimaryKeyMixin",
+    "User",
+    "UserRole",
+    "generate_uuid7",
 ]

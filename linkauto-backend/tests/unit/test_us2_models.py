@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from app.models.slot import Slot, SlotStatus
-from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.domain.booking import BookingStatus
+from app.models.booking import Booking, BookingSlot, StudentPenalty
+from app.models.slot import Slot, SlotStatus
 
 
 def test_slot_model_creation(db_session):
     """Slot model persists with required fields."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     slot = Slot(
         instructor_id="instructor-001",
         starts_at=now,
@@ -39,7 +39,7 @@ def test_booking_model_creation(db_session):
 
 def test_booking_slot_association(db_session):
     """BookingSlot links a Booking to a Slot."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     slot = Slot(
         instructor_id="instructor-001",
         starts_at=now,
@@ -66,7 +66,7 @@ def test_student_penalty_model(db_session):
     """StudentPenalty persists with blocking date."""
     penalty = StudentPenalty(
         student_id="student-001",
-        blocked_until=datetime.now(timezone.utc) + timedelta(days=7),
+        blocked_until=datetime.now(UTC) + timedelta(days=7),
         reason="Cancelamento tardio conforme RN04",
     )
     db_session.add(penalty)

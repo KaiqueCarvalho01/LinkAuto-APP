@@ -4,12 +4,12 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from app.core import Settings, get_settings
+from app.core.rate_limit import limiter
+from app.core.security_logger import log_auth_failure, log_auth_success
+from app.schemas.common import success_response
 from app.services.auth_service import AuthService
 from app.services.dependencies import get_auth_service, get_profile_service
 from app.services.profile_service import ProfileService
-from app.schemas.common import success_response
-from app.core.security_logger import log_auth_success, log_auth_failure
-from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

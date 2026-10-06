@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -121,9 +121,8 @@ def seed_dev_data(session: Session) -> None:
             is_active=True,
         )
         session.add(inst1_profile)
-    else:
-        if inst1_user.instructor_profile and not inst1_user.instructor_profile.slug:
-            inst1_user.instructor_profile.slug = "camila-rocha-mogi-mirim-8f2a"
+    elif inst1_user.instructor_profile and not inst1_user.instructor_profile.slug:
+        inst1_user.instructor_profile.slug = "camila-rocha-mogi-mirim-8f2a"
 
     # 4. Instructor 2: Rafael Mendes
     inst2_user = session.query(User).filter_by(email="rafael@linkauto.com.br").first()
@@ -156,9 +155,8 @@ def seed_dev_data(session: Session) -> None:
             is_active=True,
         )
         session.add(inst2_profile)
-    else:
-        if inst2_user.instructor_profile and not inst2_user.instructor_profile.slug:
-            inst2_user.instructor_profile.slug = "rafael-mendes-mogi-guacu-3c1d"
+    elif inst2_user.instructor_profile and not inst2_user.instructor_profile.slug:
+        inst2_user.instructor_profile.slug = "rafael-mendes-mogi-guacu-3c1d"
 
     # 5. Instructor 3: Fernanda Siqueira
     inst3_user = session.query(User).filter_by(email="fernanda@linkauto.com.br").first()
@@ -191,9 +189,8 @@ def seed_dev_data(session: Session) -> None:
             is_active=True,
         )
         session.add(inst3_profile)
-    else:
-        if inst3_user.instructor_profile and not inst3_user.instructor_profile.slug:
-            inst3_user.instructor_profile.slug = "fernanda-siqueira-estiva-gerbi-9e4b"
+    elif inst3_user.instructor_profile and not inst3_user.instructor_profile.slug:
+        inst3_user.instructor_profile.slug = "fernanda-siqueira-estiva-gerbi-9e4b"
 
     session.flush()
 
@@ -206,7 +203,7 @@ def seed_dev_data(session: Session) -> None:
     # Check if slots already exist
     existing_slots = session.query(Slot).filter_by(instructor_id=inst1_id).first()
     if not existing_slots:
-        now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+        now = datetime.now(UTC).replace(minute=0, second=0, microsecond=0)
 
         # Generate slots for next 5 days
         for day in range(5):
@@ -216,7 +213,7 @@ def seed_dev_data(session: Session) -> None:
             for hour in [8, 9, 10, 11, 14, 15, 16]:
                 start = base_date.replace(hour=hour)
                 end = start + timedelta(hours=1)
-                if start <= datetime.now(timezone.utc):
+                if start <= datetime.now(UTC):
                     continue
                 slot = Slot(
                     instructor_id=inst1_id,
@@ -230,7 +227,7 @@ def seed_dev_data(session: Session) -> None:
             for hour in [9, 10, 11, 13, 14, 15]:
                 start = base_date.replace(hour=hour)
                 end = start + timedelta(hours=1)
-                if start <= datetime.now(timezone.utc):
+                if start <= datetime.now(UTC):
                     continue
                 slot = Slot(
                     instructor_id=inst2_id,
@@ -244,7 +241,7 @@ def seed_dev_data(session: Session) -> None:
             for hour in [10, 11, 14, 15, 16, 17]:
                 start = base_date.replace(hour=hour)
                 end = start + timedelta(hours=1)
-                if start <= datetime.now(timezone.utc):
+                if start <= datetime.now(UTC):
                     continue
                 slot = Slot(
                     instructor_id=inst3_id,

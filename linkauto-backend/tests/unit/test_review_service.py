@@ -1,15 +1,15 @@
 import pytest
 
 from app.models.booking import Booking
-from app.models.user import User, InstructorProfile, StudentProfile
 from app.models.review import Review
+from app.models.user import InstructorProfile, StudentProfile, User
+from app.services.notification_service import InMemoryEmailGateway, NotificationService
 from app.services.review_service import (
-    ReviewService,
     ReviewAccessError,
-    ReviewStateError,
     ReviewDuplicateError,
+    ReviewService,
+    ReviewStateError,
 )
-from app.services.notification_service import NotificationService, InMemoryEmailGateway
 
 
 @pytest.fixture

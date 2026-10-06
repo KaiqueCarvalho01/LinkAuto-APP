@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -40,7 +40,7 @@ def _seed_scenario(db_session):
 
 
 def _make_slots(db_session, count=3, offset_hours=4):
-    now = datetime.now(timezone.utc) + timedelta(hours=offset_hours)
+    now = datetime.now(UTC) + timedelta(hours=offset_hours)
     slots = []
     for i in range(count):
         s = Slot(
@@ -74,7 +74,7 @@ class TestRN02MinimumSlots:
 
     def test_non_consecutive_fails(self, db_session):
         _seed_scenario(db_session)
-        now = datetime.now(timezone.utc) + timedelta(hours=10)
+        now = datetime.now(UTC) + timedelta(hours=10)
         s1 = Slot(
             instructor_id="rn-inst",
             starts_at=now,

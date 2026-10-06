@@ -1,12 +1,12 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from app.services.booking_lock_service import SqlAlchemySlotReservationStore
 
 
 def test_sqlalchemy_slot_reservation_store_has_static_table_name():
-    """
-    D08 - P2: SqlAlchemySlotReservationStore deve possuir _TABLE_NAME estático como slots
+    """D08 - P2: SqlAlchemySlotReservationStore deve possuir _TABLE_NAME estático como slots
     e não deve aceitar o parâmetro table_name no construtor.
     """
     # 1. Verifica se existe o atributo de classe privado _TABLE_NAME

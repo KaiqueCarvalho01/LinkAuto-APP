@@ -1,8 +1,8 @@
 import pytest
 
-from tests.conftest_db import *  # noqa: F401, F403
-from app.services.us1_store import get_identity_store
 from app.core.rate_limit import limiter
+from app.services.us1_store import get_identity_store
+from tests.conftest_db import *  # noqa: F403
 
 
 @pytest.fixture(autouse=True)

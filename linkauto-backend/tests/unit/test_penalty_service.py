@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from app.models.booking import StudentPenalty
-from app.models.user import User, UserRole, StudentProfile
+from app.models.user import StudentProfile, User, UserRole
 from app.services.penalty_service import PenaltyService
 
 
@@ -40,7 +40,7 @@ class TestPenaltyService:
         student_id = _seed_student(db_session)
         penalty = StudentPenalty(
             student_id=student_id,
-            blocked_until=datetime.now(timezone.utc) - timedelta(days=1),
+            blocked_until=datetime.now(UTC) - timedelta(days=1),
             reason="Old penalty",
         )
         db_session.add(penalty)

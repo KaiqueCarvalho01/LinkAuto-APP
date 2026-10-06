@@ -1,7 +1,7 @@
-from app.models.booking import Booking
-from app.models.user import User, StudentProfile, InstructorProfile, UserRole, DetranStatus
-from app.core.security import create_access_token
 from app.core.config import get_settings
+from app.core.security import create_access_token
+from app.models.booking import Booking
+from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
 
 
 def _seed_auth_users(db_session):

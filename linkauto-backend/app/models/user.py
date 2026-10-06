@@ -3,7 +3,8 @@ from __future__ import annotations
 from decimal import Decimal
 from enum import Enum
 
-from sqlalchemy import Boolean, Enum as SqlEnum, ForeignKey, JSON, Numeric, String
+from sqlalchemy import JSON, Boolean, ForeignKey, Numeric, String
+from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import AuditTimestampsMixin, AuditUUIDBase, Base

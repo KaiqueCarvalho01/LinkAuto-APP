@@ -28,7 +28,7 @@ def test_all_us3_tables_exist(test_engine):
 
 
 def test_review_unique_constraint_on_reviewer(test_engine):
-    """reviews must have a unique constraint/index on booking_id + reviewer_id."""
+    """Reviews must have a unique constraint/index on booking_id + reviewer_id."""
     inspector = inspect(test_engine)
     unique_constraints = inspector.get_unique_constraints("reviews")
     # Check if there is a unique constraint on (booking_id, reviewer_id)

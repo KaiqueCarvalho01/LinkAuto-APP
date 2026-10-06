@@ -1,11 +1,11 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from app.services.us1_store import get_identity_store
 from app.core.security import hash_password
+from app.services.us1_store import get_identity_store
 
 
 def _setup_instructor_with_slots(token, client):
-    now = datetime.now(timezone.utc) + timedelta(hours=4)
+    now = datetime.now(UTC) + timedelta(hours=4)
     slots = []
     for i in range(3):
         resp = client.post(

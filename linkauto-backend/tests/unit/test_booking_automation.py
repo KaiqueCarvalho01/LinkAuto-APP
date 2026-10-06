@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from app.domain.booking import BookingStatus
-from app.models.booking import Booking
+from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot, SlotStatus
-from app.models.booking import BookingSlot
 from app.models.user import (
     DetranStatus,
     InstructorProfile,
@@ -32,7 +31,7 @@ def _seed_full_booking(db_session, status, starts_offset_hours, booking_id="book
     )
     stu_p = StudentProfile(user_id="auto-stu", full_name="S", phone="2", city="C", state="SP")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     base = now + timedelta(hours=starts_offset_hours)
     slot1 = Slot(
         instructor_id="auto-inst",
@@ -96,7 +95,7 @@ class TestBookingAutomationPort:
         assert result.processed == 1
 
     def test_lesson_reminder_cron_triggers(self, db_session):
-        from app.services.notification_service import NotificationService, InMemoryEmailGateway
+        from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
@@ -133,7 +132,6 @@ class FailingBookingAutomationPort:
     def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
         if booking_id == "book-failed":
             raise RuntimeError("Database connection timed out for this item")
-        return
 
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
         return []
@@ -149,8 +147,7 @@ class FailingBookingAutomationPort:
 
 
 def test_scheduler_pending_timeout_resilience_per_item():
-    """
-    D13 - P2: Resiliência per-item no scheduler.
+    """D13 - P2: Resiliência per-item no scheduler.
     Garante que se uma transição de booking falhar, o lote continue sendo processado
     para os próximos itens, retornando contadores adequados de processados e falhos.
     """

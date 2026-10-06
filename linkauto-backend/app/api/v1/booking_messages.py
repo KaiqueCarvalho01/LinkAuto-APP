@@ -7,7 +7,7 @@ from app.models.booking import Booking
 from app.models.user import User
 from app.schemas.booking_message import BookingMessageCreateRequest, MessageResource
 from app.schemas.common import error_response, success_response
-from app.services.booking_message_service import BookingMessageService, BookingMessageAccessError
+from app.services.booking_message_service import BookingMessageAccessError, BookingMessageService
 from app.services.dependencies import get_notification_service
 
 router = APIRouter(prefix="/bookings/{id}", tags=["Booking Messages"])

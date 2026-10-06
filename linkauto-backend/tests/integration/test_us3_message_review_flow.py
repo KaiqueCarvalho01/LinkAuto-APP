@@ -1,9 +1,9 @@
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
-from app.models.user import User, StudentProfile, InstructorProfile, UserRole, DetranStatus
+from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
 from app.services.booking_message_service import BookingMessageService
-from app.services.review_service import ReviewService
 from app.services.dependencies import get_notification_service
+from app.services.review_service import ReviewService
 
 
 def _setup_integration_data(db_session):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -8,12 +8,12 @@ from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
 from app.models.user import User
-from app.services.penalty_service import PenaltyService
 from app.services.notification_service import (
-    NotificationService,
-    NotificationPayload,
     NotificationEvent,
+    NotificationPayload,
+    NotificationService,
 )
+from app.services.penalty_service import PenaltyService
 
 CANCELLATION_NOTICE_HOURS = 24
 
@@ -129,7 +129,7 @@ class BookingService:
 
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CONFIRMADA)
         booking.status = new_status.value
-        booking.confirmed_at = datetime.now(timezone.utc)
+        booking.confirmed_at = datetime.now(UTC)
         self._db.flush()
 
         # FR-021: trigger email notification to student
@@ -156,7 +156,7 @@ class BookingService:
         booking = self._get_booking_or_raise(booking_id)
 
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CANCELADA)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         booking.status = new_status.value
         booking.cancelled_at = now
@@ -183,7 +183,7 @@ class BookingService:
             if first_slot:
                 first_slot_starts = first_slot.starts_at
                 if first_slot_starts.tzinfo is None:
-                    first_slot_starts = first_slot_starts.replace(tzinfo=timezone.utc)
+                    first_slot_starts = first_slot_starts.replace(tzinfo=UTC)
                 time_until_slot = first_slot_starts - now
                 if time_until_slot < timedelta(hours=CANCELLATION_NOTICE_HOURS):
                     self._penalty.apply_penalty(

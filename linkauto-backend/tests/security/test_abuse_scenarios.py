@@ -1,12 +1,12 @@
 from fastapi.testclient import TestClient
+
 from app.main import create_app
 
 client = TestClient(create_app())
 
 
 def test_register_with_admin_role_is_blocked():
-    """
-    D01 - P0: Bloquear ADMIN no registro público
+    """D01 - P0: Bloquear ADMIN no registro público
     Tenta registrar uma conta enviando a role 'ADMIN'. Deve retornar 400 Bad Request.
     """
     response = client.post(
@@ -25,8 +25,8 @@ def test_register_with_admin_role_is_blocked():
 
 
 def _register_and_login_user(email: str, roles: list[str]) -> tuple[str, str]:
-    from app.services.us1_store import get_identity_store
     from app.core.security import hash_password
+    from app.services.us1_store import get_identity_store
 
     try:
         user = get_identity_store().create_user(
@@ -43,8 +43,7 @@ def _register_and_login_user(email: str, roles: list[str]) -> tuple[str, str]:
 
 
 def test_patch_profile_rejects_extra_and_system_fields():
-    """
-    D03 - P1: Fechar schema de profile update (mass assignment)
+    """D03 - P1: Fechar schema de profile update (mass assignment)
     Tentativas de atualizar campos restritos como detran_status, rating_avg, rating_count,
     ou campos não declarados (is_admin) devem retornar erro de validação.
     """
@@ -72,8 +71,7 @@ def test_patch_profile_rejects_extra_and_system_fields():
 
 
 def test_security_headers_are_present():
-    """
-    D04 - P1: Security headers middleware
+    """D04 - P1: Security headers middleware
     Verifica se os cabeçalhos de segurança essenciais estão presentes nas respostas HTTP.
     """
     response = client.get("/api/v1/foundation/ping")
@@ -88,8 +86,7 @@ def test_security_headers_are_present():
 
 
 def test_upload_with_fake_mime_is_rejected():
-    """
-    D06 - P1: Elevar validação de upload (magic bytes)
+    """D06 - P1: Elevar validação de upload (magic bytes)
     Tenta realizar upload de um arquivo com MIME 'application/pdf' contendo dados
     comuns que não começam com a assinatura PDF (%PDF). Deve retornar 400 Bad Request.
     """
@@ -114,8 +111,7 @@ def test_upload_with_fake_mime_is_rejected():
 
 
 def test_rate_limit_on_login():
-    """
-    D09 - P2: Rate limiting com slowapi
+    """D09 - P2: Rate limiting com slowapi
     Simula uma rajada de requisições no endpoint de login.
     A partir da 11ª requisição no mesmo minuto, o servidor deve responder com 429 Too Many Requests.
     """

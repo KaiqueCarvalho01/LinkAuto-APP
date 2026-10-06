@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from app.services.us1_store import get_identity_store
 from app.core.security import hash_password
+from app.services.us1_store import get_identity_store
 
 
 def _register_and_login_instructor(client):
@@ -29,7 +29,7 @@ def _register_and_login_instructor(client):
 class TestSlotEndpoints:
     def test_create_slot_returns_201(self, client):
         token = _register_and_login_instructor(client)
-        now = datetime.now(timezone.utc) + timedelta(hours=2)
+        now = datetime.now(UTC) + timedelta(hours=2)
         resp = client.post(
             "/api/v1/instructors/me/slots",
             json={
@@ -51,7 +51,7 @@ class TestSlotEndpoints:
         assert "data" in resp.json()
 
     def test_create_slot_rejects_unauthenticated(self, client):
-        now = datetime.now(timezone.utc) + timedelta(hours=2)
+        now = datetime.now(UTC) + timedelta(hours=2)
         resp = client.post(
             "/api/v1/instructors/me/slots",
             json={

@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
+from app.core.config import get_settings
+from app.core.security import create_access_token
 from app.domain.booking import BookingStatus
 from app.models.user import UserRole
-from app.core.security import create_access_token
-from app.core.config import get_settings
 
 
 def test_happy_path_e2e_journey(client, db_session):
@@ -71,7 +71,7 @@ def test_happy_path_e2e_journey(client, db_session):
     assert resp_approve.status_code == 200
 
     # 4. Instructor creates 2 consecutive slots
-    now = datetime.now(timezone.utc) + timedelta(hours=2)
+    now = datetime.now(UTC) + timedelta(hours=2)
     slot1_start = now.replace(minute=0, second=0, microsecond=0)
     slot1_end = slot1_start + timedelta(hours=1)
     slot2_start = slot1_end
@@ -124,8 +124,8 @@ def test_happy_path_e2e_journey(client, db_session):
 
     db_session.query(Slot).filter(Slot.id.in_([slot1_id, slot2_id])).update(
         {
-            "starts_at": datetime.now(timezone.utc) - timedelta(hours=5),
-            "ends_at": datetime.now(timezone.utc) - timedelta(hours=3),
+            "starts_at": datetime.now(UTC) - timedelta(hours=5),
+            "ends_at": datetime.now(UTC) - timedelta(hours=3),
         }
     )
     db_session.commit()

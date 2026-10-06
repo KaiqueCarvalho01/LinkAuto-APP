@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -14,7 +14,7 @@ class PenaltyService:
         self._db = db
 
     def is_penalized(self, student_id: str) -> bool:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         active = (
             self._db.query(StudentPenalty)
             .filter(
@@ -28,7 +28,7 @@ class PenaltyService:
     def apply_penalty(self, student_id: str, reason: str) -> StudentPenalty:
         penalty = StudentPenalty(
             student_id=student_id,
-            blocked_until=datetime.now(timezone.utc) + timedelta(days=PENALTY_DAYS),
+            blocked_until=datetime.now(UTC) + timedelta(days=PENALTY_DAYS),
             reason=reason,
         )
         self._db.add(penalty)

@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import logging
+
 from sqlalchemy.orm import Session
 
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
-from app.models.user import InstructorProfile
 from app.models.review import Review
+from app.models.user import InstructorProfile
 from app.services.notification_service import (
-    NotificationService,
-    NotificationPayload,
     NotificationEvent,
+    NotificationPayload,
+    NotificationService,
 )
 
 logger = logging.getLogger(__name__)
