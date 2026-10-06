@@ -211,7 +211,7 @@ def seed_dev_data(session: Session) -> None:
         # Generate slots for next 5 days
         for day in range(5):
             base_date = now + timedelta(days=day)
-            
+
             # Camila Rocha (inst1)
             for hour in [8, 9, 10, 11, 14, 15, 16]:
                 start = base_date.replace(hour=hour)
@@ -258,11 +258,15 @@ def seed_dev_data(session: Session) -> None:
 
         # Create a PENDING booking with Rafael Mendes (inst2) for tomorrow
         tomorrow = now + timedelta(days=1)
-        slots_inst2 = session.query(Slot).filter(
-            Slot.instructor_id == inst2_id,
-            Slot.starts_at >= tomorrow.replace(hour=9),
-            Slot.starts_at <= tomorrow.replace(hour=12),
-        ).all()
+        slots_inst2 = (
+            session.query(Slot)
+            .filter(
+                Slot.instructor_id == inst2_id,
+                Slot.starts_at >= tomorrow.replace(hour=9),
+                Slot.starts_at <= tomorrow.replace(hour=12),
+            )
+            .all()
+        )
 
         if len(slots_inst2) >= 2:
             slots_inst2[0].status = SlotStatus.RESERVADO.value

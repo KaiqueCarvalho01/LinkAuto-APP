@@ -1,13 +1,30 @@
 import pytest
 
-from app.domain.booking import BookingStatus, BookingTransitionError, can_transition, transition_booking
+from app.domain.booking import (
+    BookingStatus,
+    BookingTransitionError,
+    can_transition,
+    transition_booking,
+)
 
 
 def test_allows_valid_transitions():
-    assert transition_booking(BookingStatus.PENDENTE, BookingStatus.CONFIRMADA) == BookingStatus.CONFIRMADA
-    assert transition_booking(BookingStatus.PENDENTE, BookingStatus.CANCELADA) == BookingStatus.CANCELADA
-    assert transition_booking(BookingStatus.CONFIRMADA, BookingStatus.CANCELADA) == BookingStatus.CANCELADA
-    assert transition_booking(BookingStatus.CONFIRMADA, BookingStatus.REALIZADA) == BookingStatus.REALIZADA
+    assert (
+        transition_booking(BookingStatus.PENDENTE, BookingStatus.CONFIRMADA)
+        == BookingStatus.CONFIRMADA
+    )
+    assert (
+        transition_booking(BookingStatus.PENDENTE, BookingStatus.CANCELADA)
+        == BookingStatus.CANCELADA
+    )
+    assert (
+        transition_booking(BookingStatus.CONFIRMADA, BookingStatus.CANCELADA)
+        == BookingStatus.CANCELADA
+    )
+    assert (
+        transition_booking(BookingStatus.CONFIRMADA, BookingStatus.REALIZADA)
+        == BookingStatus.REALIZADA
+    )
 
 
 def test_blocks_invalid_transition_from_pending_to_realizada():

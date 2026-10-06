@@ -56,7 +56,10 @@ class InstructorSearchService:
             if target_specialties:
                 prof_specs = [s.lower() for s in (p.specialties or [])]
                 # Match if any of the target specialties is present in profile specialties
-                if not any(ts in prof_specs or any(ts in ps for ps in prof_specs) for ts in target_specialties):
+                if not any(
+                    ts in prof_specs or any(ts in ps for ps in prof_specs)
+                    for ts in target_specialties
+                ):
                     continue
 
             dist = _haversine_distance(latitude, longitude, float(p.latitude), float(p.longitude))
@@ -65,11 +68,13 @@ class InstructorSearchService:
 
         # Sort results
         if sort_by == "rating":
-            matched_entries.sort(key=lambda item: (item[0].rating_avg or 0.0), reverse=True)
+            matched_entries.sort(key=lambda item: item[0].rating_avg or 0.0, reverse=True)
         elif sort_by == "price_asc":
             matched_entries.sort(key=lambda item: float(item[0].price_per_hour or 0.0))
         elif sort_by == "price_desc":
-            matched_entries.sort(key=lambda item: float(item[0].price_per_hour or 0.0), reverse=True)
+            matched_entries.sort(
+                key=lambda item: float(item[0].price_per_hour or 0.0), reverse=True
+            )
         else:  # default or "distance"
             matched_entries.sort(key=lambda item: item[1])
 

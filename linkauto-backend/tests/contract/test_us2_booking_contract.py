@@ -25,14 +25,17 @@ def _register_login(role, email, client):
     store = get_identity_store()
     user = store.create_user(email, hash_password("Pass1234!"), [role])
     if role == "INSTRUTOR":
-        store.update_profile(user.id, {
-            "instructor_profile": {
-                "full_name": "Test Instructor",
-                "phone": "11999999999",
-                "city": "Mogi Mirim",
-                "state": "SP",
-            }
-        })
+        store.update_profile(
+            user.id,
+            {
+                "instructor_profile": {
+                    "full_name": "Test Instructor",
+                    "phone": "11999999999",
+                    "city": "Mogi Mirim",
+                    "state": "SP",
+                }
+            },
+        )
         store.review_instructor(user.id, status="APROVADO", reviewed_by="admin-id")
     resp = client.post("/api/v1/auth/login", json={"email": email, "password": "Pass1234!"})
     token = resp.json()["data"]["access_token"]

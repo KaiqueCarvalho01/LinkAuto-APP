@@ -12,7 +12,10 @@ class InstructorDocument(AuditUUIDBase):
     __tablename__ = "instructor_documents"
 
     instructor_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("instructor_profiles.user_id", ondelete="CASCADE"), nullable=False, index=True
+        String(36),
+        ForeignKey("instructor_profiles.user_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     reviewed_by: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True

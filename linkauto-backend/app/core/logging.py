@@ -12,6 +12,7 @@ correlation_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
 
 class CorrelationIDFilter(logging.Filter):
     """Logging filter to inject the current correlation ID into log records."""
+
     def filter(self, record):
         record.correlation_id = correlation_id_ctx.get() or "no-trace"
         return True
@@ -19,10 +20,11 @@ class CorrelationIDFilter(logging.Filter):
 
 class CorrelationIDMiddleware(BaseHTTPMiddleware):
     """FastAPI Middleware to manage the correlation ID context for each request."""
+
     async def dispatch(self, request: Request, call_next):
         # Extract from header or generate a new unique UUID4
         correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
-        
+
         # Set the context variable
         token = correlation_id_ctx.set(correlation_id)
         try:
@@ -53,7 +55,7 @@ def setup_logging():
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
-    
+
     # Avoid duplicate handlers
     root_logger.handlers = [handler]
 

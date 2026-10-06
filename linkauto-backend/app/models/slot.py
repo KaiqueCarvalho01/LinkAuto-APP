@@ -26,6 +26,4 @@ class Slot(AuditUUIDBase):
         String(20), nullable=False, default=SlotStatus.DISPONIVEL.value
     )
 
-    __table_args__ = (
-        Index("ix_slots_instructor_starts", "instructor_id", "starts_at"),
-    )
+    __table_args__ = (Index("ix_slots_instructor_starts", "instructor_id", "starts_at"),)

@@ -9,11 +9,7 @@ def test_production_config_rejects_insecure_jwt_secret():
     D05 - P1: Settings deve falhar em produção se JWT_SECRET for 'change-me'
     """
     with pytest.raises(ValidationError) as exc_info:
-        Settings(
-            APP_ENV="production",
-            JWT_SECRET="change-me",
-            RESET_SQLITE_ON_STARTUP=False
-        )
+        Settings(APP_ENV="production", JWT_SECRET="change-me", RESET_SQLITE_ON_STARTUP=False)
     assert "JWT_SECRET cannot be 'change-me' in production" in str(exc_info.value)
 
 
@@ -25,7 +21,7 @@ def test_production_config_rejects_reset_sqlite_on_startup():
         Settings(
             APP_ENV="production",
             JWT_SECRET="secure-real-secret-12345",
-            RESET_SQLITE_ON_STARTUP=True
+            RESET_SQLITE_ON_STARTUP=True,
         )
     assert "RESET_SQLITE_ON_STARTUP cannot be True in production" in str(exc_info.value)
 
@@ -39,10 +35,7 @@ def test_production_config_warns_on_localhost_cors(caplog):
             APP_ENV="production",
             JWT_SECRET="secure-real-secret-12345",
             RESET_SQLITE_ON_STARTUP=False,
-            CORS_ORIGINS="http://localhost:3000,https://linkauto.com"
+            CORS_ORIGINS="http://localhost:3000,https://linkauto.com",
         )
-    
-    assert any(
-        "Localhost detected in CORS_ORIGINS" in message
-        for message in caplog.messages
-    )
+
+    assert any("Localhost detected in CORS_ORIGINS" in message for message in caplog.messages)

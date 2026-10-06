@@ -5,18 +5,37 @@ import pytest
 from app.domain.booking import BookingStatus
 from app.models.slot import Slot, SlotStatus
 from app.models.user import (
-    DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
+    DetranStatus,
+    InstructorProfile,
+    StudentProfile,
+    User,
+    UserRole,
 )
 from app.services.booking_service import (
-    BookingService, PenalizedStudentError, SlotValidationError,
+    BookingService,
+    PenalizedStudentError,
+    SlotValidationError,
 )
 
 
 def _seed_users(db_session):
-    instructor = User(id="inst-001", email="inst@test.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
-    inst_profile = InstructorProfile(user_id="inst-001", full_name="Inst", phone="1", city="C", state="SP", detran_status=DetranStatus.APROVADO)
-    student = User(id="stu-001", email="stu@test.com", password_hash="h", roles=[UserRole.ALUNO.value])
-    stu_profile = StudentProfile(user_id="stu-001", full_name="Stu", phone="2", city="C", state="SP")
+    instructor = User(
+        id="inst-001", email="inst@test.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
+    )
+    inst_profile = InstructorProfile(
+        user_id="inst-001",
+        full_name="Inst",
+        phone="1",
+        city="C",
+        state="SP",
+        detran_status=DetranStatus.APROVADO,
+    )
+    student = User(
+        id="stu-001", email="stu@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
+    stu_profile = StudentProfile(
+        user_id="stu-001", full_name="Stu", phone="2", city="C", state="SP"
+    )
     db_session.add_all([instructor, inst_profile, student, stu_profile])
     db_session.flush()
 
@@ -67,8 +86,18 @@ class TestBookingServiceCreate:
     def test_rejects_non_consecutive_slots(self, db_session):
         _seed_users(db_session)
         now = datetime.now(timezone.utc) + timedelta(hours=2)
-        s1 = Slot(instructor_id="inst-001", starts_at=now, ends_at=now + timedelta(hours=1), status=SlotStatus.DISPONIVEL.value)
-        s2 = Slot(instructor_id="inst-001", starts_at=now + timedelta(hours=3), ends_at=now + timedelta(hours=4), status=SlotStatus.DISPONIVEL.value)
+        s1 = Slot(
+            instructor_id="inst-001",
+            starts_at=now,
+            ends_at=now + timedelta(hours=1),
+            status=SlotStatus.DISPONIVEL.value,
+        )
+        s2 = Slot(
+            instructor_id="inst-001",
+            starts_at=now + timedelta(hours=3),
+            ends_at=now + timedelta(hours=4),
+            status=SlotStatus.DISPONIVEL.value,
+        )
         db_session.add_all([s1, s2])
         db_session.flush()
         service = BookingService(db_session)
@@ -79,6 +108,7 @@ class TestBookingServiceCreate:
     def test_rejects_penalized_student(self, db_session):
         _seed_users(db_session)
         from app.services.penalty_service import PenaltyService
+
         PenaltyService(db_session).apply_penalty("stu-001", "test penalty")
         slots = _create_consecutive_slots(db_session, "inst-001")
         service = BookingService(db_session)
@@ -112,6 +142,7 @@ class TestBookingServiceCancel:
 
         assert cancelled.status == BookingStatus.CANCELADA.value
         from app.services.penalty_service import PenaltyService
+
         assert PenaltyService(db_session).is_penalized("stu-001") is False
 
     def test_cancel_within_24h_applies_penalty(self, db_session):
@@ -125,12 +156,14 @@ class TestBookingServiceCancel:
 
         assert cancelled.status == BookingStatus.CANCELADA.value
         from app.services.penalty_service import PenaltyService
+
         assert PenaltyService(db_session).is_penalized("stu-001") is True
 
 
 class TestBookingServiceNotifications:
     def test_create_booking_dispatches_notification(self, db_session):
         from app.services.notification_service import NotificationService, InMemoryEmailGateway
+
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
 
@@ -148,6 +181,7 @@ class TestBookingServiceNotifications:
 
     def test_confirm_booking_dispatches_notification(self, db_session):
         from app.services.notification_service import NotificationService, InMemoryEmailGateway
+
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
 
@@ -156,7 +190,7 @@ class TestBookingServiceNotifications:
         service = BookingService(db_session, notification_service=notification_svc)
 
         booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
-        gateway.sent_messages.clear() # Clear create_booking notification
+        gateway.sent_messages.clear()  # Clear create_booking notification
 
         service.confirm_booking(booking.id, "inst-001")
 
@@ -168,6 +202,7 @@ class TestBookingServiceNotifications:
 
     def test_cancel_booking_dispatches_notification(self, db_session):
         from app.services.notification_service import NotificationService, InMemoryEmailGateway
+
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
 

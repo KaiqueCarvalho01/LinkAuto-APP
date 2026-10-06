@@ -11,10 +11,20 @@ def _create_token_for(user_id: str, roles: list[str]) -> str:
 class TestInstructorStatsContract:
     def test_instructor_stats_success_for_instructor(self, client, db_session):
         inst_id = "contract-inst-stat-id"
-        user = User(id=inst_id, email="inst@contractstats.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
+        user = User(
+            id=inst_id,
+            email="inst@contractstats.com",
+            password_hash="h",
+            roles=[UserRole.INSTRUTOR.value],
+        )
         prof = InstructorProfile(
-            user_id=inst_id, full_name="Inst Contract", phone="1", city="Mogi Mirim", state="SP",
-            detran_status=DetranStatus.APROVADO.value, is_active=True,
+            user_id=inst_id,
+            full_name="Inst Contract",
+            phone="1",
+            city="Mogi Mirim",
+            state="SP",
+            detran_status=DetranStatus.APROVADO.value,
+            is_active=True,
         )
         db_session.add_all([user, prof])
         db_session.commit()
@@ -33,7 +43,12 @@ class TestInstructorStatsContract:
 
     def test_instructor_stats_forbidden_for_student(self, client, db_session):
         student_id = "contract-student-id"
-        user = User(id=student_id, email="stud@contractstats.com", password_hash="h", roles=[UserRole.ALUNO.value])
+        user = User(
+            id=student_id,
+            email="stud@contractstats.com",
+            password_hash="h",
+            roles=[UserRole.ALUNO.value],
+        )
         db_session.add(user)
         db_session.commit()
 

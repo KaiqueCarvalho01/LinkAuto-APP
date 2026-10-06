@@ -5,17 +5,32 @@ import pytest
 from app.domain.booking import BookingStatus
 from app.models.slot import Slot, SlotStatus
 from app.models.user import (
-    DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
+    DetranStatus,
+    InstructorProfile,
+    StudentProfile,
+    User,
+    UserRole,
 )
 from app.services.booking_service import (
-    BookingService, PenalizedStudentError, SlotValidationError,
+    BookingService,
+    PenalizedStudentError,
+    SlotValidationError,
 )
 from app.services.penalty_service import PenaltyService
 
 
 def _seed_scenario(db_session):
-    inst = User(id="rn-inst", email="rninst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
-    inst_p = InstructorProfile(user_id="rn-inst", full_name="I", phone="1", city="C", state="SP", detran_status=DetranStatus.APROVADO)
+    inst = User(
+        id="rn-inst", email="rninst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
+    )
+    inst_p = InstructorProfile(
+        user_id="rn-inst",
+        full_name="I",
+        phone="1",
+        city="C",
+        state="SP",
+        detran_status=DetranStatus.APROVADO,
+    )
     stu = User(id="rn-stu", email="rnstu@t.com", password_hash="h", roles=[UserRole.ALUNO.value])
     stu_p = StudentProfile(user_id="rn-stu", full_name="S", phone="2", city="C", state="SP")
     stu2 = User(id="rn-stu2", email="rnstu2@t.com", password_hash="h", roles=[UserRole.ALUNO.value])
@@ -60,8 +75,18 @@ class TestRN02MinimumSlots:
     def test_non_consecutive_fails(self, db_session):
         _seed_scenario(db_session)
         now = datetime.now(timezone.utc) + timedelta(hours=10)
-        s1 = Slot(instructor_id="rn-inst", starts_at=now, ends_at=now + timedelta(hours=1), status=SlotStatus.DISPONIVEL.value)
-        s2 = Slot(instructor_id="rn-inst", starts_at=now + timedelta(hours=3), ends_at=now + timedelta(hours=4), status=SlotStatus.DISPONIVEL.value)
+        s1 = Slot(
+            instructor_id="rn-inst",
+            starts_at=now,
+            ends_at=now + timedelta(hours=1),
+            status=SlotStatus.DISPONIVEL.value,
+        )
+        s2 = Slot(
+            instructor_id="rn-inst",
+            starts_at=now + timedelta(hours=3),
+            ends_at=now + timedelta(hours=4),
+            status=SlotStatus.DISPONIVEL.value,
+        )
         db_session.add_all([s1, s2])
         db_session.flush()
         service = BookingService(db_session)

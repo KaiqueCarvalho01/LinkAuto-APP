@@ -80,7 +80,9 @@ def create_refresh_token(subject: str, settings: Settings, roles: list[str] | No
     return jwt.encode(payload, settings.jwt_secret, algorithm=DEFAULT_ALGORITHM)
 
 
-def decode_token(token: str, settings: Settings, expected_type: TokenType | None = None) -> TokenPayload:
+def decode_token(
+    token: str, settings: Settings, expected_type: TokenType | None = None
+) -> TokenPayload:
     try:
         raw_payload = jwt.decode(token, settings.jwt_secret, algorithms=[DEFAULT_ALGORITHM])
     except JWTError as exc:

@@ -1,4 +1,3 @@
-
 from app.models.booking import Booking
 from app.models.user import User, StudentProfile, InstructorProfile, UserRole, DetranStatus
 from app.core.security import create_access_token
@@ -7,21 +6,47 @@ from app.core.config import get_settings
 
 def _seed_auth_users(db_session):
     settings = get_settings()
-    student = User(id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value])
-    stu_profile = StudentProfile(user_id="student-1", full_name="Student", phone="1", city="C", state="SP")
-    
-    instructor = User(id="instructor-1", email="instructor@test.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
-    inst_profile = InstructorProfile(user_id="instructor-1", full_name="Instructor", phone="2", city="C", state="SP", detran_status=DetranStatus.APROVADO)
-    
-    intruder = User(id="intruder-1", email="intruder@test.com", password_hash="h", roles=[UserRole.ALUNO.value])
-    int_profile = StudentProfile(user_id="intruder-1", full_name="Intruder", phone="3", city="C", state="SP")
+    student = User(
+        id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
+    stu_profile = StudentProfile(
+        user_id="student-1", full_name="Student", phone="1", city="C", state="SP"
+    )
+
+    instructor = User(
+        id="instructor-1",
+        email="instructor@test.com",
+        password_hash="h",
+        roles=[UserRole.INSTRUTOR.value],
+    )
+    inst_profile = InstructorProfile(
+        user_id="instructor-1",
+        full_name="Instructor",
+        phone="2",
+        city="C",
+        state="SP",
+        detran_status=DetranStatus.APROVADO,
+    )
+
+    intruder = User(
+        id="intruder-1", email="intruder@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
+    int_profile = StudentProfile(
+        user_id="intruder-1", full_name="Intruder", phone="3", city="C", state="SP"
+    )
 
     db_session.add_all([student, stu_profile, instructor, inst_profile, intruder, int_profile])
     db_session.flush()
 
-    student_token = create_access_token("student-1", settings=settings, roles=[UserRole.ALUNO.value])
-    instructor_token = create_access_token("instructor-1", settings=settings, roles=[UserRole.INSTRUTOR.value])
-    intruder_token = create_access_token("intruder-1", settings=settings, roles=[UserRole.ALUNO.value])
+    student_token = create_access_token(
+        "student-1", settings=settings, roles=[UserRole.ALUNO.value]
+    )
+    instructor_token = create_access_token(
+        "instructor-1", settings=settings, roles=[UserRole.INSTRUTOR.value]
+    )
+    intruder_token = create_access_token(
+        "intruder-1", settings=settings, roles=[UserRole.ALUNO.value]
+    )
 
     return student_token, instructor_token, intruder_token
 
@@ -29,7 +54,7 @@ def _seed_auth_users(db_session):
 def test_booking_messages_endpoints_contract_and_auth(client, db_session):
     """POST and GET /bookings/{id}/messages validate participants and return correctly formatted envelope."""
     student_token, instructor_token, intruder_token = _seed_auth_users(db_session)
-    
+
     # Create booking
     booking = Booking(
         id="booking-123",
@@ -82,7 +107,7 @@ def test_booking_messages_endpoints_contract_and_auth(client, db_session):
 def test_booking_reviews_endpoints_contract_and_auth(client, db_session):
     """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce business rules and validate contract."""
     student_token, instructor_token, intruder_token = _seed_auth_users(db_session)
-    
+
     # Create non-realizada booking
     booking_pending = Booking(
         id="booking-pending",

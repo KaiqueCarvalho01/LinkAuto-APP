@@ -17,6 +17,4 @@ class BookingMessage(AuditUUIDBase):
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
-    __table_args__ = (
-        Index("ix_booking_messages_booking_created", "booking_id", "created_at"),
-    )
+    __table_args__ = (Index("ix_booking_messages_booking_created", "booking_id", "created_at"),)

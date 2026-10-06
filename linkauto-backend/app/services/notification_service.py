@@ -40,8 +40,7 @@ class NotificationDispatchResult:
 
 
 class EmailGateway(Protocol):
-    def send(self, subject: str, body: str, recipients: list[str]) -> str:
-        ...
+    def send(self, subject: str, body: str, recipients: list[str]) -> str: ...
 
 
 class SESEmailGateway:
@@ -109,8 +108,8 @@ class NotificationService:
                 extra={
                     "event": "notification.dispatch.failure",
                     "notification_event": payload.event.value,
-                    "error": str(exc)
-                }
+                    "error": str(exc),
+                },
             )
             return NotificationDispatchResult(
                 event=payload.event,

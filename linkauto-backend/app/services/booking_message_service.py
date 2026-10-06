@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
-from app.services.notification_service import NotificationService, NotificationPayload, NotificationEvent
+from app.services.notification_service import (
+    NotificationService,
+    NotificationPayload,
+    NotificationEvent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +59,7 @@ class BookingMessageService:
         # Send notification to the opposite party
         if self._notification_service and recipient_email:
             opposing_role = "ALUNO" if sender_id == booking.instructor_id else "INSTRUTOR"
-            
+
             self._notification_service.dispatch(
                 NotificationPayload(
                     event=NotificationEvent.NEW_BOOKING_MESSAGE,

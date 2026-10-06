@@ -1,4 +1,3 @@
-
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.user import User, StudentProfile, InstructorProfile, UserRole, DetranStatus
@@ -8,10 +7,19 @@ from app.services.dependencies import get_notification_service
 
 
 def _setup_integration_data(db_session):
-    student = User(id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value])
-    stu_profile = StudentProfile(user_id="student-1", full_name="Student One", phone="1", city="C", state="SP")
-    
-    instructor = User(id="instructor-1", email="instructor@test.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
+    student = User(
+        id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
+    stu_profile = StudentProfile(
+        user_id="student-1", full_name="Student One", phone="1", city="C", state="SP"
+    )
+
+    instructor = User(
+        id="instructor-1",
+        email="instructor@test.com",
+        password_hash="h",
+        roles=[UserRole.INSTRUTOR.value],
+    )
     inst_profile = InstructorProfile(
         user_id="instructor-1",
         full_name="Instructor One",
@@ -30,7 +38,7 @@ def _setup_integration_data(db_session):
 def test_integration_messages_and_reviews_lifecycle(db_session):
     """Full integration test verifying chronological chat messages, email notifications and rating recals."""
     _setup_integration_data(db_session)
-    
+
     # 1. Create booking in CONFIRMADA status
     booking = Booking(
         id="booking-123",
@@ -59,7 +67,7 @@ def test_integration_messages_and_reviews_lifecycle(db_session):
     db_session.flush()
 
     assert msg.id is not None
-    
+
     # Verify new booking message email notification was sent
     sent_emails = notification_svc._email_gateway.sent_messages
     assert len(sent_emails) == 1
@@ -84,9 +92,13 @@ def test_integration_messages_and_reviews_lifecycle(db_session):
     db_session.flush()
 
     assert review_student.id is not None
-    
+
     # Verify instructor profile has been recalculated
-    inst_profile = db_session.query(InstructorProfile).filter(InstructorProfile.user_id == "instructor-1").first()
+    inst_profile = (
+        db_session.query(InstructorProfile)
+        .filter(InstructorProfile.user_id == "instructor-1")
+        .first()
+    )
     assert inst_profile.rating_count == 1
     assert float(inst_profile.rating_avg) == 5.0
 
@@ -99,7 +111,7 @@ def test_integration_messages_and_reviews_lifecycle(db_session):
     # 5. Instructor reviews Student (Rating = 4)
     # Clear sent emails list
     notification_svc._email_gateway.sent_messages.clear()
-    
+
     review_instructor = review_svc.create_review(
         booking_id="booking-123",
         reviewer_id="instructor-1",

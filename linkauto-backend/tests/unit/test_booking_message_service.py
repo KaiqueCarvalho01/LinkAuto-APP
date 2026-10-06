@@ -15,7 +15,7 @@ def mock_notification_service():
 def test_send_message_creates_record_and_dispatches_email(db_session, mock_notification_service):
     """send_message persists message and triggers a new_booking_message notification to the opposing party."""
     notification_svc, gateway = mock_notification_service
-    
+
     # Setup booking
     booking = Booking(
         id="booking-123",
@@ -27,14 +27,14 @@ def test_send_message_creates_record_and_dispatches_email(db_session, mock_notif
     db_session.flush()
 
     service = BookingMessageService(db_session, notification_service=notification_svc)
-    
+
     # Sender is the student. Recipient is the instructor.
     msg = service.send_message(
         booking_id="booking-123",
         sender_id="student-456",
         content="Olá, professor!",
         sender_email="aluno@test.com",
-        recipient_email="instrutor@test.com"
+        recipient_email="instrutor@test.com",
     )
 
     assert msg.id is not None
@@ -62,14 +62,14 @@ def test_send_message_rejects_unauthorized_sender(db_session):
     db_session.flush()
 
     service = BookingMessageService(db_session)
-    
+
     with pytest.raises(BookingMessageAccessError):
         service.send_message(
             booking_id="booking-123",
             sender_id="intruder-999",
             content="Hackeando",
             sender_email="hacker@test.com",
-            recipient_email="instrutor@test.com"
+            recipient_email="instrutor@test.com",
         )
 
 
@@ -85,7 +85,7 @@ def test_list_messages_retrieves_chronologically(db_session):
     db_session.flush()
 
     service = BookingMessageService(db_session)
-    
+
     # Send multiple messages
     msg1 = BookingMessage(
         booking_id="booking-123",

@@ -6,29 +6,29 @@ import logging
 from typing import Protocol
 
 from app.domain.booking import BookingStatus
-from app.services.notification_service import NotificationService, NotificationPayload, NotificationEvent
+from app.services.notification_service import (
+    NotificationService,
+    NotificationPayload,
+    NotificationEvent,
+)
 
 logger = logging.getLogger("app.services.booking_scheduler")
 
 
 class BookingAutomationPort(Protocol):
-    def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
-        ...
+    def list_pending_expired(self, cutoff_utc: datetime) -> list[str]: ...
 
-    def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
-        ...
+    def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]: ...
 
-    def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
-        ...
+    def list_unreminded_upcoming(
+        self, start_cutoff: datetime, end_cutoff: datetime
+    ) -> list[str]: ...
 
-    def mark_reminder_sent(self, booking_id: str) -> None:
-        ...
+    def mark_reminder_sent(self, booking_id: str) -> None: ...
 
-    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
-        ...
+    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None: ...
 
-    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
-        ...
+    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]: ...
 
 
 @dataclass(slots=True)
@@ -60,10 +60,10 @@ class BookingScheduler:
         reference = self._now_utc(now_utc)
         cutoff = reference - timedelta(hours=24)
         pending_ids = self._automation_port.list_pending_expired(cutoff)
-        
+
         success_ids = []
         failed_ids = []
-        
+
         for booking_id in pending_ids:
             try:
                 self._automation_port.transition_to(
@@ -76,26 +76,26 @@ class BookingScheduler:
                     extra={
                         "event": "scheduler.pending_timeout.failure",
                         "booking_id": booking_id,
-                        "error": str(exc)
-                    }
+                        "error": str(exc),
+                    },
                 )
                 failed_ids.append(booking_id)
-                
+
         return BookingSchedulerResult(
             processed=len(success_ids),
             booking_ids=success_ids,
             failed=len(failed_ids),
-            failed_booking_ids=failed_ids
+            failed_booking_ids=failed_ids,
         )
 
     def run_confirmed_completion(self, now_utc: datetime | None = None) -> BookingSchedulerResult:
         reference = self._now_utc(now_utc)
         cutoff = reference - timedelta(hours=2)
         ready_ids = self._automation_port.list_confirmed_ready(cutoff)
-        
+
         success_ids = []
         failed_ids = []
-        
+
         for booking_id in ready_ids:
             try:
                 self._automation_port.transition_to(
@@ -108,32 +108,34 @@ class BookingScheduler:
                     extra={
                         "event": "scheduler.confirmed_completion.failure",
                         "booking_id": booking_id,
-                        "error": str(exc)
-                    }
+                        "error": str(exc),
+                    },
                 )
                 failed_ids.append(booking_id)
-                
+
         return BookingSchedulerResult(
             processed=len(success_ids),
             booking_ids=success_ids,
             failed=len(failed_ids),
-            failed_booking_ids=failed_ids
+            failed_booking_ids=failed_ids,
         )
 
     def run_lesson_reminders(self, now_utc: datetime | None = None) -> BookingSchedulerResult:
         reference = self._now_utc(now_utc)
         start_cutoff = reference + timedelta(hours=23)
         end_cutoff = reference + timedelta(hours=25)
-        
+
         upcoming_ids = self._automation_port.list_unreminded_upcoming(start_cutoff, end_cutoff)
-        
+
         success_ids = []
         failed_ids = []
-        
+
         for booking_id in upcoming_ids:
             try:
                 # Trigger e-mail reminder
-                student_email, instructor_email = self._automation_port.get_booking_emails(booking_id)
+                student_email, instructor_email = self._automation_port.get_booking_emails(
+                    booking_id
+                )
                 recipients = []
                 if student_email:
                     recipients.append(student_email)
@@ -159,8 +161,8 @@ class BookingScheduler:
                     extra={
                         "event": "scheduler.lesson_reminder.failure",
                         "booking_id": booking_id,
-                        "error": str(exc)
-                    }
+                        "error": str(exc),
+                    },
                 )
                 failed_ids.append(booking_id)
 
@@ -168,5 +170,5 @@ class BookingScheduler:
             processed=len(success_ids),
             booking_ids=success_ids,
             failed=len(failed_ids),
-            failed_booking_ids=failed_ids
+            failed_booking_ids=failed_ids,
         )

@@ -11,7 +11,11 @@ from app.core.security import (
     verify_password,
 )
 from app.models import UserRole
-from app.services.notification_service import NotificationPayload, NotificationService, NotificationEvent
+from app.services.notification_service import (
+    NotificationPayload,
+    NotificationService,
+    NotificationEvent,
+)
 from app.services.us1_store import IdentityStore, UserRecord
 
 
@@ -37,7 +41,9 @@ class AuthService:
     def register(self, *, email: str, password: str, roles: list[str]) -> UserRecord:
         if "ADMIN" in [role.upper() for role in roles]:
             raise ValueError("FORBIDDEN_ROLE: Public registration with ADMIN role is not allowed.")
-        user = self._store.create_user(email=email, password_hash=hash_password(password), roles=roles)
+        user = self._store.create_user(
+            email=email, password_hash=hash_password(password), roles=roles
+        )
 
         if self._notification_service and UserRole.INSTRUTOR.value in user.roles:
             self._notification_service.dispatch(

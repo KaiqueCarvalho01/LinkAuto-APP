@@ -41,15 +41,11 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         )
         return [r[0] for r in results]
 
-    def transition_to(
-        self, booking_id: str, status: BookingStatus, reason: str
-    ) -> None:
+    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
             return
-        new_status = transition_booking(
-            BookingStatus(booking.status), status, admin_override=False
-        )
+        new_status = transition_booking(BookingStatus(booking.status), status, admin_override=False)
         booking.status = new_status.value
         if status == BookingStatus.CANCELADA:
             booking.cancelled_by = "SISTEMA"
@@ -58,6 +54,7 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
 
     def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
         from sqlalchemy import func
+
         results = (
             self._db.query(Booking.id)
             .join(BookingSlot, BookingSlot.booking_id == Booking.id)
@@ -83,10 +80,10 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
             return None, None
-        
+
         student = self._db.query(User).filter(User.id == booking.student_id).first()
         instructor = self._db.query(User).filter(User.id == booking.instructor_id).first()
-        
+
         student_email = student.email if student else None
         instructor_email = instructor.email if instructor else None
         return student_email, instructor_email

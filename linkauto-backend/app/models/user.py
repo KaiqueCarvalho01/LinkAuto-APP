@@ -54,9 +54,7 @@ class StudentProfile(Base, AuditTimestampsMixin):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-    slug: Mapped[str | None] = mapped_column(
-        String(150), unique=True, index=True, nullable=True
-    )
+    slug: Mapped[str | None] = mapped_column(String(150), unique=True, index=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)
@@ -75,9 +73,7 @@ class InstructorProfile(Base, AuditTimestampsMixin):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-    slug: Mapped[str | None] = mapped_column(
-        String(150), unique=True, index=True, nullable=True
-    )
+    slug: Mapped[str | None] = mapped_column(String(150), unique=True, index=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)

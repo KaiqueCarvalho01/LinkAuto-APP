@@ -9,7 +9,11 @@ from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
 from app.models.user import User
 from app.services.penalty_service import PenaltyService
-from app.services.notification_service import NotificationService, NotificationPayload, NotificationEvent
+from app.services.notification_service import (
+    NotificationService,
+    NotificationPayload,
+    NotificationEvent,
+)
 
 CANCELLATION_NOTICE_HOURS = 24
 
@@ -47,7 +51,12 @@ class BookingService:
 
         # Resolve instructor slug if necessary
         from app.models.user import InstructorProfile
-        inst_prof = self._db.query(InstructorProfile).filter(InstructorProfile.slug == instructor_id).first()
+
+        inst_prof = (
+            self._db.query(InstructorProfile)
+            .filter(InstructorProfile.slug == instructor_id)
+            .first()
+        )
         effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
 
         # RN02: minimum 2 slots
@@ -55,12 +64,7 @@ class BookingService:
             raise SlotValidationError("Booking requires minimum 2 consecutive slots (RN02)")
 
         # Fetch and validate slots
-        slots = (
-            self._db.query(Slot)
-            .filter(Slot.id.in_(slot_ids))
-            .order_by(Slot.starts_at)
-            .all()
-        )
+        slots = self._db.query(Slot).filter(Slot.id.in_(slot_ids)).order_by(Slot.starts_at).all()
 
         if len(slots) != len(slot_ids):
             raise SlotValidationError("One or more slot IDs not found")
@@ -123,9 +127,7 @@ class BookingService:
         if booking.instructor_id != instructor_id:
             raise ValueError("Only the instructor can confirm this booking")
 
-        new_status = transition_booking(
-            BookingStatus(booking.status), BookingStatus.CONFIRMADA
-        )
+        new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CONFIRMADA)
         booking.status = new_status.value
         booking.confirmed_at = datetime.now(timezone.utc)
         self._db.flush()
@@ -153,9 +155,7 @@ class BookingService:
     ) -> Booking:
         booking = self._get_booking_or_raise(booking_id)
 
-        new_status = transition_booking(
-            BookingStatus(booking.status), BookingStatus.CANCELADA
-        )
+        new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CANCELADA)
         now = datetime.now(timezone.utc)
 
         booking.status = new_status.value
@@ -203,7 +203,7 @@ class BookingService:
             student_user = self._db.query(User).filter(User.id == booking.student_id).first()
             if student_user:
                 recipients.append(student_user.email)
-        else: # SISTEMA (timeouts)
+        else:  # SISTEMA (timeouts)
             student_user = self._db.query(User).filter(User.id == booking.student_id).first()
             instructor_user = self._db.query(User).filter(User.id == booking.instructor_id).first()
             if student_user:

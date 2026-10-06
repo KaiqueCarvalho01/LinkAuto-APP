@@ -75,4 +75,6 @@ def delete_slot(
         db.commit()
         return success_response({"deleted": True}, meta={})
     except ValueError as e:
-        raise HTTPException(status_code=400, detail={"code": "SLOT_DELETE_ERROR", "message": str(e)})
+        raise HTTPException(
+            status_code=400, detail={"code": "SLOT_DELETE_ERROR", "message": str(e)}
+        )

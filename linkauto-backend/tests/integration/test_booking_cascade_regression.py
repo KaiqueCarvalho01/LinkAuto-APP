@@ -5,7 +5,11 @@ import pytest
 from app.domain.booking import BookingStatus, BookingTransitionError, transition_booking
 from app.models.slot import Slot, SlotStatus
 from app.models.user import (
-    DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
+    DetranStatus,
+    InstructorProfile,
+    StudentProfile,
+    User,
+    UserRole,
 )
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
 from app.services.booking_scheduler import BookingScheduler
@@ -13,8 +17,17 @@ from app.services.booking_service import BookingService
 
 
 def _full_seed(db_session):
-    inst = User(id="reg-inst", email="reginst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
-    inst_p = InstructorProfile(user_id="reg-inst", full_name="I", phone="1", city="C", state="SP", detran_status=DetranStatus.APROVADO)
+    inst = User(
+        id="reg-inst", email="reginst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
+    )
+    inst_p = InstructorProfile(
+        user_id="reg-inst",
+        full_name="I",
+        phone="1",
+        city="C",
+        state="SP",
+        detran_status=DetranStatus.APROVADO,
+    )
     stu = User(id="reg-stu", email="regstu@t.com", password_hash="h", roles=[UserRole.ALUNO.value])
     stu_p = StudentProfile(user_id="reg-stu", full_name="S", phone="2", city="C", state="SP")
     db_session.add_all([inst, inst_p, stu, stu_p])
@@ -28,7 +41,12 @@ class TestBookingCascadeRegression:
         now = datetime.now(timezone.utc) + timedelta(hours=4)
         slots = []
         for i in range(2):
-            s = Slot(instructor_id="reg-inst", starts_at=now + timedelta(hours=i), ends_at=now + timedelta(hours=i + 1), status=SlotStatus.DISPONIVEL.value)
+            s = Slot(
+                instructor_id="reg-inst",
+                starts_at=now + timedelta(hours=i),
+                ends_at=now + timedelta(hours=i + 1),
+                status=SlotStatus.DISPONIVEL.value,
+            )
             db_session.add(s)
             slots.append(s)
         db_session.flush()

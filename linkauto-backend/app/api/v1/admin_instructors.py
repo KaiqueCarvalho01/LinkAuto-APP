@@ -27,7 +27,13 @@ def list_instructors(
     result = service.list_instructors(status=status_filter, page=page, page_size=page_size)
     return success_response(
         result["items"],
-        meta={"pagination": {"page": result["page"], "page_size": result["page_size"], "total": result["total"]}},
+        meta={
+            "pagination": {
+                "page": result["page"],
+                "page_size": result["page_size"],
+                "total": result["total"],
+            }
+        },
     )
 
 
@@ -40,9 +46,7 @@ def approve_instructor(
     try:
         result = service.approve(instructor_id=instructor_id, admin_id=admin_user.user_id)
         log_admin_action(
-            admin_id=admin_user.user_id,
-            action="approve_instructor",
-            target_id=instructor_id
+            admin_id=admin_user.user_id, action="approve_instructor", target_id=instructor_id
         )
     except ValueError as exc:
         raise HTTPException(
@@ -66,9 +70,7 @@ def reject_instructor(
             reason=payload.reason,
         )
         log_admin_action(
-            admin_id=admin_user.user_id,
-            action="reject_instructor",
-            target_id=instructor_id
+            admin_id=admin_user.user_id, action="reject_instructor", target_id=instructor_id
         )
     except ValueError as exc:
         raise HTTPException(

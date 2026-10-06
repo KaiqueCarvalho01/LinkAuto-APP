@@ -3,7 +3,12 @@ import pytest
 from app.models.booking import Booking
 from app.models.user import User, InstructorProfile, StudentProfile
 from app.models.review import Review
-from app.services.review_service import ReviewService, ReviewAccessError, ReviewStateError, ReviewDuplicateError
+from app.services.review_service import (
+    ReviewService,
+    ReviewAccessError,
+    ReviewStateError,
+    ReviewDuplicateError,
+)
 from app.services.notification_service import NotificationService, InMemoryEmailGateway
 
 
@@ -44,13 +49,13 @@ def test_create_review_valid_student_to_instructor(db_session, mock_notification
     db_session.flush()
 
     service = ReviewService(db_session, notification_service=notification_svc)
-    
+
     review = service.create_review(
         booking_id="booking-123",
         reviewer_id="student-1",
         rating=5,
         comment="Excelente!",
-        recipient_email="instructor@test.com"
+        recipient_email="instructor@test.com",
     )
 
     assert review.id is not None
@@ -85,7 +90,7 @@ def test_create_review_rejects_non_realizada_booking(db_session):
     db_session.flush()
 
     service = ReviewService(db_session)
-    
+
     with pytest.raises(ReviewStateError):
         service.create_review(
             booking_id="booking-123",
@@ -117,7 +122,7 @@ def test_create_review_rejects_duplicate_submission(db_session):
     db_session.flush()
 
     service = ReviewService(db_session)
-    
+
     with pytest.raises(ReviewDuplicateError):
         service.create_review(
             booking_id="booking-123",
@@ -139,7 +144,7 @@ def test_create_review_rejects_unauthorized_user(db_session):
     db_session.flush()
 
     service = ReviewService(db_session)
-    
+
     with pytest.raises(ReviewAccessError):
         service.create_review(
             booking_id="booking-123",

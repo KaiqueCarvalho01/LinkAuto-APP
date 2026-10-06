@@ -14,7 +14,7 @@ MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 MAGIC_BYTES = {
     "application/pdf": [b"%PDF"],
     "image/jpeg": [b"\xff\xd8\xff"],
-    "image/png": [b"\x89PNG\r\n\x1a\n"]
+    "image/png": [b"\x89PNG\r\n\x1a\n"],
 }
 
 
@@ -75,8 +75,12 @@ class InstructorDocumentService:
 
         record = self._store.add_instructor_document(
             instructor_id,
-            detran_credential_url=self._build_object_url(instructor_id, detran_credential.filename or "detran"),
-            criminal_record_url=self._build_object_url(instructor_id, criminal_record.filename or "criminal"),
+            detran_credential_url=self._build_object_url(
+                instructor_id, detran_credential.filename or "detran"
+            ),
+            criminal_record_url=self._build_object_url(
+                instructor_id, criminal_record.filename or "criminal"
+            ),
         )
 
         return UploadedInstructorDocuments(

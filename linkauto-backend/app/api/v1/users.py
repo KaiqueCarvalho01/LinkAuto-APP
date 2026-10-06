@@ -66,8 +66,7 @@ def patch_me(
 ) -> Response:
     try:
         user_payload = profile_service.update_me(
-            current_user.user_id, 
-            payload.model_dump(exclude_unset=True)
+            current_user.user_id, payload.model_dump(exclude_unset=True)
         )
     except ValueError as exc:
         raise HTTPException(

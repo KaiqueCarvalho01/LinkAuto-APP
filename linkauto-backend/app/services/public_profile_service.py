@@ -43,7 +43,11 @@ class PublicProfileService:
             )
 
         # Check instructor profile
-        inst = self._db.query(InstructorProfile).filter(InstructorProfile.user_id == reviewer_id).first()
+        inst = (
+            self._db.query(InstructorProfile)
+            .filter(InstructorProfile.user_id == reviewer_id)
+            .first()
+        )
         if inst and inst.full_name:
             slug = self._ensure_instructor_slug(inst)
             return PublicReviewAuthor(
@@ -57,7 +61,9 @@ class PublicProfileService:
         user = self._db.query(User).filter(User.id == reviewer_id).first()
         name = user.email.split("@")[0] if user and user.email else "Usuário LinkAuto"
         fallback_slug = f"usuario-{reviewer_id[:8]}"
-        return PublicReviewAuthor(id=fallback_slug, slug=fallback_slug, full_name=name, avatar_url=None)
+        return PublicReviewAuthor(
+            id=fallback_slug, slug=fallback_slug, full_name=name, avatar_url=None
+        )
 
     def get_public_instructor(self, slug: str) -> PublicInstructorProfileResponse:
         # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
@@ -74,9 +80,7 @@ class PublicProfileService:
             raise ValueError("Instructor not found or not approved")
 
         user = (
-            self._db.query(User)
-            .filter(User.id == prof.user_id, User.is_active.is_(True))
-            .first()
+            self._db.query(User).filter(User.id == prof.user_id, User.is_active.is_(True)).first()
         )
         if not user:
             raise ValueError("Instructor not found or not approved")
@@ -124,18 +128,12 @@ class PublicProfileService:
 
     def get_public_student(self, slug: str) -> PublicStudentProfileResponse:
         # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
-        prof = (
-            self._db.query(StudentProfile)
-            .filter(StudentProfile.slug == slug)
-            .first()
-        )
+        prof = self._db.query(StudentProfile).filter(StudentProfile.slug == slug).first()
         if not prof:
             raise ValueError("Student not found")
 
         user = (
-            self._db.query(User)
-            .filter(User.id == prof.user_id, User.is_active.is_(True))
-            .first()
+            self._db.query(User).filter(User.id == prof.user_id, User.is_active.is_(True)).first()
         )
         if not user:
             raise ValueError("Student not found")
@@ -183,7 +181,9 @@ class PublicProfileService:
             avatar_url=prof.avatar_url,
             city=prof.city,
             state=prof.state,
-            license_type=prof.license_type.value if hasattr(prof.license_type, "value") else (str(prof.license_type) if prof.license_type else None),
+            license_type=prof.license_type.value
+            if hasattr(prof.license_type, "value")
+            else (str(prof.license_type) if prof.license_type else None),
             rating_avg=rating_avg,
             rating_count=rating_count,
             completed_lessons_count=completed_lessons,

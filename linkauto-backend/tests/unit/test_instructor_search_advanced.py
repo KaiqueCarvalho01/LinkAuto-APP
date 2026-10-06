@@ -5,12 +5,23 @@ from app.services.instructor_search_service import InstructorSearchService
 def _seed_advanced_instructors(db_session):
     instructors_data = [
         # (id, name, lat, lon, specialties, price, rating_avg, rating_count)
-        ("adv-1", "Carlos Baliza", -22.4319, -46.9578, ["Baliza", "Direção Defensiva"], 80.0, 4.9, 25),
+        (
+            "adv-1",
+            "Carlos Baliza",
+            -22.4319,
+            -46.9578,
+            ["Baliza", "Direção Defensiva"],
+            80.0,
+            4.9,
+            25,
+        ),
         ("adv-2", "Ana Rodovia", -22.4400, -46.9600, ["Rodovias", "Baliza"], 110.0, 5.0, 40),
         ("adv-3", "Marcos Geral", -22.4200, -46.9400, ["Primeira Habilitação"], 70.0, 4.2, 10),
     ]
     for uid, name, lat, lon, specs, price, rating, count in instructors_data:
-        user = User(id=uid, email=f"{uid}@test.com", password_hash="hash", roles=[UserRole.INSTRUTOR.value])
+        user = User(
+            id=uid, email=f"{uid}@test.com", password_hash="hash", roles=[UserRole.INSTRUTOR.value]
+        )
         profile = InstructorProfile(
             user_id=uid,
             full_name=name,

@@ -62,9 +62,7 @@ def test_non_approved_instructor_hidden_from_public_list_until_admin_approval():
 
     instructor = _register_user("hidden-instructor@example.com", ["INSTRUTOR"])
     get_identity_store().create_user(
-        email="admin@example.com",
-        password_hash=hash_password("strong-password"),
-        roles=["ADMIN"]
+        email="admin@example.com", password_hash=hash_password("strong-password"), roles=["ADMIN"]
     )
 
     admin_login = _login("admin@example.com")

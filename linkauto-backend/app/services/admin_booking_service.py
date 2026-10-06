@@ -10,9 +10,7 @@ class AdminBookingService:
     def __init__(self, db: Session):
         self._db = db
 
-    def override_status(
-        self, booking_id: str, target_status: str, reason: str
-    ) -> Booking:
+    def override_status(self, booking_id: str, target_status: str, reason: str) -> Booking:
         if target_status not in (BookingStatus.REALIZADA.value, BookingStatus.CANCELADA.value):
             raise ValueError("Admin override target must be REALIZADA or CANCELADA")
 

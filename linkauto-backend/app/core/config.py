@@ -37,8 +37,10 @@ class Settings(BaseSettings):
             if self.jwt_secret == "change-me":
                 raise ValueError("JWT_SECRET cannot be 'change-me' in production environment.")
             if self.reset_sqlite_on_startup:
-                raise ValueError("RESET_SQLITE_ON_STARTUP cannot be True in production environment.")
-            
+                raise ValueError(
+                    "RESET_SQLITE_ON_STARTUP cannot be True in production environment."
+                )
+
             # CORS checks
             if "localhost" in self.cors_origins.lower() or "127.0.0.1" in self.cors_origins:
                 logger.warning(

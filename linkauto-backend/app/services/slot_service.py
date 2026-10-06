@@ -56,7 +56,11 @@ class SlotService:
     ) -> list[Slot]:
         from app.models.user import InstructorProfile
 
-        prof = self._db.query(InstructorProfile).filter(InstructorProfile.slug == instructor_id).first()
+        prof = (
+            self._db.query(InstructorProfile)
+            .filter(InstructorProfile.slug == instructor_id)
+            .first()
+        )
         effective_id = prof.user_id if prof else instructor_id
 
         query = self._db.query(Slot).filter(Slot.instructor_id == effective_id)

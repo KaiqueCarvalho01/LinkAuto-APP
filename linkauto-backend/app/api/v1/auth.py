@@ -52,7 +52,9 @@ def register(
     profile_service: ProfileService = Depends(get_profile_service),
 ) -> Response:
     try:
-        user = auth_service.register(email=payload.email, password=payload.password, roles=payload.roles)
+        user = auth_service.register(
+            email=payload.email, password=payload.password, roles=payload.roles
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -87,7 +89,9 @@ def login(
             "expires_in": settings.jwt_access_minutes * 60,
         }
     )
-    _set_refresh_cookie(response, refresh_token=tokens.refresh_token, request=request, settings=settings)
+    _set_refresh_cookie(
+        response, refresh_token=tokens.refresh_token, request=request, settings=settings
+    )
     return response
 
 
@@ -119,7 +123,9 @@ def refresh(
             "expires_in": settings.jwt_access_minutes * 60,
         }
     )
-    _set_refresh_cookie(response, refresh_token=tokens.refresh_token, request=request, settings=settings)
+    _set_refresh_cookie(
+        response, refresh_token=tokens.refresh_token, request=request, settings=settings
+    )
     return response
 
 

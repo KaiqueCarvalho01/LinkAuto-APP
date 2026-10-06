@@ -75,7 +75,9 @@ class IdentityStore:
                 is_active=True,
                 created_at=now,
                 updated_at=now,
-                student_profile=self._default_student_profile() if UserRole.ALUNO.value in role_list else None,
+                student_profile=self._default_student_profile()
+                if UserRole.ALUNO.value in role_list
+                else None,
                 instructor_profile=self._default_instructor_profile()
                 if UserRole.INSTRUTOR.value in role_list
                 else None,
@@ -173,7 +175,9 @@ class IdentityStore:
                     "phone": db_user.student_profile.phone,
                     "city": db_user.student_profile.city,
                     "state": db_user.student_profile.state,
-                    "license_type": db_user.student_profile.license_type.value if db_user.student_profile.license_type else LicenseType.NENHUMA.value,
+                    "license_type": db_user.student_profile.license_type.value
+                    if db_user.student_profile.license_type
+                    else LicenseType.NENHUMA.value,
                     "avatar_url": db_user.student_profile.avatar_url,
                 }
 
@@ -187,9 +191,13 @@ class IdentityStore:
                     "state": db_user.instructor_profile.state,
                     "bio": db_user.instructor_profile.bio,
                     "specialties": db_user.instructor_profile.specialties,
-                    "price_per_hour": float(db_user.instructor_profile.price_per_hour) if db_user.instructor_profile.price_per_hour is not None else None,
+                    "price_per_hour": float(db_user.instructor_profile.price_per_hour)
+                    if db_user.instructor_profile.price_per_hour is not None
+                    else None,
                     "avatar_url": db_user.instructor_profile.avatar_url,
-                    "detran_status": db_user.instructor_profile.detran_status.value if db_user.instructor_profile.detran_status else DetranStatus.PENDENTE.value,
+                    "detran_status": db_user.instructor_profile.detran_status.value
+                    if db_user.instructor_profile.detran_status
+                    else DetranStatus.PENDENTE.value,
                     "action_radius_km": db_user.instructor_profile.action_radius_km,
                     "latitude": db_user.instructor_profile.latitude,
                     "longitude": db_user.instructor_profile.longitude,
@@ -253,7 +261,8 @@ class IdentityStore:
         return [
             instructor
             for instructor in self.list_instructors(status=DetranStatus.APROVADO.value)
-            if instructor.instructor_profile and instructor.instructor_profile.get("is_active", True)
+            if instructor.instructor_profile
+            and instructor.instructor_profile.get("is_active", True)
         ]
 
     def add_instructor_document(

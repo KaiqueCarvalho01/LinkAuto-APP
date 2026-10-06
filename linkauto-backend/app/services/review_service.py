@@ -7,7 +7,11 @@ from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.user import InstructorProfile
 from app.models.review import Review
-from app.services.notification_service import NotificationService, NotificationPayload, NotificationEvent
+from app.services.notification_service import (
+    NotificationService,
+    NotificationPayload,
+    NotificationEvent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -98,10 +102,10 @@ class ReviewService:
             if profile:
                 current_count = profile.rating_count
                 current_avg = float(profile.rating_avg)
-                
+
                 new_count = current_count + 1
                 new_avg = ((current_avg * current_count) + rating) / new_count
-                
+
                 profile.rating_count = new_count
                 profile.rating_avg = new_avg
                 self._db.flush()

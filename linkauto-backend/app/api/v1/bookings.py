@@ -46,7 +46,9 @@ def create_booking(
     except SlotValidationError as e:
         raise HTTPException(status_code=422, detail={"code": "SLOT_VALIDATION", "message": str(e)})
     except PenalizedStudentError as e:
-        raise HTTPException(status_code=403, detail={"code": "STUDENT_PENALIZED", "message": str(e)})
+        raise HTTPException(
+            status_code=403, detail={"code": "STUDENT_PENALIZED", "message": str(e)}
+        )
 
 
 @router.get("/bookings")
@@ -73,10 +75,14 @@ def get_booking(
     service = BookingService(db)
     booking = service.get_booking(booking_id)
     if not booking:
-        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": "Booking not found"})
+        raise HTTPException(
+            status_code=404, detail={"code": "NOT_FOUND", "message": "Booking not found"}
+        )
     if booking.student_id != current_user.user_id and booking.instructor_id != current_user.user_id:
         if "ADMIN" not in current_user.roles:
-            raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": "Access denied"})
+            raise HTTPException(
+                status_code=403, detail={"code": "FORBIDDEN", "message": "Access denied"}
+            )
     return success_response(
         BookingResource.model_validate(booking).model_dump(mode="json"),
         meta={},
@@ -99,7 +105,9 @@ def confirm_booking(
             meta={},
         )
     except BookingTransitionError as e:
-        raise HTTPException(status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)})
+        raise HTTPException(
+            status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
+        )
     except ValueError as e:
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": str(e)})
 
@@ -114,13 +122,17 @@ def cancel_booking(
     service = BookingService(db)
     cancelled_by = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
     try:
-        booking = service.cancel_booking(booking_id, current_user.user_id, cancelled_by, body.reason)
+        booking = service.cancel_booking(
+            booking_id, current_user.user_id, cancelled_by, body.reason
+        )
         db.commit()
         return success_response(
             BookingResource.model_validate(booking).model_dump(mode="json"),
             meta={},
         )
     except BookingTransitionError as e:
-        raise HTTPException(status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)})
+        raise HTTPException(
+            status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
+        )
     except ValueError as e:
         raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)})

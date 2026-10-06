@@ -45,7 +45,9 @@ def error_envelope(code: str, message: str, meta: dict[str, Any] | None = None) 
 def success_response(
     data: Any, meta: dict[str, Any] | None = None, status_code: int = 200
 ) -> JSONResponse:
-    return JSONResponse(status_code=status_code, content=jsonable_encoder(success_envelope(data, meta)))
+    return JSONResponse(
+        status_code=status_code, content=jsonable_encoder(success_envelope(data, meta))
+    )
 
 
 def error_response(

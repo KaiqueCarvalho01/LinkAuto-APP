@@ -37,7 +37,7 @@ def test_review_unique_constraint_on_reviewer(test_engine):
         if set(uq["column_names"]) == {"booking_id", "reviewer_id"}:
             has_uq = True
             break
-    
+
     # In SQLite, UniqueConstraint might also be mapped as a unique index, so we also check unique indexes
     if not has_uq:
         indexes = inspector.get_indexes("reviews")
@@ -46,7 +46,6 @@ def test_review_unique_constraint_on_reviewer(test_engine):
                 has_uq = True
                 break
 
-    assert has_uq, "Reviews table must have a unique constraint or unique index on (booking_id, reviewer_id)"
-
-
-
+    assert has_uq, (
+        "Reviews table must have a unique constraint or unique index on (booking_id, reviewer_id)"
+    )

@@ -1,6 +1,13 @@
 from app.models.booking import Booking
 from app.models.review import Review
-from app.models.user import DetranStatus, InstructorProfile, LicenseType, StudentProfile, User, UserRole
+from app.models.user import (
+    DetranStatus,
+    InstructorProfile,
+    LicenseType,
+    StudentProfile,
+    User,
+    UserRole,
+)
 
 
 def _seed_contract_profiles(db_session):
@@ -123,7 +130,9 @@ class TestPublicProfileContract:
         assert "cnh" not in data
         assert "11999990000" not in data_str
 
-    def test_get_public_instructor_profile_returns_404_for_unapproved_or_missing(self, client, db_session):
+    def test_get_public_instructor_profile_returns_404_for_unapproved_or_missing(
+        self, client, db_session
+    ):
         _seed_contract_profiles(db_session)
 
         # Pending instructor slug

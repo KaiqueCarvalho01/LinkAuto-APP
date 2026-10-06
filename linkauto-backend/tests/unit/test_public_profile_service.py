@@ -1,7 +1,14 @@
 import pytest
 from app.models.booking import Booking
 from app.models.review import Review
-from app.models.user import DetranStatus, InstructorProfile, LicenseType, StudentProfile, User, UserRole
+from app.models.user import (
+    DetranStatus,
+    InstructorProfile,
+    LicenseType,
+    StudentProfile,
+    User,
+    UserRole,
+)
 from app.services.public_profile_service import PublicProfileService
 
 
@@ -118,14 +125,22 @@ def _seed_public_profiles_data(db_session):
         comment="Aluna muito dedicada e pontual.",
     )
 
-    db_session.add_all([
-        u_inst, p_inst,
-        u_inst_pending, p_inst_pending,
-        u_stud1, p_stud1,
-        u_stud2, p_stud2,
-        b1, b2,
-        r_inst, r_stud,
-    ])
+    db_session.add_all(
+        [
+            u_inst,
+            p_inst,
+            u_inst_pending,
+            p_inst_pending,
+            u_stud1,
+            p_stud1,
+            u_stud2,
+            p_stud2,
+            b1,
+            b2,
+            r_inst,
+            r_stud,
+        ]
+    )
     db_session.flush()
 
 

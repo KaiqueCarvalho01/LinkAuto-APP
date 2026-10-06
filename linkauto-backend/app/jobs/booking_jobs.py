@@ -51,6 +51,7 @@ def run_booking_reminder(
 ):
     port = SqlAlchemyBookingAutomationPort(db)
     from app.services.dependencies import get_notification_service
+
     scheduler = BookingScheduler(port, notification_service=get_notification_service())
     result = scheduler.run_lesson_reminders()
     db.commit()

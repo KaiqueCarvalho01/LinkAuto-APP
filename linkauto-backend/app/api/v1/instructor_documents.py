@@ -25,7 +25,10 @@ async def upload_documents(
     if current_user.user_id != instructor_id and "ADMIN" not in current_user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "FORBIDDEN", "message": "Cannot upload documents for another instructor."},
+            detail={
+                "code": "FORBIDDEN",
+                "message": "Cannot upload documents for another instructor.",
+            },
         )
     try:
         result = await service.upload_documents(

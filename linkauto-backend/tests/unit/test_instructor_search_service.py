@@ -1,21 +1,36 @@
 from app.models.user import (
-    DetranStatus, InstructorProfile, User, UserRole,
+    DetranStatus,
+    InstructorProfile,
+    User,
+    UserRole,
 )
 from app.services.instructor_search_service import InstructorSearchService
 
 
 def _seed_instructors(db_session):
-    for i, (lat, lon, status) in enumerate([
-        (-22.43, -46.95, DetranStatus.APROVADO),   # Mogi Mirim
-        (-22.44, -46.96, DetranStatus.APROVADO),   # Nearby
-        (-23.55, -46.63, DetranStatus.APROVADO),   # São Paulo (far)
-        (-22.43, -46.95, DetranStatus.PENDENTE),   # Pending (invisible)
-    ]):
+    for i, (lat, lon, status) in enumerate(
+        [
+            (-22.43, -46.95, DetranStatus.APROVADO),  # Mogi Mirim
+            (-22.44, -46.96, DetranStatus.APROVADO),  # Nearby
+            (-23.55, -46.63, DetranStatus.APROVADO),  # São Paulo (far)
+            (-22.43, -46.95, DetranStatus.PENDENTE),  # Pending (invisible)
+        ]
+    ):
         uid = f"search-inst-{i}"
-        user = User(id=uid, email=f"si{i}@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
+        user = User(
+            id=uid, email=f"si{i}@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
+        )
         profile = InstructorProfile(
-            user_id=uid, full_name=f"Instructor {i}", phone="1", city="C", state="SP",
-            detran_status=status, latitude=lat, longitude=lon, action_radius_km=15, is_active=True,
+            user_id=uid,
+            full_name=f"Instructor {i}",
+            phone="1",
+            city="C",
+            state="SP",
+            detran_status=status,
+            latitude=lat,
+            longitude=lon,
+            action_radius_km=15,
+            is_active=True,
         )
         db_session.add_all([user, profile])
     db_session.flush()

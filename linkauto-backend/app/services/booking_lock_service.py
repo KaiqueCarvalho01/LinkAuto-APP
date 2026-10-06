@@ -14,8 +14,7 @@ class SlotReservationConflictError(RuntimeError):
 
 
 class SlotReservationStore(Protocol):
-    def reserve_if_all_available(self, slot_ids: Sequence[str]) -> bool:
-        ...
+    def reserve_if_all_available(self, slot_ids: Sequence[str]) -> bool: ...
 
 
 @dataclass

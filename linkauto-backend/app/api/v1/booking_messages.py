@@ -29,7 +29,9 @@ def send_booking_message(
     sender = db.query(User).filter(User.id == current_user.user_id).first()
     sender_email = sender.email if sender else None
 
-    recipient_id = booking.instructor_id if current_user.user_id == booking.student_id else booking.student_id
+    recipient_id = (
+        booking.instructor_id if current_user.user_id == booking.student_id else booking.student_id
+    )
     recipient = db.query(User).filter(User.id == recipient_id).first()
     recipient_email = recipient.email if recipient else None
 
