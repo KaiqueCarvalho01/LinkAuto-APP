@@ -51,13 +51,11 @@ O produto oferece funcionalidades de busca geolocalizada, agendamento, avaliaç�
 
 ### RF03 — Perfil Público do Instrutor
 
-- Dados visíveis antes do agendamento: foto, bio, especialidades, região, preço/hora, avaliação média
-- Exibir status de credenciamento validado
-- Histórico de avaliações recebidas
-- Opção de contato (mensagem vinculada a um agendamento) para esclarecer dúvidas antes de reservar uma aula
-- Botão de "Agendar Aula" para iniciar o processo de reserva, levando o usuário para a tela de seleção de horário e local.
-- Exibir disponibilidade em tempo real para evitar conflitos de agendamento
-- Mostrar avaliações e comentários de alunos anteriores para ajudar na decisão de reserva
+- Acesso público e anônimo via **slug amigável e seguro** (ex.: `/instructors/carlos-silva-mogi-mirim-8f2a`), blindando 100% dos UUIDs internos e dados sensíveis (LGPD / RNF03).
+- Dados visíveis antes do agendamento: foto, bio, especialidades, região, preço/hora, avaliação média e total de avaliações.
+- Exibir badge de credenciamento DETRAN Validado (RN01) — instrutores pendentes ou rejeitados retornam estritamente 404 Not Found.
+- Histórico de avaliações mútuas recebidas de alunos reais.
+- Botão principal "Agendar Aula" que direciona de forma segura para o fluxo de reserva (`/bookings/new`) com contexto do instrutor ou solicita autenticação prévia (`/login`), sem expor a grade de slots diretamente para visitantes não autenticados.
 
 ### RF04 — Gestão de Agenda
 

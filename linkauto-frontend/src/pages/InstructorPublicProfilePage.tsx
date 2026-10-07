@@ -44,25 +44,22 @@ export default function InstructorPublicProfilePage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useSessionStore();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState<string | null>(null);
   const [instructor, setInstructor] = useState<ApiPublicInstructorProfile | null>(null);
 
+  const resolvedError = !id ? "Instrutor não especificado." : error;
+
   useEffect(() => {
-    if (!id) {
-      setError("Instrutor não especificado.");
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
 
     let isMounted = true;
-    setLoading(true);
-    setError(null);
 
     profileService.fetchPublicInstructorProfile(id)
       .then((prof) => {
         if (isMounted) {
           setInstructor(prof);
+          setError(null);
         }
       })
       .catch((err) => {
@@ -125,7 +122,7 @@ export default function InstructorPublicProfilePage() {
     );
   }
 
-  if (error || !instructor) {
+  if (resolvedError || !instructor) {
     return (
       <Container maxW="3xl" py={16} textAlign="center">
         <VStack gap={4} bg="surface.panel" p={8} borderRadius="2xl" border="1px solid" borderColor="border.default">
@@ -136,7 +133,7 @@ export default function InstructorPublicProfilePage() {
             Perfil Indisponível
           </Heading>
           <Text color="text.secondary">
-            {error || "Não foi possível encontrar as informações deste instrutor."}
+            {resolvedError || "Não foi possível encontrar as informações deste instrutor."}
           </Text>
           <Button
             mt={4}

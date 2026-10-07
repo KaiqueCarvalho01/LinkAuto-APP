@@ -1,7 +1,7 @@
 # UX.md — LinkAuto Landing Page (`/`)
 
-> Documento base do frontend para planejamento com `speckit.plan` e `speckit.tasks`.
-> Alinhado ao estado real do projeto em 2026-04-21.
+> Especificação de arquitetura de UX e componentes da Landing Page (`/`) do LinkAuto.
+> Alinhado ao estado consolidado do projeto.
 
 ---
 
@@ -22,7 +22,7 @@ e sem dependencias de endpoints inexistentes.
   - Preferir `colorPalette` (evitar exemplos legados com `colorScheme`)
 - Sessao/autenticacao: `src/state/sessionStore.tsx`
 - Mock atual de instrutores: `src/services/mockData.ts`
-- Contrato de API: `specs/001-user-booking-domains/contracts/api-v1-openapi.yaml`
+- Contratos e Endpoints da API: Swagger UI (`/docs`) e OpenAPI (`/openapi.json`)
 
 ---
 
@@ -36,15 +36,7 @@ e sem dependencias de endpoints inexistentes.
 
 ---
 
-## Posicao no Processo SDD
-
-```text
-speckit.constitution
-speckit.specify
-speckit.plan
-UX.md          <- este arquivo
-speckit.tasks  <- gerar FE-001..FE-008 a partir daqui
-```
+## Arquitetura de Componentes da Landing Page
 
 ---
 
@@ -413,17 +405,14 @@ FE-006 (Testimonials)
 
 ---
 
-## Checklist de Prontidao Para SpecKit
+## Checklist de Conformidade da Landing Page
 
-- [ ] IDs FE-001..FE-008 unicos e sem gaps
-- [ ] Dependencias entre tasks explicitadas
-- [ ] Rotas alvo alinhadas com `src/app/router.tsx`
-- [ ] Politica de auth explicitada para `/buscar`
-- [ ] Endpoints separados entre: contrato backend e mock local
-- [ ] Uso de Chakra v3 documentado sem API legada
-- [ ] Ordem de execucao definida para evitar retrabalho
+- [x] Componentes modulares implementados com Chakra UI v3
+- [x] Rotas alinhadas com `src/app/router.tsx`
+- [x] Política de autenticação e navegação protegida validada
+- [x] Fallback resiliente de mapa e geolocalização com dados demonstrativos
+- [x] Semântica de tokens e modo escuro suportados
 
 ---
 
-*Ultima atualizacao: 2026-04-21 — LinkAuto v0.1 MVP Demo — Landing Page (Speckit-ready).*  
-*Proximo UX.md sugerido: `/buscar` (filtros, mapa, lista e estado de loading/erro).*
+*Última atualização: LinkAuto — Landing Page Consolidada.*

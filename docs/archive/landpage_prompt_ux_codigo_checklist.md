@@ -1,5 +1,8 @@
 # Checklist Curto — Prompt x UX x Codigo Atual (Landing)
 
+> [!NOTE]
+> **Documento Arquivado (Histórico)**: As tarefas de FE-001 a FE-008 foram integralmente implementadas e validadas nas Iterações 10 a 18 do frontend. Este arquivo é mantido apenas como registro histórico de aderência inicial. Para a especificação canônica ativa, consulte `docs/DESIGN.md` e `progressTracker-frontend.md`.
+
 Objetivo: validar rapidamente aderencia antes de implementar FE-001..FE-008.
 
 Legenda de status:

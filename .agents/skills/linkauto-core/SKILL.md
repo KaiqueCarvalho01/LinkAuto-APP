@@ -1,7 +1,7 @@
 ---
 name: linkauto-core
 description: >-
-  Skill Router and Capability Map for LinkAuto. Directly references and orchestrates all installed specialist skills mapped to LinkAuto's stack (React 19, TypeScript strict, Chakra UI v3, FastAPI, SQLAlchemy 2.0, TDD, Playwright).
+  Skill Router and Capability Map for LinkAuto. Directly references and orchestrates all installed specialist skills mapped to LinkAuto's stack (React 19, TypeScript strict, Chakra UI v3, FastAPI, SQLModel / SQLAlchemy 2.0, TDD, Chrome DevTools MCP).
 ---
 
 # 🚗 LinkAuto — Specialist Skills Router & Execution Matrix
@@ -40,15 +40,14 @@ Before executing tasks, AI agents should consult this index and inspect the corr
 ---
 
 ### 🧪 1.3 Testing, Quality Assurance & Debugging
-**Stack**: Vitest, React Testing Library, Pytest, Starlette TestClient, Playwright, Chrome DevTools.
+**Stack**: Vitest, React Testing Library, Pytest, Starlette TestClient, Chrome DevTools MCP.
 
 | Specialist Skill | When to Read / Trigger | Absolute Path |
 | :--- | :--- | :--- |
 | **`@test-driven-development`** | Every feature, bugfix, or contract change. Drives RED -> GREEN -> REFACTOR cycles. | `/home/gabrieldnsilva/.gemini/config/plugins/agent-skills/skills/test-driven-development/SKILL.md` |
 | **`@debugging-and-error-recovery`** | Investigating failing tests, runtime exceptions, 500 errors, or async lifecycle issues. | `/home/gabrieldnsilva/.gemini/config/plugins/agent-skills/skills/debugging-and-error-recovery/SKILL.md` |
 | **`@code-review-and-quality`** | Multi-axis evaluation of changes (correctness, architecture, security, performance) before delivery. | `/home/gabrieldnsilva/.gemini/config/plugins/agent-skills/skills/code-review-and-quality/SKILL.md` |
-| **`@playwright-skill`** | Writing or maintaining End-to-End browser smoke tests (`linkauto-frontend/tests/e2e/`). | `/home/gabrieldnsilva/.agents/skills/playwright-skill/SKILL.md` |
-| **`@browser-testing-with-devtools`** | Inspecting DOM, network requests, console errors, or performance profiles in a real browser. | `/home/gabrieldnsilva/.gemini/config/plugins/agent-skills/skills/browser-testing-with-devtools/SKILL.md` |
+| **`@browser-testing-with-devtools`** | Inspecting DOM, network requests, console errors, visual snapshots or E2E flows in a real browser. | `/home/gabrieldnsilva/.gemini/config/plugins/agent-skills/skills/browser-testing-with-devtools/SKILL.md` |
 | **`@performance-optimization`** | Query optimization (N+1 reduction), bundle size tuning, memoization and load performance. | `/home/gabrieldnsilva/.gemini/config/plugins/agent-skills/skills/performance-optimization/SKILL.md` |
 
 ---
@@ -98,5 +97,5 @@ Before executing tasks, AI agents should consult this index and inspect the corr
 ## ⚡ 3. Quick Command Reference
 
 - **Frontend Validation**: `cd linkauto-frontend && npm run typecheck && npm run test`
-- **Backend Validation**: `cd linkauto-backend && .venv/bin/python -m pytest`
-- **Frontend E2E**: `cd linkauto-frontend && npm run e2e`
+- **Backend Validation**: `cd linkauto-backend && uv run ty check && uv run ruff check . && uv run pytest`
+- **Frontend E2E**: Inspeção e validação visual via `@browser-testing-with-devtools` (Chrome DevTools MCP).

@@ -456,9 +456,10 @@ Consulte o documento completo [FRONTEND_RECOMMENDATIONS.md](file:///home/gabriel
 ## 12. Referências e Recursos
 
 - Logo e banner: `docs/images/LinkAuto-banner.webp`
-- Data model: `specs/001-user-booking-domains/data-model.md`
-- Spec completo: `specs/001-user-booking-domains/spec.md`
-- Compliance: `specs/001-user-booking-domains/compliance.md`
+- Requisitos e Regras de Negócio (SSOT): `docs/requirements.md`
+- Especificações Técnicas de API: `docs/BACKEND_ENDPOINT_REQUESTS.md`
+- Técnicas e Hardening de Segurança: `docs/SECURITY_TECHNIQUES.md`
+- Contratos de API: Swagger UI (`/docs`) e OpenAPI (`/openapi.json`)
 - Chakra UI: <https://chakra-ui.com/docs/getting-started>
 - DM Sans (Google Fonts): <https://fonts.google.com/specimen/DM+Sans>
 - CartoDB tiles: <https://carto.com/basemaps>

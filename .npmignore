@@ -6,8 +6,6 @@ coverage/
 .env*
 .vscode/
 .idea/
-.specify/
-specs/
 docs/
 linkauto-backend/
 linkauto-frontend/node_modules/

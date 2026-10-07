@@ -13,7 +13,7 @@ Nossa arquitetura de frontend baseia-se em tecnologias modernas e de alta perfor
 *   **Design & UI:** Chakra UI v3 (`@chakra-ui/react@3.x` com Composition API e Tokens Semânticos) + Tailwind CSS 4 + Lucide React
 *   **Estado:** Zustand (com `sessionStore`)
 *   **Mapas:** Leaflet & react-leaflet
-*   **Testes:** Vitest + Testing Library + Playwright
+*   **Testes:** Vitest + Testing Library + Chrome DevTools MCP
 
 Para evoluir e manter essa stack com segurança e alta fidelidade visual, recomendamos a adoção das seguintes **Skills**, **Agentes** e **MCP Tools**.
 
@@ -54,6 +54,10 @@ O **MCP** permite que IAs busquem dados externos atualizados dinamicamente, supe
 *   **Por que usar:** O frontend do LinkAuto utiliza bibliotecas em suas versões mais recentes e disruptivas: **Chakra UI v3** e **Tailwind CSS 4**. Ambas mudaram radicalmente a sintaxe em relação às versões v2 e v3, respectivamente (ex: Chakra v3 utiliza novas APIs de composição de tags e abandona propriedades legadas; Tailwind 4 tem nova arquitetura baseada inteiramente em CSS).
 *   **Benefício técnico:** Ao invocar a ferramenta MCP do `context7`, a IA consegue ler a documentação de API ao vivo das bibliotecas diretamente da web. Isso **elimina alucinações de sintaxe**, evita o uso de padrões obsoletos (deprecated) e acelera o tempo de desenvolvimento impedindo erros de compilação ou build causados por códigos legados sugeridos pela IA.
 
+### B. `@chrome-devtools-mcp` (chrome-devtools)
+*   **Por que usar:** Permite inspeção visual ao vivo no navegador, navegação interativa, snapshots de DOM e testes de ponta a ponta (E2E) diretamente pelo ambiente do agente, sem overhead de suítes externas.
+*   **Benefício técnico:** Valida fidelidade visual de layouts responsivos, execução de JavaScript no cliente, comportamentos de formulários e estados de loading/erro em tempo de execução real.
+
 ---
 
 ## 🤖 3. Recomendações de Agentes Autônomos
@@ -78,6 +82,7 @@ Dividir o trabalho de grandes tarefas de frontend utilizando subagentes reduz o 
 | **Skill** | `@test-driven-development` | Qualidade & TDD | Correção de bugs e escrita de novos fluxos de testes no Vitest. |
 | **Skill** | `@ui-a11y` | Acessibilidade | Refinamento de novos elementos interativos no fluxo de agendamento. |
 | **MCP** | `@context7-mcp` | Documentação Viva | Consultar sintaxe do Chakra UI v3 e propriedades do Tailwind CSS 4. |
+| **MCP** | `@chrome-devtools-mcp` | Validação Visual & E2E | Inspeção de DOM, validação de renderização e fluxos E2E no navegador. |
 | **Agent** | `research` | Investigação Backend | Analisar payloads e mapear endpoints reais de instrutores e horários. |
 
 ---

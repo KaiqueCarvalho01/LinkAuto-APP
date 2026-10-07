@@ -4,54 +4,81 @@ Documento de especificações técnicas para solicitações de novos endpoints o
 
 ---
 
-## 1. Filtros Avançados na Busca de Instrutores
+## 1. Filtros Avançados na Busca de Instrutores [IMPLEMENTADO]
 
 ### Contexto
 O frontend necessita refinar a listagem de instrutores geolocalizados por mais critérios profissionais, alinhando com a busca avançada.
 
-### Recomendação
-Estender o endpoint `GET /api/v1/instructors` (ou criar uma rota de busca dedicada) com suporte a query parameters adicionais:
-
-- **Especialidades:** `specialties` (filtro por lista de strings, ex: `specialties=Baliza&specialties=Rodovias`).
-- **Raio Máximo:** `radius_km` (filtro por distância limite de atendimento).
+### Especificação Entregue
+Endpoint: `GET /api/v1/instructors/search` (com suporte a filtros e ordenação):
+- **Especialidades:** `specialties` (filtro multi-valor case-insensitive).
+- **Raio Máximo:** `radius_km` (calculado nativamente por fórmula de Haversine).
 - **Ordenação:** `sort_by` (`rating`, `price_asc`, `price_desc`, `distance`).
+- **Retorno:** Lista de instrutores contendo `slug` público para navegação anônima segura.
 
 ---
 
-## 2. Endpoint de Contagem e Estatísticas Administrativas (Admin Dashboard)
+## 2. Endpoint de Contagem e Estatísticas Administrativas (Admin Dashboard) [IMPLEMENTADO]
 
 ### Contexto
-Atualmente, o painel do administrador (`/admin/instructors`) exibe apenas a lista de pendentes e faz aprovações. Para uma interface de governança completa e premium, necessitamos de métricas e contagens rápidas no dashboard.
+Painel do administrador (`/admin/instructors`) exibindo métricas operacionais agregadas em tempo real.
 
-### Recomendação
-Criar um endpoint `GET /api/v1/admin/stats` (restrito a role `ADMIN`) que retorne:
-
+### Especificação Entregue
+Endpoint: `GET /api/v1/admin/stats` (restrito a role `ADMIN`):
 ```json
 {
-  "total_instructors": 18,
-  "pending_instructors": 3,
-  "approved_instructors": 12,
-  "rejected_instructors": 3,
-  "total_students": 145,
-  "total_bookings": 412
+  "total_instructors": 3,
+  "pending_instructors": 0,
+  "approved_instructors": 3,
+  "rejected_instructors": 0,
+  "total_students": 1,
+  "total_bookings": 2
 }
 ```
 
 ---
 
-## 3. Endpoint de Contagem e Estatísticas do Instrutor (Instructor Dashboard)
+## 3. Endpoint de Contagem e Estatísticas do Instrutor (Instructor Dashboard) [IMPLEMENTADO]
 
 ### Contexto
-O painel do instrutor (`/instructor/dashboard`) precisa expor a contagem de aulas ministradas e horas dadas em tempo real de forma segura.
+Painel do instrutor (`/instructor/dashboard`) exibindo agregação de horas, aulas e alunos atendidos.
 
-### Recomendação
-Criar um endpoint `GET /api/v1/instructor/stats` (restrito a role `INSTRUTOR`) que retorne a agregação de dados do instrutor autenticado:
-
+### Especificação Entregue
+Endpoint: `GET /api/v1/instructor/stats` (restrito a role `INSTRUTOR`):
 ```json
 {
-  "total_lessons": 42,
-  "total_hours": 84,
-  "unique_students": 12,
-  "pending_bookings": 2
+  "total_lessons": 2,
+  "total_hours": 4,
+  "unique_students": 1,
+  "pending_bookings": 0
 }
 ```
+
+---
+
+## 4. Endpoints Públicos de Perfil com Slugs Seguros (LGPD) [IMPLEMENTADO]
+
+### Contexto
+Permitir a navegação pública e anônima nos perfis de instrutores e alunos sem expor UUIDs internos, dados bancários, emails ou telefones antes da confirmação do agendamento.
+
+### Especificação Entregue
+- **Instrutor Público:** `GET /api/v1/instructors/{slug}/public`
+  - Acesso público (anônimo).
+  - Validação RN01: retorna 404 Not Found se o instrutor não estiver aprovado pelo Admin.
+  - Oculta 100% de PII (email, telefone, CPF, documentos S3). Exibe bio, foto, especialidades, preço/hora, rating e reviews públicas.
+- **Aluno Público:** `GET /api/v1/students/{slug}/public`
+  - Acesso público.
+  - Exibe resumo de reputação e contagem de aulas realizadas, sem expor penalidades ou contatos privados.
+
+---
+
+## 5. Jobs de Automação de Ciclo de Vida de Booking [IMPLEMENTADO]
+
+### Contexto
+Rotinas de cron disparadas para manutenção do estado de agendamentos e lembretes 24h.
+
+### Especificação Entregue
+- `POST /api/v1/jobs/booking-reminder` (envio de e-mails preventivos 24h antes da aula).
+- `POST /api/v1/jobs/booking-timeout` (cancela reservas PENDENTES há mais de 24h).
+- `POST /api/v1/jobs/booking-completion` (marca reservas CONFIRMADAS como REALIZADA 2h após término).
+- **Contrato Unificado:** Retorno consistente com `processed`, `booking_ids`, `failed` e `failed_booking_ids`.

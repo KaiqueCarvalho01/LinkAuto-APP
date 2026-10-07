@@ -24,7 +24,7 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
    - SPA React com Vite.
    - Rotas protegidas, cliente HTTP, sessao local e integracao com endpoints de
      auth/profile/admin.
-   - Testes com Vitest, Testing Library e Playwright.
+   - Testes com Vitest, Testing Library e Chrome DevTools MCP.
 
 3. `infra`
    - Docker Compose local para backend e frontend.
@@ -60,13 +60,13 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
    - `httpx`/FastAPI TestClient nos testes.
    - Ruff para lint do backend.
    - ESLint e TypeScript no frontend.
-   - Vitest, Testing Library e Playwright.
+   - Vitest, Testing Library e Chrome DevTools MCP.
 
 4. Integracoes e operacao
    - AWS SES para notificacoes.
    - AWS S3 previsto para documentos.
    - Docker Compose para ambiente local.
-   - Contrato OpenAPI em `specs/001-user-booking-domains/contracts/api-v1-openapi.yaml`.
+   - Contratos e Documentação de API em Swagger UI (`/docs`) e OpenAPI (`/openapi.json`).
 
 ## 3. Tecnicas de seguranca ja aplicadas
 

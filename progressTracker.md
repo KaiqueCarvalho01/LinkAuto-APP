@@ -306,9 +306,30 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
     - Enriquecimento de datetimes UTC obrigatórios com timezone-awareness em criação e consultas.
   - **PR #32 (`chore/vscode-workspace`):**
     - Configuração do workspace multi-root do VS Code (`LinkAuto-APP.code-workspace`) com tooling isolado por diretório (`linkauto-backend` com uv/Python 3.14 e `linkauto-frontend` com Node/npm).
+### Iteração 19 (Consolidação do SSOT, Purga do SpecKit/Specify e Playwright, Showcase Visual via Chrome DevTools MCP e Modernização de READMEs)
+
+- **Consolidação do SSOT e Purga do SpecKit/Specify:**
+  - Purgadas todas as referências ao `speckit.*` e à metodologia SDD em `docs/designs/landpage_UX.md`.
+  - Removidos links mortos para `specs/001-user-booking-domains/` em toda a base de documentação, unificando a hierarquia viva de SSOT em `docs/requirements.md` (regras e requisitos), `docs/DESIGN.md` (design system e UI), `docs/BACKEND_ENDPOINT_REQUESTS.md` (especificações de endpoints) e Swagger interativo (`/docs`).
+  - Arquivados documentos históricos e rascunhos em `docs/archive/` com avisos de cabeçalho explicativos (`landpage_prompt_ux_codigo_checklist.md`, `frontend_improvements.md`, `natural-language_requests.md`).
+  - Limpeza dos arquivos `.gitignore` e `.npmignore` removendo `.specify/` e `specs/`.
+- **Descontinuação e Remoção Completa do Playwright:**
+  - Removida a dependência `@playwright/test` do frontend e deletados os scripts `e2e*` de `package.json`.
+  - Excluídos `linkauto-frontend/playwright.config.ts`, `linkauto-frontend/tests/e2e/` e `seed.spec.ts`.
+  - Oficializada a adoção do **Chrome DevTools MCP** (`@browser-testing-with-devtools`) para testes visuais e fluxos E2E no ecossistema de agentes.
+- **Showcase Visual via Chrome DevTools MCP:**
+  - Ambiente executado em containers via Docker Compose (`infra/docker-compose.yml`) com dados pré-semeados de desenvolvimento.
+  - Capturadas 4 telas estratégicas em alta resolução:
+    - `docs/images/showcase-home.png` (Landing page e demonstração)
+    - `docs/images/showcase-search.png` (Busca geolocalizada com mapa Leaflet)
+    - `docs/images/showcase-instructor-profile.png` (Perfil público com slug e CTA de agendamento)
+    - `docs/images/showcase-dashboard.png` (Painel administrativo e métricas ao vivo)
+- **Modernização de READMEs:**
+  - Atualizado `README.md` (PT-BR) e `docs/README.en.md` (US-EN) com paridade total, catálogo atualizado de endpoints, stack moderna (`uv`, `SQLModel 0.0.48`, `ty`, `Ruff ALL`, Python 3.14) e instruções do workspace multi-root.
+  - Criado `linkauto-frontend/README.md` completo e profissional espelhando a qualidade do backend.
 - **Garantia de Qualidade e Suítes de Validação:**
-  - **Backend:** **161 testes pytest verdes** (aumento de 136 para 161 testes com cobertura de migrações e jobs), `ty check` com 0 erros, `ruff check` com 0 erros, `ruff format` 100% em conformidade.
-  - **Frontend:** **97 testes Vitest verdes**, `npm run typecheck` com 0 erros e total compatibilidade com os contratos de API.
+  - **Backend:** 161 testes pytest verdes, `ty check` com 0 erros, `ruff check` com 0 erros, `ruff format` 100% em conformidade.
+  - **Frontend:** 97 testes Vitest verdes, `npm run typecheck` com 0 erros, `npm run lint` 100% limpo com 0 warnings.
 
 
 

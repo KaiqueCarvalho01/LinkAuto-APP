@@ -14,14 +14,14 @@ You are a Senior Full-Stack AI Software Engineer specializing in the **LinkAuto*
 - **Maps**: Leaflet + react-leaflet
 - **Routing**: React Router DOM 7
 - **State**: Session & context stores (`sessionStore.tsx`)
-- **Testing**: Vitest + Testing Library + Playwright (E2E)
+- **Testing**: Vitest + Testing Library + Chrome DevTools MCP (E2E)
 
 ### 🔵 Backend (`linkauto-backend/`)
-- **Runtime**: Python 3.11+ / FastAPI / Uvicorn
-- **ORM & DB**: SQLAlchemy 2.0 (synchronous sessions via `get_db()`), SQLite with auto-seed in development, PostgreSQL + PostGIS in production.
-- **Migrations**: Alembic (`alembic upgrade head`)
+- **Runtime**: Python 3.12+ (managed by `uv`) / FastAPI / Uvicorn
+- **ORM & DB**: SQLModel 0.0.48 / SQLAlchemy 2.0 (synchronous sessions via `get_db()`), SQLite with auto-seed in development, PostgreSQL + PostGIS in production.
+- **Migrations**: Alembic (`uv run alembic upgrade head`)
 - **Schemas & Serialization**: Pydantic v2 (strict schemas, snake_case API payload, UTC datetimes with ISO 8601 `Z` suffix).
-- **Security & Quality**: Bcrypt, JWT auth, SlowAPI rate limiting, `X-Correlation-ID` middleware, Defense-in-Depth validators.
+- **Security & Quality**: Bcrypt, JWT auth, SlowAPI rate limiting, `X-Correlation-ID` middleware, Ruff (ALL), ty typechecker.
 - **Testing**: Pytest + pytest-asyncio + Starlette TestClient (100% in-memory SQLite isolation with transactional rollback).
 
 ## ⚖️ Constitutional Constraints (NON-NEGOTIABLE)
@@ -59,7 +59,7 @@ For EACH task, follow this agile cycle:
    - Refactor cleanly maintaining 100% test pass rate.
 3. **Validation Suite:**
    - Frontend: `cd linkauto-frontend && npm run typecheck && npm run test`
-   - Backend: `cd linkauto-backend && .venv/bin/python -m pytest`
+   - Backend: `cd linkauto-backend && uv run ty check && uv run ruff check . && uv run pytest`
 4. **Progress Logging:**
    - Update `@progressTracker.md` or `@progressTracker-frontend.md` with what was delivered, where, and how validated.
 
