@@ -35,3 +35,24 @@ def test_production_config_warns_on_localhost_cors(caplog: pytest.LogCaptureFixt
         )
 
     assert any("Localhost detected in CORS_ORIGINS" in message for message in caplog.messages)
+
+
+@pytest.mark.parametrize(
+    ("raw_url", "expected"),
+    [
+        ("postgresql://u:p@db:5432/linkauto", "postgresql+psycopg://u:p@db:5432/linkauto"),
+        ("postgres://u:p@db:5432/linkauto", "postgresql+psycopg://u:p@db:5432/linkauto"),
+        ("postgresql+psycopg://u:p@db/linkauto", "postgresql+psycopg://u:p@db/linkauto"),
+        ("sqlite:///./app.db", "sqlite:///./app.db"),
+    ],
+)
+def test_database_url_uses_the_installed_psycopg_driver(raw_url: str, expected: str) -> None:
+    """Plain postgresql:// URLs would make SQLAlchemy load psycopg2, which isn't installed."""
+    assert Settings(DATABASE_URL=raw_url).database_url == expected
+
+
+def test_postgres_url_creates_an_engine_with_psycopg() -> None:
+    from sqlalchemy import create_engine  # noqa: PLC0415
+
+    engine = create_engine(Settings(DATABASE_URL="postgresql://u:p@localhost/db").database_url)
+    assert engine.dialect.driver == "psycopg"

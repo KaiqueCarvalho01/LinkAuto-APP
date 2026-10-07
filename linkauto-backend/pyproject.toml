@@ -9,6 +9,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "boto3>=1.43.108",
     "fastapi>=0.142.2",
+    "psycopg[binary]>=3.2",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
     "python-jose[cryptography]>=3.5.0",

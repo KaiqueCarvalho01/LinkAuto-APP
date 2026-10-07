@@ -3,13 +3,17 @@
 import logging
 from functools import lru_cache
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger("app.core.config")
 
 # Placeholder default that must be overridden outside development
 INSECURE_JWT_SECRET = "change-me"  # noqa: S105
+
+# psycopg (v3) is the installed PostgreSQL driver; SQLAlchemy defaults bare URLs to psycopg2
+_POSTGRES_URL_PREFIXES = ("postgresql://", "postgres://")
+POSTGRES_DRIVER_PREFIX = "postgresql+psycopg://"
 
 
 class Settings(BaseSettings):
@@ -37,6 +41,15 @@ class Settings(BaseSettings):
     ses_from_email: str | None = Field(default=None, alias="SES_FROM_EMAIL")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    @field_validator("database_url")
+    @classmethod
+    def use_psycopg_driver(cls, value: str) -> str:
+        """Rewrite ``postgresql://`` and ``postgres://`` URLs to ``postgresql+psycopg://``."""
+        for prefix in _POSTGRES_URL_PREFIXES:
+            if value.startswith(prefix):
+                return POSTGRES_DRIVER_PREFIX + value.removeprefix(prefix)
+        return value
 
     @model_validator(mode="after")
     def validate_production_security(self) -> Settings:

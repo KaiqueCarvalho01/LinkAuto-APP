@@ -69,13 +69,18 @@ O projeto segue estritamente as diretrizes da **OWASP Top 10** e os padrões do 
 - [uv](https://docs.astral.sh/uv/) (gerencia o Python e as dependências)
 - Python 3.14+ (instalado automaticamente pelo uv, conforme `.python-version`)
 - SQLite3 (Ambiente de Desenvolvimento)
+- PostgreSQL 16 + PostGIS (staging/produção, opcional em dev)
 
 ### Configuração do Ambiente Local
 1. Crie o ambiente virtual (`.venv`) e instale as dependências a partir do `uv.lock`, incluindo o grupo `dev` (testes e lint):
    ```bash
    uv sync
    ```
-2. Inicialize o servidor de desenvolvimento:
+2. (Opcional) Copie as variáveis de exemplo e ajuste o que precisar — todas têm valor padrão de desenvolvimento:
+   ```bash
+   cp .env.example .env
+   ```
+3. Inicialize o servidor de desenvolvimento:
    ```bash
    uv run uvicorn app.main:app --reload --port 8000
    ```
@@ -90,6 +95,14 @@ uv add --dev <pacote>    # Adiciona dependência de desenvolvimento (grupo `dev`
 uv lock --upgrade        # Atualiza todas as versões no uv.lock
 uv sync --no-dev         # Instala apenas as dependências de produção
 ```
+
+### Banco de Dados (`DATABASE_URL`)
+| Ambiente | Exemplo de `DATABASE_URL` |
+| :--- | :--- |
+| Desenvolvimento (padrão) | `sqlite:///./app.db` |
+| PostgreSQL + PostGIS | `postgresql+psycopg://usuario:senha@host:5432/linkauto` |
+
+O driver PostgreSQL é o **psycopg 3** (`psycopg[binary]`, já incluso nas dependências). URLs `postgresql://` ou `postgres://` (como as fornecidas por provedores gerenciados) são convertidas automaticamente para `postgresql+psycopg://`.
 
 ### Migrações de Banco (Alembic)
 Em desenvolvimento, o SQLite local é recriado e populado a cada inicialização (`RESET_SQLITE_ON_STARTUP=true`), sem usar migrações. Em qualquer outro ambiente o schema é gerenciado pelo Alembic, usando a mesma `DATABASE_URL` da aplicação:
