@@ -1,5 +1,4 @@
 node_modules/
-.github/
 **/.vscode/*
 !linkauto-backend/.vscode/settings.json
 *.drawio
