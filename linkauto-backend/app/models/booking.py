@@ -12,11 +12,12 @@ from app.models.slot import Slot
 
 
 class CancelledBy(StrEnum):
-    """Who cancelled a booking: the student, the instructor or the system (timeouts)."""
+    """Who cancelled a booking: student, instructor, system (timeouts) or an admin override."""
 
     ALUNO = "ALUNO"
     INSTRUTOR = "INSTRUTOR"
     SISTEMA = "SISTEMA"
+    ADMIN = "ADMIN"
 
 
 class Booking(AuditUUIDBase, table=True):
@@ -77,4 +78,22 @@ class StudentPenalty(AuditUUIDBase, table=True):
 
     student_id: str = Field(sa_type=String(36), foreign_key="student_profiles.user_id", index=True)
     blocked_until: datetime
+    reason: str = Field(sa_type=Text)
+
+
+class BookingStatusOverride(AuditUUIDBase, table=True):
+    """Audit trail of an admin forcing a booking's status, with who, when and why.
+
+    ``admin_id`` is deliberately not a foreign key, so the record survives the admin's
+    account being deleted.
+    """
+
+    __tablename__ = "booking_status_overrides"
+
+    booking_id: str = Field(
+        sa_type=String(36), foreign_key="bookings.id", ondelete="CASCADE", index=True
+    )
+    admin_id: str = Field(sa_type=String(36), index=True)
+    from_status: str = Field(sa_type=String(20))
+    to_status: str = Field(sa_type=String(20))
     reason: str = Field(sa_type=Text)
