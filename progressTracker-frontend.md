@@ -326,8 +326,30 @@
 - green_command: `npm run typecheck` (0 erros) e `npm run test` (97/97 testes passando com 100% de sucesso) ✅
 - coverage_pct: >= 80% ✅
 
+### Iteracao 24 - Validacao de Contratos e Estabilidade na Integracao da Stack Backend (FE-Stack-Validation)
+
+#### What was delivered (Iteracao 24)
+- Validação integral e garantia de compatibilidade dos contratos do frontend diante da grande refatoração de backend (Stack #18: adoção de SQLModel, padronização de datetimes UTC timezone-aware e consolidação de responses de jobs).
+- Verificação de estabilidade em todas as telas operacionais, fluxos de perfil público com slugs e suíte de testes.
+- Preservação de conformidade total do compilador TypeScript strict (`exactOptionalPropertyTypes: true`, `noUncheckedIndexedAccess: true`).
+
+#### Where it was delivered (Iteracao 24)
+- Validação transversal sobre:
+  - `src/types/api.types.ts`
+  - `src/services/bookingService.ts`
+  - `src/services/profileService.ts`
+  - `src/pages/PublicProfiles.test.tsx`
+  - `src/pages/LessonDetails.test.tsx`
+
+#### How it was validated (Iteracao 24)
+- cycle_id: iteration-024
+- green_command: `npm run typecheck` (0 erros) e `npm run test` (97/97 testes passando com 100% de sucesso) ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+
 ## Riscos e Observacoes Gerais
 
+- **Iteracao 24**: Validação completa da estabilidade do frontend após a fusão e modernização da stack de backend (SQLModel, uv, ty e padronização de jobs de booking). Zero quebra de contratos e 97 testes do Vitest verdes.
 - **Iteracao 23**: Ocultação total de UUIDs internos em rotas públicas e respostas do frontend por meio de slugs seguros e amigáveis. Remoção da grade de slots do perfil público e redirecionamento seguro para agendamento.
 - **Iteracao 22**: Entrega de perfis públicos anônimos para instrutores e alunos com blindagem LGPD, agendamento desacoplado e roteamento universal em toda a aplicação. 97 testes verdes no Vitest e TypeScript strict validado.
 

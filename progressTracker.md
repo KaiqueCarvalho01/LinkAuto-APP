@@ -15,6 +15,7 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 | Phase 5 - US3 | Concluída | Mensagens, avaliações, lembrete 24h e 8 tipos de notificações de e-mail (94 testes verdes) |
 | Phase 6 - Polish | Concluída | Polimento e hardening completos, 13 itens de segurança e qualidade validados com 112 testes verdes e Ruff 100% |
 | Phase 7 - Frontend Integration | Concluída | Integração completa com API real do backend, 100% livre de mocks de produção, typecheck TS limpo com exactOptionalPropertyTypes e 89 testes verdes do Vitest |
+| Phase 8 - Stack Integration & Tooling Modernization | Concluída | Integração da stack #18 (PRs #10, #16, #17, #19, #32), resolução de conflitos com PR #9, modernização para SQLModel, uv, ty, baseline Alembic e fechamento de issues #11 e #12 (161 testes backend verdes e 97 frontend) |
 
 ## Iterações
 
@@ -282,6 +283,33 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 - **Garantia de Qualidade e Suítes de Testes:**
   - Backend: **136 testes pytest verdes (100% de aprovação)** e **Ruff lint 100% limpo**.
   - Frontend: **97 testes Vitest verdes (100% de aprovação)** e **TypeScript `npm run typecheck` 100% limpo**.
+
+### Iteração 18 (Integração da Stack de PRs #10-#32, Resolução de Conflitos, Modernização de Tooling & Fechamento de Issues)
+
+- **Resolução de Conflito e Integração de PRs Stackados:**
+  - **PR #9 (`fix/booking-cancel-authz`) & PR #10 (`style/ruff`):**
+    - Identificado e resolvido conflito em `app/services/booking_service.py` e `app/api/v1/bookings.py`.
+    - Preservada a checagem de autorização em `cancel_booking` (`BookingAccessError`) introduzida no PR #9, adaptando o código às regras estritas do Ruff `ALL` (`EM101`, `B904`, docstrings `D101`, remoção do `# noqa: ARG002` defasado).
+    - Tipagem completa de retornos e argumentos nos testes correspondentes.
+  - **PR #16 (`fix/alembic`):**
+    - Padronização e restauração da infraestrutura do Alembic com `alembic.ini`, template `script.py.mako` e baseline único consolidado `20261006_0001_initial_schema.py`.
+    - Adicionado `tests/unit/test_migrations.py` cobrindo upgrades/downgrades e consistência de metadados.
+  - **PR #17 (`chore/ty`):**
+    - Adoção do type checker `ty` (`uv run ty check`) com verificação estrita de tipos no backend.
+    - Resolução definitiva dos bugs de contratos de automação em `app/jobs/booking_jobs.py` (**GitHub Issues #11 e #12**):
+      - Correção do retorno do `POST /api/v1/jobs/booking-timeout` (não acessa mais `result.errors` inexistente).
+      - Separação consistente de `booking_ids` processados com sucesso e `failed_booking_ids` em `BookingJobResponse`.
+      - Adicionado `tests/contract/test_booking_jobs_contract.py` cobrindo todos os endpoints de jobs com contratos rigorosos.
+      - Encerramento formal das Issues #11 e #12 no GitHub com comentários de rastreabilidade vinculando o PR #17.
+  - **PR #19 (`refactor/sqlmodel`):**
+    - Migração de todos os modelos ORM e consultas SQLAlchemy para a API tipada do SQLModel 0.0.48 (`SQLModel`, `Field`, `Session`, `select`).
+    - Enriquecimento de datetimes UTC obrigatórios com timezone-awareness em criação e consultas.
+  - **PR #32 (`chore/vscode-workspace`):**
+    - Configuração do workspace multi-root do VS Code (`LinkAuto-APP.code-workspace`) com tooling isolado por diretório (`linkauto-backend` com uv/Python 3.14 e `linkauto-frontend` com Node/npm).
+- **Garantia de Qualidade e Suítes de Validação:**
+  - **Backend:** **161 testes pytest verdes** (aumento de 136 para 161 testes com cobertura de migrações e jobs), `ty check` com 0 erros, `ruff check` com 0 erros, `ruff format` 100% em conformidade.
+  - **Frontend:** **97 testes Vitest verdes**, `npm run typecheck` com 0 erros e total compatibilidade com os contratos de API.
+
 
 
 
