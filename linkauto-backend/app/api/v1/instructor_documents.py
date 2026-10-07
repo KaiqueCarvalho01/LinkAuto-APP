@@ -31,8 +31,9 @@ async def upload_documents(  # noqa: PLR0913, PLR0917 - FastAPI injects each dep
 
     May be called by the instructor themself or by an ADMIN; any other caller gets
     403. Each file must be a PDF, JPEG or PNG whose content matches its declared type
-    (400 otherwise) and at most 10 MB (413 otherwise). Returns 404 when the instructor
-    does not exist.
+    (400 otherwise) and at most 10 MB (413 otherwise). Files are stored in private
+    object storage under server-generated keys; only admins can view them, through
+    short-lived links. Returns 404 when the instructor does not exist.
     """
     if current_user.user_id != instructor_id and "ADMIN" not in current_user.roles:
         raise HTTPException(
@@ -68,8 +69,7 @@ async def upload_documents(  # noqa: PLR0913, PLR0917 - FastAPI injects each dep
         {
             "instructor_id": result.instructor_id,
             "document_id": result.document_id,
-            "detran_credential_url": result.detran_credential_url,
-            "criminal_record_url": result.criminal_record_url,
+            "uploaded_at": result.uploaded_at.isoformat().replace("+00:00", "Z"),
         },
         status_code=status.HTTP_201_CREATED,
     )

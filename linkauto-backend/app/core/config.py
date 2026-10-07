@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     email_backend: Literal["auto", "ses", "memory", "disabled"] = Field(
         default="auto", alias="EMAIL_BACKEND"
     )
+    # S3 is optional. "auto": S3 when S3_BUCKET is set, otherwise the local disk
+    document_storage: Literal["auto", "s3", "local", "memory"] = Field(
+        default="auto", alias="DOCUMENT_STORAGE"
+    )
+    document_storage_path: str = Field(default="./storage", alias="DOCUMENT_STORAGE_PATH")
+    # Public base URL of this API, used for links to locally stored documents
+    public_api_url: str = Field(default="http://localhost:8000", alias="PUBLIC_API_URL")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -62,7 +69,8 @@ class Settings(BaseSettings):
         """Reject insecure settings when APP_ENV is production.
 
         Raises if JWT_SECRET is the placeholder or RESET_SQLITE_ON_STARTUP is enabled, and
-        logs a warning if CORS_ORIGINS contains localhost or 127.0.0.1. E-mail is optional.
+        logs a warning if CORS_ORIGINS contains localhost or 127.0.0.1. E-mail and S3 are
+        optional.
         """
         if self.app_env.lower() == "production":
             if self.jwt_secret == INSECURE_JWT_SECRET:

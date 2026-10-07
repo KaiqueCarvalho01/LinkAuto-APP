@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.config import Settings
+from app.services.document_storage import LocalDocumentStorage, build_document_storage
 
 
 def test_production_config_rejects_insecure_jwt_secret() -> None:
@@ -56,3 +57,15 @@ def test_postgres_url_creates_an_engine_with_psycopg() -> None:
 
     engine = create_engine(Settings(DATABASE_URL="postgresql://u:p@localhost/db").database_url)
     assert engine.dialect.driver == "psycopg"
+
+
+def test_production_config_does_not_require_s3() -> None:
+    """S3 is optional: without a bucket, documents are kept on the local disk."""
+    settings = Settings(
+        APP_ENV="production",
+        JWT_SECRET="secure-real-secret-12345",
+        RESET_SQLITE_ON_STARTUP=False,
+    )
+
+    assert settings.s3_bucket is None
+    assert isinstance(build_document_storage(settings), LocalDocumentStorage)

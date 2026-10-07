@@ -116,6 +116,21 @@ O envio de e-mails é **opcional**: sem provedor configurado a API funciona norm
 
 Com SES, o envio acontece em segundo plano (pool de threads), então um SES lento não atrasa as respostas da API; falhas são registradas em log. As credenciais vêm de `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` ou da cadeia padrão da AWS (IAM role), na região `AWS_REGION`.
 
+### Documentos de Credenciamento (S3)
+Os arquivos enviados em `POST /instructors/{id}/documents` são validados (MIME, tamanho e magic bytes) e gravados em armazenamento privado, com chaves geradas pelo servidor (`instructors/<id>/<tipo>-<uuid>.<ext>`); o nome original do arquivo fica apenas como metadado.
+
+O S3 é **opcional**: sem `S3_BUCKET`, os arquivos ficam no disco local do servidor.
+
+| `DOCUMENT_STORAGE` | Comportamento |
+| :--- | :--- |
+| `auto` (padrão) | S3 privado (`S3_BUCKET`, criptografia SSE-S3) quando definido; senão, disco local em `DOCUMENT_STORAGE_PATH` (padrão `./storage`). |
+| `s3` / `local` / `memory` | Força o backend. `memory` é usado nos testes. |
+
+- Admins listam os documentos em `GET /admin/instructors/{id}/documents`, com links de **5 minutos** (URLs pré-assinadas SigV4 no S3; links assinados por HMAC no disco local).
+- Ao aprovar ou rejeitar o instrutor, os registros **e os arquivos** são excluídos (retenção mínima, LGPD / RF11).
+- **Disco local:** em containers, monte um volume persistente em `DOCUMENT_STORAGE_PATH` (senão os arquivos somem a cada deploy) e use uma única réplica ou um volume compartilhado. Defina `PUBLIC_API_URL` com a URL pública da API para que os links de visualização funcionem.
+- **S3:** o bucket deve bloquear acesso público (*Block Public Access*); a aplicação precisa de `s3:PutObject`, `s3:GetObject` e `s3:DeleteObject` no prefixo `instructors/`.
+
 ### Migrações de Banco (Alembic)
 Em desenvolvimento, o SQLite local é recriado e populado a cada inicialização (`RESET_SQLITE_ON_STARTUP=true`), sem usar migrações. Em qualquer outro ambiente o schema é gerenciado pelo Alembic, usando a mesma `DATABASE_URL` da aplicação:
 

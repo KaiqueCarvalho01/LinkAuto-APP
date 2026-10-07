@@ -18,6 +18,7 @@ Thumbs.db
 *.swp
 .idea/
 linkauto-backend/app.db
+linkauto-backend/storage/
 linkauto-frontend/test-results/
 api-requests/
 linkauto-frontend/coverage/

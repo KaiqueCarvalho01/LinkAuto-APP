@@ -12,6 +12,7 @@ from app.core import Settings, get_settings
 from app.services.admin_validation_service import AdminValidationService
 from app.services.auth_service import AuthService
 from app.services.document_cleanup_service import DocumentCleanupService
+from app.services.document_storage import DocumentStorage, build_document_storage
 from app.services.identity_repository import IdentityRepository
 from app.services.instructor_document_service import InstructorDocumentService
 from app.services.notification_service import NotificationService, build_email_gateway
@@ -27,6 +28,15 @@ def get_notification_service() -> NotificationService:
     development/tests, and no e-mail at all otherwise.
     """
     return NotificationService(email_gateway=build_email_gateway(get_settings()))
+
+
+@lru_cache(maxsize=1)
+def get_document_storage() -> DocumentStorage:
+    """Return the process-wide document storage chosen by the settings (S3 in production)."""
+    return build_document_storage(get_settings())
+
+
+Storage = Annotated[DocumentStorage, Depends(get_document_storage)]
 
 
 def get_identity_repository(db: DbSession) -> IdentityRepository:
@@ -54,23 +64,25 @@ def get_profile_service(repository: Repository) -> ProfileService:
     return ProfileService(repository)
 
 
-def get_cleanup_service(repository: Repository) -> DocumentCleanupService:
-    """Build a ``DocumentCleanupService`` on the request's identity repository."""
-    return DocumentCleanupService(repository)
+def get_cleanup_service(repository: Repository, storage: Storage) -> DocumentCleanupService:
+    """Build a ``DocumentCleanupService`` on the request's repository and the storage."""
+    return DocumentCleanupService(repository, storage)
 
 
-def get_admin_validation_service(repository: Repository) -> AdminValidationService:
+def get_admin_validation_service(
+    repository: Repository, storage: Storage
+) -> AdminValidationService:
     """Build an ``AdminValidationService`` with its profile, cleanup and notification services."""
     return AdminValidationService(
         repository=repository,
         profile_service=ProfileService(repository),
-        cleanup_service=DocumentCleanupService(repository),
+        cleanup_service=DocumentCleanupService(repository, storage),
         notification_service=get_notification_service(),
     )
 
 
 def get_instructor_document_service(
-    settings: Annotated[Settings, Depends(get_settings)], repository: Repository
+    repository: Repository, storage: Storage
 ) -> InstructorDocumentService:
-    """Build an ``InstructorDocumentService`` on the request's identity repository."""
-    return InstructorDocumentService(settings=settings, repository=repository)
+    """Build an ``InstructorDocumentService`` on the request's repository and the storage."""
+    return InstructorDocumentService(repository=repository, storage=storage)

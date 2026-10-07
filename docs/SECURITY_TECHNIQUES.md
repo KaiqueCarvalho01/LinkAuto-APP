@@ -117,7 +117,9 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
 7. Validacao de upload
    - Whitelist de MIME types: PDF, JPEG e PNG.
    - Limite maximo de 10 MB por arquivo.
-   - Sanitizacao basica de nome com `Path(filename).name`.
+   - Magic bytes conferidos contra o MIME declarado.
+   - A chave do objeto e gerada pelo servidor; o nome do arquivo do cliente nunca entra no
+     caminho de armazenamento.
    - Local: `linkauto-backend/app/services/instructor_document_service.py`.
 
 8. Reducao de exposicao publica de instrutores
@@ -130,9 +132,13 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
    - Local: `linkauto-backend/app/services/admin_validation_service.py`.
 
 10. Retencao minima de documentos sensiveis
-    - Apos decisao administrativa, documentos sao purgados do store atual.
-    - A intencao de S3 purge esta documentada nas specs.
-    - Local: `linkauto-backend/app/services/document_cleanup_service.py`.
+    - Documentos ficam em armazenamento privado (S3 com SSE-S3, opcional, ou disco local
+      fora da raiz publica), com chaves
+      geradas pelo servidor; o nome enviado pelo cliente e apenas metadado.
+    - Admins acessam os arquivos somente por links de curta duracao (5 minutos).
+    - Apos decisao administrativa, registros e arquivos sao excluidos.
+    - Local: `linkauto-backend/app/services/document_storage.py`,
+      `linkauto-backend/app/services/document_cleanup_service.py`.
 
 11. CORS configuravel
     - Origins permitidas vem de `CORS_ORIGINS`, evitando wildcard fixo no codigo.

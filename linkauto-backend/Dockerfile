@@ -54,7 +54,10 @@ COPY alembic ./alembic
 COPY alembic.ini ./alembic.ini
 COPY scripts ./scripts
 
-RUN chown -R appuser:appuser /app
+# Instructor documents when no S3 bucket is configured (DOCUMENT_STORAGE_PATH=./storage).
+# Mount a persistent volume here, or the files are lost when the container is replaced.
+RUN mkdir -p /app/storage && chown -R appuser:appuser /app
+VOLUME ["/app/storage"]
 
 ENV PATH="/app/.venv/bin:$PATH"
 
