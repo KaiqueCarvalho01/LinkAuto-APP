@@ -1,19 +1,16 @@
 from typing import TYPE_CHECKING, Any
 
-from fastapi.testclient import TestClient
-
 from app.core.security import hash_password
-from app.main import create_app
-from app.services.us1_store import get_identity_store
+from app.services.identity_repository import IdentityRepository
 
 if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
     from httpx2 import Response
-
-client = TestClient(create_app())
+    from sqlmodel import Session
 
 
 def _register_user(
-    email: str, roles: list[str], password: str = "strong-password"
+    client: TestClient, email: str, roles: list[str], password: str = "strong-password"
 ) -> dict[str, Any]:
     response = client.post(
         "/api/v1/auth/register",
@@ -23,15 +20,15 @@ def _register_user(
     return response.json()["data"]
 
 
-def _login(email: str, password: str = "strong-password") -> Response:
+def _login(client: TestClient, email: str, password: str = "strong-password") -> Response:
     response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200
     return response
 
 
-def test_multi_role_profile_updates_keep_other_profile_intact() -> None:
-    _register_user("multirole@example.com", ["ALUNO", "INSTRUTOR"])
-    login_response = _login("multirole@example.com")
+def test_multi_role_profile_updates_keep_other_profile_intact(client: TestClient) -> None:
+    _register_user(client, "multirole@example.com", ["ALUNO", "INSTRUTOR"])
+    login_response = _login(client, "multirole@example.com")
     headers = {"Authorization": f"Bearer {login_response.json()['data']['access_token']}"}
 
     first_patch = client.patch(
@@ -64,14 +61,15 @@ def test_multi_role_profile_updates_keep_other_profile_intact() -> None:
     assert data["instructor_profile"]["bio"] == "Especialista em direção defensiva"
 
 
-def test_non_approved_instructor_hidden_from_public_list_until_admin_approval() -> None:
-
-    instructor = _register_user("hidden-instructor@example.com", ["INSTRUTOR"])
-    get_identity_store().create_user(
+def test_non_approved_instructor_hidden_from_public_list_until_admin_approval(
+    client: TestClient, db_session: Session
+) -> None:
+    instructor = _register_user(client, "hidden-instructor@example.com", ["INSTRUTOR"])
+    IdentityRepository(db_session).create_user(
         email="admin@example.com", password_hash=hash_password("strong-password"), roles=["ADMIN"]
     )
 
-    admin_login = _login("admin@example.com")
+    admin_login = _login(client, "admin@example.com")
     admin_headers = {"Authorization": f"Bearer {admin_login.json()['data']['access_token']}"}
 
     pending_list = client.get("/api/v1/admin/instructors?status=PENDENTE", headers=admin_headers)

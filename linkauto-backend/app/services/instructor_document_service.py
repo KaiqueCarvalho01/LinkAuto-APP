@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from fastapi import UploadFile
 
     from app.core import Settings
-    from app.services.us1_store import IdentityStore
+    from app.services.identity_repository import IdentityRepository
 
 ALLOWED_MIME_TYPES = {"application/pdf", "image/jpeg", "image/png"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
@@ -43,10 +43,10 @@ class UploadedInstructorDocuments:
 class InstructorDocumentService:
     """Validate instructor credential uploads and record them for admin review."""
 
-    def __init__(self, *, settings: Settings, store: IdentityStore) -> None:
-        """Store the settings (for the S3 bucket name) and the identity store."""
+    def __init__(self, *, settings: Settings, repository: IdentityRepository) -> None:
+        """Store the settings (for the S3 bucket name) and the identity repository."""
         self._settings = settings
-        self._store = store
+        self._repository = repository
 
     @staticmethod
     async def _read_and_validate(upload: UploadFile) -> bytes:
@@ -93,19 +93,15 @@ class InstructorDocumentService:
         await self._read_and_validate(detran_credential)
         await self._read_and_validate(criminal_record)
 
-        record = self._store.add_instructor_document(
-            instructor_id,
-            detran_credential_url=self._build_object_url(
-                instructor_id, detran_credential.filename or "detran"
-            ),
-            criminal_record_url=self._build_object_url(
-                instructor_id, criminal_record.filename or "criminal"
-            ),
+        detran_url = self._build_object_url(instructor_id, detran_credential.filename or "detran")
+        criminal_url = self._build_object_url(instructor_id, criminal_record.filename or "criminal")
+        record = self._repository.add_instructor_document(
+            instructor_id, detran_credential_url=detran_url, criminal_record_url=criminal_url
         )
 
         return UploadedInstructorDocuments(
             instructor_id=instructor_id,
             document_id=record.id,
-            detran_credential_url=record.detran_credential_url,
-            criminal_record_url=record.criminal_record_url,
+            detran_credential_url=detran_url,
+            criminal_record_url=criminal_url,
         )

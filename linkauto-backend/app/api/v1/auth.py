@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Annotated
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
-from app.api.deps.types import AppSettings
+from app.api.deps.types import AppSettings, DbSession
 from app.core.rate_limit import limiter
 from app.core.security_logger import log_auth_failure, log_auth_success
 from app.schemas.common import success_response
@@ -63,6 +63,7 @@ def register(
     payload: RegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
+    db: DbSession,
 ) -> Response:
     """Register a new user account and return its profile.
 
@@ -78,7 +79,9 @@ def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "VALIDATION_ERROR", "message": str(exc)},
         ) from exc
-    return success_response(profile_service.get_me(user.id), status_code=status.HTTP_201_CREATED)
+    profile = profile_service.get_me(user.id)
+    db.commit()
+    return success_response(profile, status_code=status.HTTP_201_CREATED)
 
 
 @router.post("/login")

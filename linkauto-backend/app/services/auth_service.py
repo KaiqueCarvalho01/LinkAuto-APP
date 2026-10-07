@@ -21,7 +21,8 @@ from app.services.notification_service import (
 
 if TYPE_CHECKING:
     from app.core import Settings
-    from app.services.us1_store import IdentityStore, UserRecord
+    from app.models import User
+    from app.services.identity_repository import IdentityRepository
 
 
 @dataclass
@@ -40,24 +41,24 @@ class AuthService:
         self,
         *,
         settings: Settings,
-        store: IdentityStore,
+        repository: IdentityRepository,
         notification_service: NotificationService | None = None,
     ) -> None:
-        """Store the settings, identity store and optional notification service."""
+        """Store the settings, identity repository and optional notification service."""
         self._settings = settings
-        self._store = store
+        self._repository = repository
         self._notification_service = notification_service
 
-    def register(self, *, email: str, password: str, roles: list[str]) -> UserRecord:
+    def register(self, *, email: str, password: str, roles: list[str]) -> User:
         """Register a user with a hashed password.
 
         Registering an instructor sends a "waiting for validation" notification. Raises
-        ``ValueError`` if the ADMIN role is requested or the store rejects the user.
+        ``ValueError`` if the ADMIN role is requested or the repository rejects the user.
         """
         if "ADMIN" in [role.upper() for role in roles]:
             msg = "FORBIDDEN_ROLE: Public registration with ADMIN role is not allowed."
             raise ValueError(msg)
-        user = self._store.create_user(
+        user = self._repository.create_user(
             email=email, password_hash=hash_password(password), roles=roles
         )
 
@@ -76,7 +77,7 @@ class AuthService:
 
     def login(self, *, email: str, password: str) -> AuthTokens:
         """Return new tokens for valid credentials, raising ``ValueError`` otherwise."""
-        user = self._store.get_user_by_email(email)
+        user = self._repository.get_user_by_email(email)
         if user is None or not verify_password(password, user.password_hash):
             msg = "Invalid credentials."
             raise ValueError(msg)
@@ -91,7 +92,7 @@ class AuthService:
         Raises ``ValueError`` if the token's subject does not match a known user.
         """
         payload = decode_token(refresh_token, self._settings, expected_type="refresh")
-        user = self._store.get_user(payload.sub)
+        user = self._repository.get_user(payload.sub)
         if user is None:
             msg = "Invalid refresh token subject."
             raise ValueError(msg)
@@ -101,7 +102,7 @@ class AuthService:
 
     def trigger_password_reset(self, *, email: str) -> None:
         """Start a password reset for the email; currently a no-op placeholder."""
-        user = self._store.get_user_by_email(email)
+        user = self._repository.get_user_by_email(email)
         if user is None:
             return
         return

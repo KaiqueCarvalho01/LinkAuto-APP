@@ -1,13 +1,14 @@
-from fastapi.testclient import TestClient
+from typing import TYPE_CHECKING
 
 from app.core.security import hash_password
-from app.main import create_app
-from app.services.us1_store import get_identity_store
+from app.services.identity_repository import IdentityRepository
 
-client = TestClient(create_app())
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlmodel import Session
 
 
-def test_register_with_admin_role_is_blocked() -> None:
+def test_register_with_admin_role_is_blocked(client: TestClient) -> None:
     """D01 - P0: Bloquear ADMIN no registro público.
 
     Tenta registrar uma conta enviando a role 'ADMIN'. Deve retornar 400 Bad Request.
@@ -27,17 +28,13 @@ def test_register_with_admin_role_is_blocked() -> None:
     assert "FORBIDDEN_ROLE" in payload["error"]["message"]
 
 
-def _register_and_login_user(email: str, roles: list[str]) -> tuple[str, str]:
-
-    try:
-        user = get_identity_store().create_user(
-            email=email, password_hash=hash_password("strong-password"), roles=roles
-        )
-        user_id = user.id
-    except ValueError:
-        existing = get_identity_store().get_user_by_email(email)
-        assert existing is not None
-        user_id = existing.id
+def _register_and_login_user(
+    client: TestClient, db_session: Session, email: str, roles: list[str]
+) -> tuple[str, str]:
+    user = IdentityRepository(db_session).create_user(
+        email=email, password_hash=hash_password("strong-password"), roles=roles
+    )
+    user_id = user.id
 
     login_resp = client.post(
         "/api/v1/auth/login", json={"email": email, "password": "strong-password"}
@@ -45,13 +42,17 @@ def _register_and_login_user(email: str, roles: list[str]) -> tuple[str, str]:
     return login_resp.json()["data"]["access_token"], user_id
 
 
-def test_patch_profile_rejects_extra_and_system_fields() -> None:
+def test_patch_profile_rejects_extra_and_system_fields(
+    client: TestClient, db_session: Session
+) -> None:
     """D03 - P1: Fechar schema de profile update (mass assignment).
 
     Tentativas de atualizar campos restritos como detran_status, rating_avg, rating_count,
     ou campos não declarados (is_admin) devem retornar erro de validação.
     """
-    token, _ = _register_and_login_user("test-instructor-abuse@example.com", ["ALUNO", "INSTRUTOR"])
+    token, _ = _register_and_login_user(
+        client, db_session, "test-instructor-abuse@example.com", ["ALUNO", "INSTRUTOR"]
+    )
     headers = {"Authorization": f"Bearer {token}"}
 
     # 1. Tenta alterar detran_status
@@ -74,7 +75,7 @@ def test_patch_profile_rejects_extra_and_system_fields() -> None:
     assert response.status_code in (400, 422)
 
 
-def test_security_headers_are_present() -> None:
+def test_security_headers_are_present(client: TestClient) -> None:
     """D04 - P1: Security headers middleware.
 
     Verifica se os cabeçalhos de segurança essenciais estão presentes nas respostas HTTP.
@@ -90,13 +91,15 @@ def test_security_headers_are_present() -> None:
     assert "no-store" in headers.get("Cache-Control", "")
 
 
-def test_upload_with_fake_mime_is_rejected() -> None:
+def test_upload_with_fake_mime_is_rejected(client: TestClient, db_session: Session) -> None:
     """D06 - P1: Elevar validação de upload (magic bytes).
 
     Tenta realizar upload de um arquivo com MIME 'application/pdf' contendo dados
     comuns que não começam com a assinatura PDF (%PDF). Deve retornar 400 Bad Request.
     """
-    token, user_id = _register_and_login_user("test-uploader@example.com", ["INSTRUTOR"])
+    token, user_id = _register_and_login_user(
+        client, db_session, "test-uploader@example.com", ["INSTRUTOR"]
+    )
     headers = {"Authorization": f"Bearer {token}"}
 
     # Detran credential com MIME correto mas magic bytes falsos (texto comum)
@@ -116,7 +119,7 @@ def test_upload_with_fake_mime_is_rejected() -> None:
     assert "INVALID_FILE_CONTENT" in payload["error"]["message"]
 
 
-def test_rate_limit_on_login() -> None:
+def test_rate_limit_on_login(client: TestClient) -> None:
     """D09 - P2: Rate limiting com slowapi.
 
     Simula uma rajada de requisições no endpoint de login.

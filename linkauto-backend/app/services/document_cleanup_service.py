@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.services.us1_store import IdentityStore
+    from app.services.identity_repository import IdentityRepository
 
 
 @dataclass
@@ -21,13 +21,13 @@ class DocumentCleanupResult:
 class DocumentCleanupService:
     """Purge stored instructor documents after the DETRAN validation decision."""
 
-    def __init__(self, store: IdentityStore) -> None:
-        """Store the identity store that holds the instructor documents."""
-        self._store = store
+    def __init__(self, repository: IdentityRepository) -> None:
+        """Store the identity repository that holds the instructor documents."""
+        self._repository = repository
 
     def purge_after_validation(self, instructor_id: str) -> DocumentCleanupResult:
         """Delete all document records of the instructor and return the purged object keys."""
-        purged_keys = self._store.purge_instructor_documents(instructor_id)
+        purged_keys = self._repository.purge_instructor_documents(instructor_id)
         return DocumentCleanupResult(
             instructor_id=instructor_id,
             purged_keys=purged_keys,

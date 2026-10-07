@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
 
-from app.api.deps.types import CurrentAdmin
+from app.api.deps.types import CurrentAdmin, DbSession
 from app.core.security_logger import log_admin_action
 from app.schemas.common import success_response
 from app.services.admin_validation_service import AdminValidationService
@@ -52,6 +52,7 @@ def approve_instructor(
     instructor_id: str,
     admin_user: CurrentAdmin,
     service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
+    db: DbSession,
 ) -> Response:
     """Approve an instructor's credentials.
 
@@ -69,6 +70,7 @@ def approve_instructor(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "NOT_FOUND", "message": str(exc)},
         ) from exc
+    db.commit()
     return success_response(result.instructor)
 
 
@@ -78,6 +80,7 @@ def reject_instructor(
     payload: RejectInstructorRequest,
     admin_user: CurrentAdmin,
     service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
+    db: DbSession,
 ) -> Response:
     """Reject an instructor's credentials.
 
@@ -99,4 +102,5 @@ def reject_instructor(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "NOT_FOUND", "message": str(exc)},
         ) from exc
+    db.commit()
     return success_response(result.instructor)

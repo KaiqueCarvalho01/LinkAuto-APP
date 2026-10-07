@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 
-from app.api.deps.types import CurrentUser
+from app.api.deps.types import CurrentUser, DbSession
 from app.schemas.common import success_response
 from app.services.dependencies import get_instructor_document_service
 from app.services.instructor_document_service import (
@@ -19,12 +19,13 @@ router = APIRouter(prefix="/instructors", tags=["instructor-documents"])
 
 
 @router.post("/{instructor_id}/documents")
-async def upload_documents(
+async def upload_documents(  # noqa: PLR0913, PLR0917 - FastAPI injects each dependency
     instructor_id: str,
     detran_credential: Annotated[UploadFile, File()],
     criminal_record: Annotated[UploadFile, File()],
     current_user: CurrentUser,
     service: Annotated[InstructorDocumentService, Depends(get_instructor_document_service)],
+    db: DbSession,
 ) -> Response:
     """Upload an instructor's DETRAN credential and criminal record documents.
 
@@ -62,6 +63,7 @@ async def upload_documents(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "NOT_FOUND", "message": str(exc)},
         ) from exc
+    db.commit()
     return success_response(
         {
             "instructor_id": result.instructor_id,

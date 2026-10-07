@@ -17,6 +17,11 @@ from app.services.booking_service import (
     SlotValidationError,
 )
 from app.services.document_cleanup_service import DocumentCleanupService
+from app.services.identity_repository import (
+    DuplicateEmailError,
+    IdentityRepository,
+    UserNotFoundError,
+)
 from app.services.instructor_document_service import (
     DocumentTooLargeError,
     DocumentValidationError,
@@ -39,7 +44,6 @@ from app.services.review_service import (
     ReviewStateError,
 )
 from app.services.slot_service import SlotOverlapError, SlotService
-from app.services.us1_store import IdentityStore, get_identity_store
 
 __all__ = [
     "AdminValidationService",
@@ -53,7 +57,8 @@ __all__ = [
     "DocumentCleanupService",
     "DocumentTooLargeError",
     "DocumentValidationError",
-    "IdentityStore",
+    "DuplicateEmailError",
+    "IdentityRepository",
     "InMemoryEmailGateway",
     "InMemorySlotReservationStore",
     "InstructorDocumentService",
@@ -74,5 +79,5 @@ __all__ = [
     "SlotService",
     "SlotValidationError",
     "SqlAlchemySlotReservationStore",
-    "get_identity_store",
+    "UserNotFoundError",
 ]
