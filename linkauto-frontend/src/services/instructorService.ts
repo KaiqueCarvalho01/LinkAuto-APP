@@ -1,5 +1,9 @@
 import { httpClient } from "./httpClient";
-import type { ApiInstructorSearchResult, ApiReviewResource } from "../types/api.types";
+import type {
+  ApiInstructorSearchResult,
+  ApiPublicInstructor,
+  ApiReviewResource,
+} from "../types/api.types";
 import type { InstructorSummary, InstructorSearchParams } from "../types/instructor";
 import type { BookingReview } from "../types/booking";
 
@@ -114,51 +118,27 @@ export const instructorService = {
   },
 
   getPublicInstructors: async (): Promise<InstructorSummary[]> => {
-    interface ApiPublicInstructorWrapper {
-      id: string;
-      email: string;
-      instructor_profile: {
-        full_name: string;
-        city: string;
-        state: string;
-        specialties: string[];
-        price_per_hour: number | string | null;
-        rating_avg: number;
-        rating_count: number;
-        latitude: number | null;
-        longitude: number | null;
-        action_radius_km: number;
-      };
-    }
-
-    const response = await httpClient.get<ApiPublicInstructorWrapper[]>("/users/public-instructors");
+    const response = await httpClient.get<ApiPublicInstructor[]>("/users/public-instructors");
     const list = response.data || [];
 
-    return list.map((item) => {
-      const profile = item.instructor_profile;
-      const hourlyRate =
-        typeof profile.price_per_hour === "string"
-          ? parseFloat(profile.price_per_hour)
-          : profile.price_per_hour ?? 0.0;
-
-      return {
-        id: item.id,
-        fullName: profile.full_name || "Instrutor",
-        city: profile.city || "",
-        neighborhood: profile.state || "SP",
-        rating: profile.rating_avg || 0.0,
-        reviewsCount: profile.rating_count || 0,
-        distanceKm: 0.0,
-        hourlyRate,
-        detranApproved: true,
-        specialties: profile.specialties || [],
-        radiusKm: profile.action_radius_km || 10,
-        coordinates: {
-          lat: profile.latitude ?? 0.0,
-          lng: profile.longitude ?? 0.0,
-        },
-      };
-    });
+    return list.map((item) => ({
+      id: item.slug,
+      slug: item.slug,
+      fullName: item.full_name || "Instrutor",
+      city: item.city || "",
+      neighborhood: item.state || "SP",
+      rating: item.rating_avg || 0.0,
+      reviewsCount: item.rating_count || 0,
+      distanceKm: 0.0,
+      hourlyRate: item.price_per_hour ?? 0.0,
+      detranApproved: true,
+      specialties: item.specialties || [],
+      radiusKm: item.action_radius_km || 10,
+      coordinates: {
+        lat: item.latitude ?? 0.0,
+        lng: item.longitude ?? 0.0,
+      },
+    }));
   },
 
   getInstructorReviews: async (

@@ -67,6 +67,32 @@ export interface ApiBookingSlotResource {
   slot: ApiSlotResource;
 }
 
+export interface ApiBookingInstructorSummary {
+  slug: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  state: string | null;
+}
+
+/** Public card returned by GET /users/public-instructors (`id` is the slug). */
+export interface ApiPublicInstructor {
+  id: string;
+  slug: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  state: string | null;
+  bio: string | null;
+  specialties: string[];
+  price_per_hour: number | null;
+  rating_avg: number;
+  rating_count: number;
+  latitude: number | null;
+  longitude: number | null;
+  action_radius_km: number;
+}
+
 export interface ApiBookingResource {
   id: string;
   student_id: string;
@@ -81,6 +107,7 @@ export interface ApiBookingResource {
   cancelled_by: string | null;
   cancellation_reason: string | null;
   slots: ApiBookingSlotResource[];
+  instructor?: ApiBookingInstructorSummary | null | undefined;
 }
 
 export interface ApiMessageResource {

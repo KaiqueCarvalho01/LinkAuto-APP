@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
 from app.core.security import hash_password
+from app.models import InstructorProfile
 from app.services.identity_repository import IdentityRepository
 
 if TYPE_CHECKING:
@@ -79,8 +80,7 @@ def test_non_approved_instructor_hidden_from_public_list_until_admin_approval(
 
     public_before = client.get("/api/v1/users/public-instructors")
     assert public_before.status_code == 200
-    public_before_ids = [item["id"] for item in public_before.json()["data"]]
-    assert instructor["id"] not in public_before_ids
+    assert public_before.json()["data"] == []
 
     approve = client.patch(
         f"/api/v1/admin/instructors/{instructor['id']}/approve",
@@ -90,5 +90,10 @@ def test_non_approved_instructor_hidden_from_public_list_until_admin_approval(
 
     public_after = client.get("/api/v1/users/public-instructors")
     assert public_after.status_code == 200
-    public_after_ids = [item["id"] for item in public_after.json()["data"]]
-    assert instructor["id"] in public_after_ids
+    profile = db_session.get(InstructorProfile, instructor["id"])
+    assert profile is not None
+    assert profile.slug
+    public_after_slugs = [item["slug"] for item in public_after.json()["data"]]
+    assert public_after_slugs == [profile.slug]
+    # The internal user ID is never exposed
+    assert instructor["id"] not in public_after.text

@@ -5,7 +5,7 @@ from sqlmodel import col, update
 
 from app.domain.booking import BookingStatus
 from app.models.slot import Slot
-from app.models.user import UserRole
+from app.models.user import InstructorProfile, UserRole
 from tests.factories import admin_headers
 
 if TYPE_CHECKING:
@@ -110,7 +110,10 @@ def test_happy_path_e2e_journey(client: TestClient, db_session: Session) -> None
         "/api/v1/users/public-instructors?city=S%C3%A3o%20Paulo", headers=headers_student
     )
     assert resp.status_code == 200
-    assert any(inst["id"] == instructor_id for inst in resp.json()["data"])
+    profile = db_session.get(InstructorProfile, instructor_id)
+    assert profile is not None
+    assert [inst["slug"] for inst in resp.json()["data"]] == [profile.slug]
+    assert instructor_id not in resp.text
 
     # 5. Student books both slots; instructor confirms
     resp = _post(

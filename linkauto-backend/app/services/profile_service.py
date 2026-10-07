@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from app.schemas.public_profile import PublicInstructorSummary
 from app.services.identity_repository import (
     UserNotFoundError,
     serialize_instructor_profile,
@@ -56,12 +57,29 @@ class ProfileService:
         return serialize_user(self._repository.update_profile(user_id, payload))
 
     def list_public_instructors(self) -> list[dict[str, Any]]:
-        """Return active instructors whose DETRAN status is APROVADO (approved by an admin)."""
+        """Return the public cards of active, DETRAN-approved instructors, keyed by slug.
+
+        Only public-safe fields: no user ID, email, phone or internal status.
+        """
         return [
-            {
-                "id": profile.user_id,
-                "email": profile.user.email,
-                "instructor_profile": serialize_instructor_profile(profile),
-            }
+            PublicInstructorSummary(
+                id=slug,
+                slug=slug,
+                full_name=profile.full_name,
+                avatar_url=profile.avatar_url,
+                city=profile.city,
+                state=profile.state,
+                bio=profile.bio,
+                specialties=list(profile.specialties or []),
+                price_per_hour=float(profile.price_per_hour)
+                if profile.price_per_hour is not None
+                else None,
+                rating_avg=profile.rating_avg,
+                rating_count=profile.rating_count,
+                latitude=profile.latitude,
+                longitude=profile.longitude,
+                action_radius_km=profile.action_radius_km,
+            ).model_dump()
             for profile in self._repository.list_public_instructors()
+            for slug in [self._repository.ensure_instructor_slug(profile)]
         ]

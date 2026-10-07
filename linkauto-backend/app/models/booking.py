@@ -9,6 +9,7 @@ from sqlmodel import Field, Relationship
 
 from app.models.base import AuditUUIDBase
 from app.models.slot import Slot
+from app.models.user import InstructorProfile
 
 
 class CancelledBy(StrEnum):
@@ -49,6 +50,10 @@ class Booking(AuditUUIDBase, table=True):
 
     slots: list["BookingSlot"] = Relationship(
         back_populates="booking", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    # Read-only: used to show the instructor's public identity alongside the booking
+    instructor_profile: InstructorProfile = Relationship(
+        sa_relationship_kwargs={"viewonly": True, "lazy": "joined"}
     )
 
 

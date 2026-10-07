@@ -100,9 +100,13 @@ def patch_me(
 @router.get("/public-instructors")
 def list_public_instructors(
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
+    db: DbSession,
 ) -> Response:
-    """List instructors whose credentials have been approved.
+    """List active instructors whose credentials have been approved.
 
-    Public.
+    Public. Instructors are identified by their public slug (`id` == `slug`); only
+    public-safe fields are returned (no user ID, e-mail, phone or internal status).
     """
-    return success_response(profile_service.list_public_instructors())
+    items = profile_service.list_public_instructors()
+    db.commit()  # persist slugs generated for profiles that had none
+    return success_response(items, meta={"total": len(items)})
