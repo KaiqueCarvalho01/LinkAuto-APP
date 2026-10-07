@@ -102,6 +102,34 @@ class TestBookingContract:
         resp = client.post("/api/v1/bookings", json={"instructor_id": "x", "slot_ids": ["a", "b"]})
         assert resp.status_code == 401
 
+    def test_confirm_missing_booking_returns_404(self, client: TestClient) -> None:
+        _, inst_token = _register_login("INSTRUTOR", "confirm404@test.com", client)
+
+        resp = client.patch(
+            "/api/v1/bookings/does-not-exist/confirm",
+            headers={"Authorization": f"Bearer {inst_token}"},
+        )
+        assert resp.status_code == 404
+        assert resp.json()["error"]["code"] == "NOT_FOUND"
+
+    def test_confirm_booking_by_other_instructor_returns_403(self, client: TestClient) -> None:
+        inst_id, inst_token = _register_login("INSTRUTOR", "confirmowner@test.com", client)
+        _, other_token = _register_login("INSTRUTOR", "confirmother@test.com", client)
+        _, stu_token = _register_login("ALUNO", "confirmstu@test.com", client)
+        slot_ids = _setup_instructor_with_slots(inst_token, client)
+        booking_id = client.post(
+            "/api/v1/bookings",
+            json={"instructor_id": inst_id, "slot_ids": slot_ids[:2]},
+            headers={"Authorization": f"Bearer {stu_token}"},
+        ).json()["data"]["id"]
+
+        resp = client.patch(
+            f"/api/v1/bookings/{booking_id}/confirm",
+            headers={"Authorization": f"Bearer {other_token}"},
+        )
+        assert resp.status_code == 403
+        assert resp.json()["error"]["code"] == "FORBIDDEN"
+
     def test_cancel_booking_by_non_participant_returns_403(self, client: TestClient) -> None:
         get_identity_store().reset()
         inst_id, inst_token = _register_login("INSTRUTOR", "cancelinst@test.com", client)

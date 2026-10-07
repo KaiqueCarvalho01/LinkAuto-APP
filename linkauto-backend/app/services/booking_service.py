@@ -39,6 +39,10 @@ class SlotValidationError(ValueError):
     """Raised when requested slots cannot be booked (RN02 or availability rules)."""
 
 
+class BookingNotFoundError(LookupError):
+    """Raised when the requested booking does not exist."""
+
+
 class BookingAccessError(PermissionError):
     """Raised when a user attempts to operate on a booking they do not participate in."""
 
@@ -167,13 +171,16 @@ class BookingService:
     def confirm_booking(self, booking_id: str, instructor_id: str) -> Booking:
         """Move a PENDENTE booking to CONFIRMADA and notify the student by email.
 
-        Raises ``ValueError`` if the booking does not exist, belongs to another instructor or
-        cannot transition to CONFIRMADA.
+        Raises:
+            BookingNotFoundError: If the booking does not exist.
+            BookingAccessError: If the booking belongs to another instructor.
+            BookingTransitionError: If the booking cannot transition to CONFIRMADA.
+
         """
         booking = self._get_booking_or_raise(booking_id)
         if booking.instructor_id != instructor_id:
             msg = "Only the instructor can confirm this booking"
-            raise ValueError(msg)
+            raise BookingAccessError(msg)
 
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CONFIRMADA)
         booking.status = new_status.value
@@ -207,7 +214,13 @@ class BookingService:
         """Cancel a booking, release its reserved slots and notify the affected parties.
 
         When the student cancels less than 24 hours before the first slot, a 7-day penalty is
-        applied (RN04). Raises ``ValueError`` if the booking does not exist or cannot be cancelled.
+        applied (RN04).
+
+        Raises:
+            BookingNotFoundError: If the booking does not exist.
+            BookingAccessError: If a student or instructor is not this booking's participant.
+            BookingTransitionError: If the booking is already in a terminal status.
+
         """
         booking = self._get_booking_or_raise(booking_id)
         participant_id = {
@@ -314,5 +327,5 @@ class BookingService:
         booking = self.get_booking(booking_id)
         if not booking:
             msg = f"Booking {booking_id} not found"
-            raise ValueError(msg)
+            raise BookingNotFoundError(msg)
         return booking
