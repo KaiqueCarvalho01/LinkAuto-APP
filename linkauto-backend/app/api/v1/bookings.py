@@ -12,6 +12,7 @@ from app.schemas.booking import (
 )
 from app.schemas.common import success_response
 from app.services.booking_service import (
+    BookingAccessError,
     BookingService,
     PenalizedStudentError,
     SlotValidationError,
@@ -120,6 +121,8 @@ def cancel_booking(
             BookingResource.model_validate(booking).model_dump(mode="json"),
             meta={},
         )
+    except BookingAccessError as e:
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": str(e)})
     except BookingTransitionError as e:
         raise HTTPException(status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)})
     except ValueError as e:

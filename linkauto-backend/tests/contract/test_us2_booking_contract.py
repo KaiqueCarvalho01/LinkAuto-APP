@@ -71,3 +71,29 @@ class TestBookingContract:
     def test_create_booking_unauthenticated_returns_401(self, client):
         resp = client.post("/api/v1/bookings", json={"instructor_id": "x", "slot_ids": ["a", "b"]})
         assert resp.status_code == 401
+
+    def test_cancel_booking_by_non_participant_returns_403(self, client):
+        get_identity_store().reset()
+        inst_id, inst_token = _register_login("INSTRUTOR", "cancelinst@test.com", client)
+        _, stu_token = _register_login("ALUNO", "cancelstu@test.com", client)
+        _, intruder_token = _register_login("ALUNO", "cancelintruder@test.com", client)
+        slot_ids = _setup_instructor_with_slots(inst_token, client)
+        booking_id = client.post(
+            "/api/v1/bookings",
+            json={"instructor_id": inst_id, "slot_ids": slot_ids[:2]},
+            headers={"Authorization": f"Bearer {stu_token}"},
+        ).json()["data"]["id"]
+
+        resp = client.patch(
+            f"/api/v1/bookings/{booking_id}/cancel",
+            json={"reason": "not mine"},
+            headers={"Authorization": f"Bearer {intruder_token}"},
+        )
+        assert resp.status_code == 403
+        assert resp.json()["error"]["code"] == "FORBIDDEN"
+
+        resp = client.get(
+            f"/api/v1/bookings/{booking_id}",
+            headers={"Authorization": f"Bearer {stu_token}"},
+        )
+        assert resp.json()["data"]["status"] == "PENDENTE"

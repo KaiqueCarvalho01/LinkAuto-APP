@@ -8,7 +8,7 @@ from app.models.user import (
     DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
 )
 from app.services.booking_service import (
-    BookingService, PenalizedStudentError, SlotValidationError,
+    BookingAccessError, BookingService, PenalizedStudentError, SlotValidationError,
 )
 
 
@@ -187,3 +187,37 @@ class TestBookingServiceNotifications:
         assert email["recipients"] == ["inst@test.com"]
         assert "cancelado" in email["body"]
         assert "Preciso cancelar" in email["body"]
+
+
+class TestBookingServiceCancelAuthorization:
+    def test_rejects_student_who_is_not_the_booking_student(self, db_session):
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001", base_offset_hours=48)
+        service = BookingService(db_session)
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+
+        with pytest.raises(BookingAccessError):
+            service.cancel_booking(booking.id, "intruder", "ALUNO")
+
+        assert booking.status == BookingStatus.PENDENTE.value
+
+    def test_rejects_instructor_who_is_not_the_booking_instructor(self, db_session):
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001", base_offset_hours=48)
+        service = BookingService(db_session)
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+
+        with pytest.raises(BookingAccessError):
+            service.cancel_booking(booking.id, "other-inst", "INSTRUTOR")
+
+        assert booking.status == BookingStatus.PENDENTE.value
+
+    def test_booking_instructor_can_cancel(self, db_session):
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001", base_offset_hours=48)
+        service = BookingService(db_session)
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+
+        cancelled = service.cancel_booking(booking.id, "inst-001", "INSTRUTOR")
+
+        assert cancelled.status == BookingStatus.CANCELADA.value
