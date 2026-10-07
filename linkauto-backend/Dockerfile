@@ -52,8 +52,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY alembic ./alembic
 COPY alembic.ini ./alembic.ini
+COPY scripts ./scripts
 
-RUN chown -R appuser:appuser /app
+# Instructor documents when no S3 bucket is configured (DOCUMENT_STORAGE_PATH=./storage).
+# Mount a persistent volume here, or the files are lost when the container is replaced.
+RUN mkdir -p /app/storage && chown -R appuser:appuser /app
+VOLUME ["/app/storage"]
 
 ENV PATH="/app/.venv/bin:$PATH"
 
@@ -64,4 +68,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
+# The server never migrates the schema. Run the release step once per deploy, before the new
+# version takes traffic: `docker run --rm --env-file prod.env <image> scripts/migrate.sh`
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

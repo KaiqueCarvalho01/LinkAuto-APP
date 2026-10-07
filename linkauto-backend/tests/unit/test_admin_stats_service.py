@@ -31,7 +31,9 @@ def _seed_stats_data(db_session: Session) -> None:
             detran_status=status.value,
             is_active=True,
         )
-        db_session.add_all([u, p])
+        db_session.add(u)
+        db_session.flush()
+        db_session.add(p)
 
     # 3 Students
     for i in range(3):
@@ -40,7 +42,11 @@ def _seed_stats_data(db_session: Session) -> None:
         sp = StudentProfile(
             user_id=uid, full_name=f"Student {i}", phone="1", city="Mogi Mirim", state="SP"
         )
-        db_session.add_all([u, sp])
+        db_session.add(u)
+        db_session.flush()
+        db_session.add(sp)
+
+    db_session.flush()
 
     # 2 Bookings
     b1 = Booking(

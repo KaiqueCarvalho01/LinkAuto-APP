@@ -42,7 +42,7 @@ export function ProfileSidebar({ open, onOpenChange }: ProfileSidebarProps) {
 		"Usuário";
 
 	const handleLogout = () => {
-		signOut();
+		void signOut();
 		onOpenChange(false);
 		navigate("/login");
 	};

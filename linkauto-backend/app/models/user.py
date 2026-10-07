@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 from enum import StrEnum
+from typing import Optional
 
 from sqlalchemy import JSON, Double, String
 from sqlalchemy import Enum as SqlEnum
@@ -52,11 +53,11 @@ class User(AuditUUIDBase, table=True):
     roles: list[str] = Field(default_factory=list, sa_type=JSON)
     is_active: bool = True
 
-    student_profile: "StudentProfile" = Relationship(
+    student_profile: Optional["StudentProfile"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"uselist": False, "cascade": "all, delete-orphan"},
     )
-    instructor_profile: "InstructorProfile" = Relationship(
+    instructor_profile: Optional["InstructorProfile"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"uselist": False, "cascade": "all, delete-orphan"},
     )

@@ -61,7 +61,11 @@ def _seed_full_booking(
         status=status,
         created_at=now - timedelta(hours=48),
     )
-    db_session.add_all([inst, inst_p, stu, stu_p, slot1, slot2, booking])
+    db_session.add_all([inst, stu])
+    db_session.flush()
+    db_session.add_all([inst_p, stu_p])
+    db_session.flush()
+    db_session.add_all([slot1, slot2, booking])
     db_session.flush()
 
     db_session.add_all(

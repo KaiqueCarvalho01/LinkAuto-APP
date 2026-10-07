@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict
 
-from app.api.deps.types import CurrentUser
+from app.api.deps.types import CurrentUser, DbSession
 from app.schemas.common import success_response
 from app.services.dependencies import get_profile_service
 from app.services.profile_service import ProfileService
@@ -77,6 +77,7 @@ def patch_me(
     payload: UserMePatchRequest,
     current_user: CurrentUser,
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
+    db: DbSession,
 ) -> Response:
     """Update the current user's student and/or instructor profile.
 
@@ -92,15 +93,20 @@ def patch_me(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "VALIDATION_ERROR", "message": str(exc)},
         ) from exc
+    db.commit()
     return success_response(user_payload)
 
 
 @router.get("/public-instructors")
 def list_public_instructors(
     profile_service: Annotated[ProfileService, Depends(get_profile_service)],
+    db: DbSession,
 ) -> Response:
-    """List instructors whose credentials have been approved.
+    """List active instructors whose credentials have been approved.
 
-    Public.
+    Public. Instructors are identified by their public slug (`id` == `slug`); only
+    public-safe fields are returned (no user ID, e-mail, phone or internal status).
     """
-    return success_response(profile_service.list_public_instructors())
+    items = profile_service.list_public_instructors()
+    db.commit()  # persist slugs generated for profiles that had none
+    return success_response(items, meta={"total": len(items)})

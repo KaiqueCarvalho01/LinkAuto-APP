@@ -9,6 +9,8 @@ dependencies = [
     "bcrypt>=5.0.0",
     "boto3>=1.43.108",
     "fastapi>=0.142.2",
+    "limits[redis]>=5.8",
+    "psycopg[binary]>=3.2",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
     "python-jose[cryptography]>=3.5.0",
@@ -57,6 +59,14 @@ dynamic-function-decorator-return = "ignore"
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+filterwarnings = [
+    # Fail on warnings raised by our own code, so new deprecations are fixed early
+    "error::DeprecationWarning:app\\..*",
+    # slowapi 0.1.10 calls asyncio.iscoroutinefunction, removed in Python 3.16. Upstream:
+    # https://github.com/laurentS/slowapi/issues/263 (fix PRs #246/#264/#291 still open).
+    # Must be fixed (upgrade, patch or replace slowapi) before moving to Python 3.16.
+    "ignore:'asyncio.iscoroutinefunction' is deprecated:DeprecationWarning:slowapi\\..*",
+]
 
 [tool.ruff]
 line-length = 100

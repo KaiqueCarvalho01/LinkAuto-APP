@@ -6,6 +6,7 @@ from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
 from app.services.booking_message_service import BookingMessageAccessError, BookingMessageService
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
+from tests.factories import seed_participants
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -25,6 +26,7 @@ def test_send_message_creates_record_and_dispatches_email(
     notification_svc, gateway = mock_notification_service
 
     # Setup booking
+    seed_participants(db_session, "student-456", "instructor-789")
     booking = Booking(
         id="booking-123",
         student_id="student-456",
@@ -59,6 +61,7 @@ def test_send_message_creates_record_and_dispatches_email(
 
 def test_send_message_rejects_unauthorized_sender(db_session: Session) -> None:
     """send_message raises access error if sender is not part of the booking."""
+    seed_participants(db_session, "student-456", "instructor-789")
     booking = Booking(
         id="booking-123",
         student_id="student-456",
@@ -81,6 +84,7 @@ def test_send_message_rejects_unauthorized_sender(db_session: Session) -> None:
 
 def test_list_messages_retrieves_chronologically(db_session: Session) -> None:
     """list_messages returns all messages in chronological order and checks authorization."""
+    seed_participants(db_session, "student-456", "instructor-789")
     booking = Booking(
         id="booking-123",
         student_id="student-456",

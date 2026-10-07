@@ -10,27 +10,29 @@ from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy.exc import IntegrityError
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.api import api_router
-from app.core import get_settings
+from app.core import Settings, get_settings
 from app.core.dev_db import initialize_sqlite_dev_database
 from app.core.logging import CorrelationIDMiddleware, setup_logging
 from app.core.middleware import SecurityHeadersMiddleware
-from app.core.rate_limit import limiter
+from app.core.rate_limit import limiter, trusted_proxy_middleware_hosts
 from app.schemas.common import error_response
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
 
-def create_app() -> FastAPI:
+def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the FastAPI app with middleware, API routes, error handlers and a health check.
 
     On startup the lifespan hook initializes the SQLite development database. Errors are
     returned in the standard error envelope (429, HTTP errors, 422 validation, 409 conflict).
+    With ``TRUSTED_PROXIES`` set, ``X-Forwarded-For`` from those proxies sets the client IP.
     """
     setup_logging()
-    settings = get_settings()
+    settings = settings or get_settings()
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -49,6 +51,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    trusted_proxies = trusted_proxy_middleware_hosts(settings)
+    if trusted_proxies:
+        # Added last, so it runs first: every other layer sees the real client IP.
+        # Uvicorn should run without --proxy-headers so only this explicit list is trusted.
+        app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=trusted_proxies)
     app.include_router(api_router, prefix=settings.api_v1_prefix)
 
     @app.exception_handler(RateLimitExceeded)

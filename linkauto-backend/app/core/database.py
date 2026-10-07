@@ -1,8 +1,8 @@
 """Database engine, SQLModel session factory and request-scoped session dependency."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session
 
@@ -12,13 +12,39 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
+def enable_sqlite_foreign_keys(engine: Engine) -> Engine:
+    """Turn on ``PRAGMA foreign_keys`` for every new connection of a SQLite engine.
+
+    SQLite ignores FOREIGN KEY constraints, including ON DELETE CASCADE / SET NULL, unless
+    each connection enables them. No-op for other databases. Returns the engine.
+    """
+    if engine.dialect.name != "sqlite":
+        return engine
+
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragma(dbapi_connection: Any, _record: object) -> None:  # noqa: ANN401
+        # The pragma is a no-op inside a transaction, so set it before any BEGIN
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("PRAGMA foreign_keys=ON")
+        finally:
+            cursor.close()
+
+    return engine
+
+
+def create_db_engine(database_url: str, **kwargs: Any) -> Engine:  # noqa: ANN401
+    """Create an engine for the URL; SQLite gets cross-thread access and foreign keys."""
+    if database_url.startswith("sqlite"):
+        connect_args: dict[str, Any] = {"check_same_thread": False}
+        connect_args.update(kwargs.pop("connect_args", {}))
+        kwargs["connect_args"] = connect_args
+    return enable_sqlite_foreign_keys(create_engine(database_url, **kwargs))
+
+
 def get_engine() -> Engine:
-    """Create an engine for DATABASE_URL, disabling the same-thread check for SQLite."""
-    settings = get_settings()
-    connect_args: dict[str, object] = {}
-    if settings.database_url.startswith("sqlite"):
-        connect_args["check_same_thread"] = False
-    return create_engine(settings.database_url, connect_args=connect_args)
+    """Create an engine for DATABASE_URL."""
+    return create_db_engine(get_settings().database_url)
 
 
 def get_session_factory() -> sessionmaker[Session]:

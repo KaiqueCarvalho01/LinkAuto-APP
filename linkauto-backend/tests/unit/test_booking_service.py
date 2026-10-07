@@ -14,6 +14,7 @@ from app.models.user import (
 )
 from app.services.booking_service import (
     BookingAccessError,
+    BookingNotFoundError,
     BookingService,
     PenalizedStudentError,
     SlotValidationError,
@@ -136,6 +137,23 @@ class TestBookingServiceConfirm:
 
         assert confirmed.status == BookingStatus.CONFIRMADA.value
         assert confirmed.confirmed_at is not None
+
+    def test_confirm_missing_booking_raises_not_found(self, db_session: Session) -> None:
+        service = BookingService(db_session)
+
+        with pytest.raises(BookingNotFoundError):
+            service.confirm_booking("does-not-exist", "inst-001")
+
+    def test_confirm_by_other_instructor_raises_access_error(self, db_session: Session) -> None:
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001")
+        service = BookingService(db_session)
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+
+        with pytest.raises(BookingAccessError):
+            service.confirm_booking(booking.id, "other-inst")
+
+        assert booking.status == BookingStatus.PENDENTE.value
 
 
 class TestBookingServiceCancel:

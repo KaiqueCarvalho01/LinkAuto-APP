@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, field_validator
+from typing import Any
 
+from pydantic import BaseModel, field_validator, model_validator
+
+from app.core.slug import generate_profile_slug
 from app.domain.booking import MIN_SLOTS_PER_BOOKING
 from app.schemas.datetime import UtcDateTime
+from app.schemas.public_profile import BookingInstructorSummary
 from app.schemas.slot import SlotResource
 
 MIN_OVERRIDE_REASON_LENGTH = 3
@@ -95,5 +99,28 @@ class BookingResource(BaseModel):
     cancelled_by: str | None = None
     cancellation_reason: str | None = None
     slots: list[BookingSlotResource] = []
+    instructor: BookingInstructorSummary | None = None
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _instructor_from_profile(cls, data: Any) -> Any:  # noqa: ANN401 - pydantic hook
+        """Fill ``instructor`` from a ``Booking`` ORM object's instructor profile."""
+        profile = getattr(data, "instructor_profile", None)
+        if profile is None or isinstance(data, dict):
+            return data
+        # Profiles created before slugs existed get a display-only slug here; it is
+        # persisted the next time the profile is listed publicly
+        slug = profile.slug or generate_profile_slug(
+            profile.full_name, profile.city, default_prefix="instrutor"
+        )
+        values = {name: getattr(data, name) for name in cls.model_fields if name != "instructor"}
+        values["instructor"] = BookingInstructorSummary(
+            slug=slug,
+            full_name=profile.full_name,
+            avatar_url=profile.avatar_url,
+            city=profile.city,
+            state=profile.state,
+        )
+        return values

@@ -7,58 +7,82 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from app.api.deps.types import DbSession  # noqa: TC001 - FastAPI resolves it at runtime
 from app.core import Settings, get_settings
 from app.services.admin_validation_service import AdminValidationService
 from app.services.auth_service import AuthService
 from app.services.document_cleanup_service import DocumentCleanupService
+from app.services.document_storage import DocumentStorage, build_document_storage
+from app.services.identity_repository import IdentityRepository
 from app.services.instructor_document_service import InstructorDocumentService
-from app.services.notification_service import InMemoryEmailGateway, NotificationService
+from app.services.notification_service import NotificationService, build_email_gateway
 from app.services.profile_service import ProfileService
-from app.services.us1_store import IdentityStore, get_identity_store
+from app.services.refresh_token_repository import RefreshTokenRepository
 
 
 @lru_cache(maxsize=1)
 def get_notification_service() -> NotificationService:
-    """Return the cached notification service, backed by the in-memory email gateway."""
-    return NotificationService(email_gateway=InMemoryEmailGateway())
+    """Return the process-wide notification service, on the gateway chosen by the settings.
+
+    E-mail is optional: SES when ``SES_FROM_EMAIL`` is configured, the in-memory gateway in
+    development/tests, and no e-mail at all otherwise.
+    """
+    return NotificationService(email_gateway=build_email_gateway(get_settings()))
 
 
-def get_store() -> IdentityStore:
-    """Return the shared identity store."""
-    return get_identity_store()
+@lru_cache(maxsize=1)
+def get_document_storage() -> DocumentStorage:
+    """Return the process-wide document storage chosen by the settings (S3 in production)."""
+    return build_document_storage(get_settings())
 
 
-def get_auth_service(settings: Annotated[Settings, Depends(get_settings)]) -> AuthService:
-    """Build an ``AuthService`` wired to the shared store and notification service."""
+Storage = Annotated[DocumentStorage, Depends(get_document_storage)]
+
+
+def get_identity_repository(db: DbSession) -> IdentityRepository:
+    """Return an identity repository bound to the request's database session."""
+    return IdentityRepository(db)
+
+
+Repository = Annotated[IdentityRepository, Depends(get_identity_repository)]
+
+
+def get_auth_service(
+    settings: Annotated[Settings, Depends(get_settings)], repository: Repository, db: DbSession
+) -> AuthService:
+    """Build an ``AuthService`` wired to the request's repositories and notifications."""
     return AuthService(
         settings=settings,
-        store=get_store(),
+        repository=repository,
+        refresh_tokens=RefreshTokenRepository(db),
         notification_service=get_notification_service(),
     )
 
 
-def get_profile_service() -> ProfileService:
-    """Build a ``ProfileService`` on the shared identity store."""
-    return ProfileService(store=get_store())
+def get_profile_service(repository: Repository) -> ProfileService:
+    """Build a ``ProfileService`` on the request's identity repository."""
+    return ProfileService(repository)
 
 
-def get_cleanup_service() -> DocumentCleanupService:
-    """Build a ``DocumentCleanupService`` on the shared identity store."""
-    return DocumentCleanupService(store=get_store())
+def get_cleanup_service(repository: Repository, storage: Storage) -> DocumentCleanupService:
+    """Build a ``DocumentCleanupService`` on the request's repository and the storage."""
+    return DocumentCleanupService(repository, storage)
 
 
-def get_admin_validation_service() -> AdminValidationService:
+def get_admin_validation_service(
+    repository: Repository, storage: Storage
+) -> AdminValidationService:
     """Build an ``AdminValidationService`` with its profile, cleanup and notification services."""
     return AdminValidationService(
-        store=get_store(),
-        profile_service=get_profile_service(),
-        cleanup_service=get_cleanup_service(),
+        repository=repository,
+        profile_service=ProfileService(repository),
+        cleanup_service=DocumentCleanupService(repository, storage),
         notification_service=get_notification_service(),
     )
 
 
 def get_instructor_document_service(
-    settings: Annotated[Settings, Depends(get_settings)],
+    repository: Repository, storage: Storage
 ) -> InstructorDocumentService:
-    """Build an ``InstructorDocumentService`` on the shared identity store."""
-    return InstructorDocumentService(settings=settings, store=get_store())
+    """Build an ``InstructorDocumentService`` on the request's repository and the storage."""
+    return InstructorDocumentService(repository=repository, storage=storage)

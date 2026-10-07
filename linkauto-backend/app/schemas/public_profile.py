@@ -71,3 +71,39 @@ class PublicStudentProfileResponse(BaseModel):
     rating_count: int = 0
     completed_lessons_count: int = 0
     reviews: list[PublicReviewItem] = []
+
+
+class PublicInstructorSummary(BaseModel):
+    """Public listing card of an approved instructor; ``id`` is the slug, never the user ID.
+
+    Contains no contact data (email, phone) and no internal status fields.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    slug: str
+    full_name: str | None = None
+    avatar_url: str | None = None
+    city: str | None = None
+    state: str | None = None
+    bio: str | None = None
+    specialties: list[str] = []
+    price_per_hour: float | None = None
+    rating_avg: float = 0.0
+    rating_count: int = 0
+    latitude: float | None = None
+    longitude: float | None = None
+    action_radius_km: int = 10
+
+
+class BookingInstructorSummary(BaseModel):
+    """Public identity of a booking's instructor, shown to the booking's participants."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    slug: str
+    full_name: str | None = None
+    avatar_url: str | None = None
+    city: str | None = None
+    state: str | None = None

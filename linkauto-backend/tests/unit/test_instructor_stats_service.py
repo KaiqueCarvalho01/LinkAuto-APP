@@ -27,7 +27,9 @@ def _seed_instructor_stats(db_session: Session, instructor_id: str = "inst-stats
         detran_status=DetranStatus.APROVADO.value,
         is_active=True,
     )
-    db_session.add_all([u_inst, p_inst])
+    db_session.add(u_inst)
+    db_session.flush()
+    db_session.add(p_inst)
 
     # Create 2 students
     for s_idx in [1, 2]:
@@ -38,7 +40,11 @@ def _seed_instructor_stats(db_session: Session, instructor_id: str = "inst-stats
         sp = StudentProfile(
             user_id=sid, full_name=f"Student {s_idx}", phone="1", city="Mogi Mirim", state="SP"
         )
-        db_session.add_all([u_s, sp])
+        db_session.add(u_s)
+        db_session.flush()
+        db_session.add(sp)
+
+    db_session.flush()
 
     # Create 4 slots for this instructor
     now = datetime.now(UTC)
@@ -68,7 +74,10 @@ def _seed_instructor_stats(db_session: Session, instructor_id: str = "inst-stats
     bs3 = BookingSlot(id="bs-3", booking_id="b-pend-1", slot_id="slot-stats-2")
     bs4 = BookingSlot(id="bs-4", booking_id="b-pend-1", slot_id="slot-stats-3")
 
-    db_session.add_all([b_realized, bs1, bs2, b_pending, bs3, bs4])
+    db_session.flush()
+    db_session.add_all([b_realized, b_pending])
+    db_session.flush()
+    db_session.add_all([bs1, bs2, bs3, bs4])
     db_session.flush()
 
 

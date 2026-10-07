@@ -331,6 +331,28 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
   - **Backend:** 161 testes pytest verdes, `ty check` com 0 erros, `ruff check` com 0 erros, `ruff format` 100% em conformidade.
   - **Frontend:** 97 testes Vitest verdes, `npm run typecheck` com 0 erros, `npm run lint` 100% limpo com 0 warnings.
 
+### Iteração 20 (Stack de PRs fechando as issues abertas #13–#31)
 
+Entregue como um stack de PRs (`gh stack`), uma issue por camada, cada uma com testes (TDD) e gates verdes:
 
+| Camada | Issue | Resumo |
+| :--- | :--- | :--- |
+| `fix/test-savepoint-isolation` | #30 | Fixture `db_session` em SAVEPOINT (`join_transaction_mode="create_savepoint"`), sem `SAWarning`. |
+| `fix/booking-confirm-404` | #15 | `BookingNotFoundError`/`BookingAccessError`: confirmar booking inexistente retorna 404. |
+| `fix/admin-override-audit` | #13 | Tabela `booking_status_overrides` (migração 0002), `CancelledBy.ADMIN`, slots liberados e notificação. |
+| `chore/postgres-driver` | #29 | psycopg 3, normalização de `postgresql://`, `.env.example` versionado. |
+| `ci/backend-frontend-workflows` | #27 | `.github/` liberado; workflows Backend/Frontend com checks agregadores. |
+| `chore/migrate-on-deploy` | #28 | `scripts/migrate.sh`, serviço `migrate` no compose, guia de deploy. |
+| `fix/persist-identity` | #20 | `IdentityStore` em memória substituído por `IdentityRepository` (SQL). |
+| `fix/sqlite-foreign-keys` | #25 | `PRAGMA foreign_keys=ON` em todos os engines SQLite. |
+| `fix/inactive-users` | #22 | Contas inativas/removidas rejeitadas em login, refresh e em toda requisição. |
+| `fix/refresh-token-rotation` | #21 | Refresh token de uso único com detecção de reuso (migração 0003) e `POST /auth/logout`. |
+| `fix/public-instructors-leak` | #14 | `/users/public-instructors` só com campos públicos por slug; bookings trazem o resumo público do instrutor. |
+| `feat/ses-email-gateway` | #24 | Gateway SES escolhido por configuração, envio em background, obrigatório em produção. |
+| `feat/document-storage` | #23 | Documentos em S3 privado (ou disco local), links de 5 min para admin, exclusão após revisão. |
+| `feat/shared-rate-limits` | #26 | Rate limit em Redis, `TRUSTED_PROXIES`, limite de login por conta. |
+| `chore/housekeeping` | #31 | Cookies no client de teste, filtro do aviso do slowapi, docs atualizadas. |
+
+- **Backend:** 236 testes pytest verdes, `ty check` e `ruff check`/`ruff format` sem erros, migrações verificadas em SQLite e PostGIS.
+- **Frontend:** 102 testes Vitest verdes, `typecheck`, `lint` e `build` limpos.
 

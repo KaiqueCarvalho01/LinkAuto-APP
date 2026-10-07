@@ -131,23 +131,15 @@ def _seed_public_profiles_data(db_session: Session) -> None:
         comment="Aluna muito dedicada e pontual.",
     )
 
-    db_session.add_all(
-        [
-            u_inst,
-            p_inst,
-            u_inst_pending,
-            p_inst_pending,
-            u_stud1,
-            p_stud1,
-            u_stud2,
-            p_stud2,
-            b1,
-            b2,
-            r_inst,
-            r_stud,
-        ]
-    )
-    db_session.flush()
+    # Parents first: SQLite enforces the foreign keys
+    for batch in (
+        [u_inst, u_inst_pending, u_stud1, u_stud2],
+        [p_inst, p_inst_pending, p_stud1, p_stud2],
+        [b1, b2],
+        [r_inst, r_stud],
+    ):
+        db_session.add_all(batch)
+        db_session.flush()
 
 
 class TestPublicProfileService:

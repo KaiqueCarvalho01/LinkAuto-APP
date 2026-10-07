@@ -7,10 +7,10 @@ from decimal import Decimal
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlmodel import Session, col, select
 
+from app.core.database import create_db_engine
 from app.core.security import hash_password
 from app.domain.booking import MIN_SLOTS_PER_BOOKING
 from app.models import (
@@ -326,11 +326,7 @@ def initialize_sqlite_dev_database(settings: Settings) -> None:
     if settings.reset_sqlite_on_startup and sqlite_file.exists():
         sqlite_file.unlink()
 
-    engine = create_engine(
-        settings.database_url,
-        connect_args={"check_same_thread": False},
-        future=True,
-    )
+    engine = create_db_engine(settings.database_url)
     try:
         Base.metadata.create_all(bind=engine)
         if settings.reset_sqlite_on_startup:

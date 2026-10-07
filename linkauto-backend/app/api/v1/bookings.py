@@ -15,6 +15,7 @@ from app.schemas.common import success_response
 from app.services.booking_service import (
     BookingAccessError,
     BookingLocation,
+    BookingNotFoundError,
     BookingService,
     PenalizedStudentError,
     SlotValidationError,
@@ -122,8 +123,8 @@ def confirm_booking(
     """Confirm a PENDENTE booking and notify the student.
 
     Requires the INSTRUTOR role and must be called by the booking's instructor.
-    Returns 403 when the caller is not the booking's instructor or the booking does
-    not exist, and 422 when the booking cannot move to CONFIRMADA.
+    Returns 404 when the booking does not exist, 403 when the caller is not the
+    booking's instructor, and 422 when the booking cannot move to CONFIRMADA.
     """
     service = BookingService(db)
     try:
@@ -133,12 +134,14 @@ def confirm_booking(
             BookingResource.model_validate(booking).model_dump(mode="json"),
             meta={},
         )
+    except BookingNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)}) from e
+    except BookingAccessError as e:
+        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": str(e)}) from e
     except BookingTransitionError as e:
         raise HTTPException(
             status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
         ) from e
-    except ValueError as e:
-        raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": str(e)}) from e
 
 
 @router.patch("/bookings/{booking_id}/cancel")
@@ -167,11 +170,11 @@ def cancel_booking(
             BookingResource.model_validate(booking).model_dump(mode="json"),
             meta={},
         )
+    except BookingNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)}) from e
     except BookingAccessError as e:
         raise HTTPException(status_code=403, detail={"code": "FORBIDDEN", "message": str(e)}) from e
     except BookingTransitionError as e:
         raise HTTPException(
             status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
         ) from e
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)}) from e

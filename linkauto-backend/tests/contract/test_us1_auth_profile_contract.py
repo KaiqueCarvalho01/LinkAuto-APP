@@ -1,17 +1,12 @@
 from typing import TYPE_CHECKING, Any
 
-from fastapi.testclient import TestClient
-
-from app.main import create_app
-
 if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
     from httpx2 import Response
-
-client = TestClient(create_app())
 
 
 def _register_user(
-    email: str, roles: list[str], password: str = "strong-password"
+    client: TestClient, email: str, roles: list[str], password: str = "strong-password"
 ) -> dict[str, Any]:
     response = client.post(
         "/api/v1/auth/register",
@@ -21,14 +16,14 @@ def _register_user(
     return response.json()["data"]
 
 
-def _login(email: str, password: str = "strong-password") -> Response:
+def _login(client: TestClient, email: str, password: str = "strong-password") -> Response:
     return client.post("/api/v1/auth/login", json={"email": email, "password": password})
 
 
-def test_auth_register_login_refresh_and_reset_contract() -> None:
-    _register_user("contract-user@example.com", ["ALUNO"])
+def test_auth_register_login_refresh_and_reset_contract(client: TestClient) -> None:
+    _register_user(client, "contract-user@example.com", ["ALUNO"])
 
-    login_response = _login("contract-user@example.com")
+    login_response = _login(client, "contract-user@example.com")
     assert login_response.status_code == 200
     login_payload = login_response.json()
     assert set(login_payload.keys()) == {"data", "error", "meta"}
@@ -43,16 +38,17 @@ def test_auth_register_login_refresh_and_reset_contract() -> None:
     assert "SameSite=strict" in set_cookie
 
     refresh_cookie_value = set_cookie.split("refresh_token=", 1)[1].split(";", 1)[0]
-    refresh_response = client.post(
-        "/api/v1/auth/refresh",
-        cookies={"refresh_token": refresh_cookie_value},
-    )
+    # Cookies are set on the client: per-request cookies= is deprecated by Starlette
+    client.cookies.clear()
+    client.cookies.set("refresh_token", refresh_cookie_value)
+    refresh_response = client.post("/api/v1/auth/refresh")
     assert refresh_response.status_code == 200
     refresh_payload = refresh_response.json()
     assert refresh_payload["error"] is None
     assert isinstance(refresh_payload["data"]["access_token"], str)
     assert refresh_payload["data"]["token_type"] == "bearer"
 
+    client.cookies.clear()
     missing_cookie_response = client.post("/api/v1/auth/refresh")
     assert missing_cookie_response.status_code == 401
     assert missing_cookie_response.json()["error"]["code"] == "UNAUTHORIZED"
@@ -67,9 +63,9 @@ def test_auth_register_login_refresh_and_reset_contract() -> None:
     assert reset_payload["data"]["status"] == "accepted"
 
 
-def test_users_me_get_and_patch_contract() -> None:
-    _register_user("profile-contract@example.com", ["ALUNO", "INSTRUTOR"])
-    login_response = _login("profile-contract@example.com")
+def test_users_me_get_and_patch_contract(client: TestClient) -> None:
+    _register_user(client, "profile-contract@example.com", ["ALUNO", "INSTRUTOR"])
+    login_response = _login(client, "profile-contract@example.com")
     access_token = login_response.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {access_token}"}
 

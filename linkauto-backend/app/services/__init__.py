@@ -17,18 +17,26 @@ from app.services.booking_service import (
     SlotValidationError,
 )
 from app.services.document_cleanup_service import DocumentCleanupService
+from app.services.identity_repository import (
+    DuplicateEmailError,
+    IdentityRepository,
+    UserNotFoundError,
+)
 from app.services.instructor_document_service import (
     DocumentTooLargeError,
     DocumentValidationError,
     InstructorDocumentService,
 )
 from app.services.notification_service import (
+    BackgroundEmailGateway,
+    DisabledEmailGateway,
     InMemoryEmailGateway,
     NotificationDispatchResult,
     NotificationEvent,
     NotificationPayload,
     NotificationService,
     SESEmailGateway,
+    build_email_gateway,
 )
 from app.services.penalty_service import PenaltyService
 from app.services.profile_service import ProfileService
@@ -39,21 +47,23 @@ from app.services.review_service import (
     ReviewStateError,
 )
 from app.services.slot_service import SlotOverlapError, SlotService
-from app.services.us1_store import IdentityStore, get_identity_store
 
 __all__ = [
     "AdminValidationService",
     "AuthService",
+    "BackgroundEmailGateway",
     "BookingAccessError",
     "BookingLockService",
     "BookingMessageAccessError",
     "BookingMessageService",
     "BookingScheduler",
     "BookingService",
+    "DisabledEmailGateway",
     "DocumentCleanupService",
     "DocumentTooLargeError",
     "DocumentValidationError",
-    "IdentityStore",
+    "DuplicateEmailError",
+    "IdentityRepository",
     "InMemoryEmailGateway",
     "InMemorySlotReservationStore",
     "InstructorDocumentService",
@@ -74,5 +84,6 @@ __all__ = [
     "SlotService",
     "SlotValidationError",
     "SqlAlchemySlotReservationStore",
-    "get_identity_store",
+    "UserNotFoundError",
+    "build_email_gateway",
 ]

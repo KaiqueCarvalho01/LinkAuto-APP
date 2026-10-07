@@ -82,11 +82,26 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
 
 3. Refresh token em cookie com flags de seguranca
    - Cookie `refresh_token` usa `HttpOnly`, `Secure` e `SameSite=Strict`.
-   - Path restrito para `/api/v1/auth/refresh`.
+   - Path restrito a `/api/v1/auth` (enviado apenas para `/auth/refresh` e `/auth/logout`).
    - Local: `linkauto-backend/app/api/v1/auth.py`.
+
+3.1. Rotacao de refresh token com deteccao de reuso (OWASP)
+   - Todo refresh token emitido e registrado na tabela `refresh_tokens` (`jti`, usuario,
+     familia, expiracao, `used_at`, `revoked_at`).
+   - Cada refresh token so pode ser usado uma vez; o `UPDATE` condicional garante isso
+     mesmo com requisicoes concorrentes em varios workers.
+   - Reapresentar um token ja rotacionado e tratado como roubo: toda a familia (todos os
+     tokens derivados do mesmo login) e revogada e a resposta e 401.
+   - `POST /auth/logout` revoga a familia do token atual e apaga o cookie.
+   - Local: `linkauto-backend/app/services/auth_service.py`,
+     `linkauto-backend/app/services/refresh_token_repository.py`.
 
 4. Bearer token para endpoints protegidos
    - Dependencia centralizada valida o token e exige tipo `access`.
+   - A conta e carregada a cada requisicao: contas inativas (`is_active = false`) ou
+     removidas recebem 401, e os papeis vem do banco, nao do token.
+   - Login e refresh tambem rejeitam contas inativas, com a mesma mensagem de credenciais
+     invalidas.
    - Local: `linkauto-backend/app/api/deps/authn.py`.
 
 5. RBAC por papeis
@@ -102,7 +117,9 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
 7. Validacao de upload
    - Whitelist de MIME types: PDF, JPEG e PNG.
    - Limite maximo de 10 MB por arquivo.
-   - Sanitizacao basica de nome com `Path(filename).name`.
+   - Magic bytes conferidos contra o MIME declarado.
+   - A chave do objeto e gerada pelo servidor; o nome do arquivo do cliente nunca entra no
+     caminho de armazenamento.
    - Local: `linkauto-backend/app/services/instructor_document_service.py`.
 
 8. Reducao de exposicao publica de instrutores
@@ -115,13 +132,26 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
    - Local: `linkauto-backend/app/services/admin_validation_service.py`.
 
 10. Retencao minima de documentos sensiveis
-    - Apos decisao administrativa, documentos sao purgados do store atual.
-    - A intencao de S3 purge esta documentada nas specs.
-    - Local: `linkauto-backend/app/services/document_cleanup_service.py`.
+    - Documentos ficam em armazenamento privado (S3 com SSE-S3, opcional, ou disco local
+      fora da raiz publica), com chaves
+      geradas pelo servidor; o nome enviado pelo cliente e apenas metadado.
+    - Admins acessam os arquivos somente por links de curta duracao (5 minutos).
+    - Apos decisao administrativa, registros e arquivos sao excluidos.
+    - Local: `linkauto-backend/app/services/document_storage.py`,
+      `linkauto-backend/app/services/document_cleanup_service.py`.
 
 11. CORS configuravel
     - Origins permitidas vem de `CORS_ORIGINS`, evitando wildcard fixo no codigo.
     - Local: `linkauto-backend/app/core/config.py`.
+
+11.1. Rate limiting distribuido e IP real do cliente
+    - Contadores em storage configuravel (`RATE_LIMIT_STORAGE_URI`): Redis (opcional)
+      compartilha o limite entre workers e replicas; sem ele, cada processo conta separado
+      e a aplicacao avisa em producao.
+    - Login limitado por IP e tambem por conta (hash do e-mail normalizado), para que
+      trocar de IP nao ajude um ataque de forca bruta.
+    - `X-Forwarded-For` so e aceito de proxies listados em `TRUSTED_PROXIES`.
+    - Local: `linkauto-backend/app/core/rate_limit.py`, `linkauto-backend/app/main.py`.
 
 12. Envelopes padronizados de resposta
     - Respostas de sucesso e erro seguem formato consistente.

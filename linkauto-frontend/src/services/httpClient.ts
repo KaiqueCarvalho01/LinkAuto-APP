@@ -106,7 +106,8 @@ const request = async <TData>(
 		if (
 			response.status === 401 &&
 			!path.includes("/auth/refresh") &&
-			!path.includes("/auth/login")
+			!path.includes("/auth/login") &&
+			!path.includes("/auth/logout")
 		) {
 			try {
 				const refreshPayload = await httpClient.post<{ access_token: string }>("/auth/refresh", {}, {

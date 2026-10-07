@@ -167,7 +167,9 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
                           color="text.muted"
                           fontSize="sm"
                           fontWeight="500">
-                          {booking.instructor.neighborhood}, {booking.instructor.city}
+                          {[booking.instructor.city, booking.instructor.neighborhood]
+                            .filter(Boolean)
+                            .join(" - ")}
                         </Text>
                       </Stack>
                       <BookingStatusBadge status={booking.status} />

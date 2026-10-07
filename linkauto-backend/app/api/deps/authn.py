@@ -7,15 +7,18 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
+from sqlmodel import Session  # noqa: TC002 - FastAPI resolves the dependency type at runtime
 
 from app.core import Settings, get_settings
+from app.core.database import get_db
 from app.core.security import decode_token
+from app.models import User
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
 class AuthenticatedUser(BaseModel):
-    """Identity extracted from a validated access token."""
+    """Identity of the caller: a validated access token for an active, existing account."""
 
     user_id: str
     roles: list[str]
@@ -32,10 +35,16 @@ def _unauthorized(message: str) -> HTTPException:
 def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
     settings: Annotated[Settings, Depends(get_settings)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> AuthenticatedUser:
     """Return the user identified by the request's bearer access token.
 
-    Raises 401 when the token is missing, invalid, expired or not an access token.
+    The account is loaded on every request, so a deactivated or deleted account is
+    rejected immediately, and roles come from the database rather than the token (a role
+    removed from a user stops applying before the token expires).
+
+    Raises 401 when the token is missing, invalid, expired or not an access token, or when
+    its account no longer exists or is inactive.
     """
     if credentials is None:
         msg = "Missing bearer token."
@@ -46,4 +55,9 @@ def get_current_user(
     except ValueError as exc:
         raise _unauthorized(str(exc)) from exc
 
-    return AuthenticatedUser(user_id=payload.sub, roles=payload.roles, token_type=payload.typ)
+    user = db.get(User, payload.sub)
+    if user is None or not user.is_active:
+        msg = "Invalid token."
+        raise _unauthorized(msg)
+
+    return AuthenticatedUser(user_id=user.id, roles=list(user.roles), token_type=payload.typ)

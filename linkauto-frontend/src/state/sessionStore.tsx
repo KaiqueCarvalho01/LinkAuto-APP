@@ -24,7 +24,7 @@ interface SessionContextValue {
 		password: string;
 		roles: string[];
 	}) => Promise<void>;
-	signOut: () => void;
+	signOut: () => Promise<void>;
 	clearSession: () => void;
 	refreshProfile: (token: string) => Promise<ApiSuccessEnvelope<UserAccount>>;
 }
@@ -134,8 +134,15 @@ export function SessionProvider({ children }: SessionProviderProps) {
 		[],
 	);
 
-	const signOut = useCallback(() => {
+	const signOut = useCallback(async () => {
+		// Clear locally first so the UI logs out immediately, even when offline
 		clearSession();
+		try {
+			// Revokes the refresh token (HttpOnly cookie) on the server
+			await httpClient.post("/auth/logout", {});
+		} catch {
+			// Best effort: the session is already gone locally
+		}
 	}, [clearSession]);
 
 	useEffect(() => {
@@ -148,9 +155,10 @@ export function SessionProvider({ children }: SessionProviderProps) {
 			});
 		});
 		setOnAuthFailure(() => {
-			signOut();
+			// The refresh token was rejected, so there is nothing left to revoke
+			clearSession();
 		});
-	}, [signOut]);
+	}, [clearSession]);
 
 	const value = useMemo<SessionContextValue>(
 		() => ({

@@ -74,8 +74,8 @@ Key screens captured live during application runtime:
 | **Phase 8 - Tooling & Stack Integration** | Completed | Migration to `uv`, `SQLModel 0.0.48`, `ty` typechecker, Alembic baseline, and VS Code workspace |
 
 ### Quality Gate Summary
-- 🟢 **Backend:** **161 passed tests** in Pytest, 0 errors in `ty check`, 0 linter violations in `ruff check` (`ALL` rules).
-- 🟢 **Frontend:** **97 passed tests** in Vitest, 0 TypeScript compiler errors (`npm run typecheck` in strict mode).
+- 🟢 **Backend:** **236 passed tests** in Pytest, 0 errors in `ty check`, 0 linter violations in `ruff check` (`ALL` rules).
+- 🟢 **Frontend:** **102 passed tests** in Vitest, 0 TypeScript compiler errors (`npm run typecheck` in strict mode).
 
 ---
 
@@ -89,7 +89,8 @@ All endpoints are implemented with strict Pydantic schemas and typed responses:
 - **Authentication:**
   - `POST /api/v1/auth/register` — Public registration (public ADMIN creation blocked)
   - `POST /api/v1/auth/login` — Login with rate-limiting and token issue
-  - `POST /api/v1/auth/refresh` — Silent refresh token rotation
+  - `POST /api/v1/auth/refresh` — Single-use refresh token rotation with reuse detection
+  - `POST /api/v1/auth/logout` — Revokes the session's refresh token and clears the cookie
   - `POST /api/v1/auth/password-reset` — Password reset request
 - **Users & Private Profiles:**
   - `GET /api/v1/users/me` — Current authenticated user profile
@@ -138,7 +139,7 @@ All endpoints are implemented with strict Pydantic schemas and typed responses:
 ```
 
 - **Frontend:** React 19.2, Vite, Tailwind CSS 4, Chakra UI v3, React Router DOM 7, Leaflet, Vitest.
-- **Backend:** Python 3.14 (managed by `uv`), FastAPI, SQLModel 0.0.48, Alembic, Pydantic v2, Ruff, ty.
+- **Backend:** Python 3.14 (managed by `uv`), FastAPI, SQLModel 0.0.48, Alembic, Pydantic v2, psycopg 3, Ruff, ty.
 - **Databases:** SQLite with deterministic auto-seed for development; PostgreSQL + PostGIS in production.
 - **Cloud Integrations:** AWS S3 (ephemeral credential storage) and AWS SES (transactional emails).
 
@@ -202,7 +203,7 @@ cd linkauto-backend
 uv run ty check              # Strict static type checking
 uv run ruff check .          # Linting with ALL rules enabled
 uv run ruff format --check . # Code formatting check
-uv run pytest                # Runs all 161 unit, contract, and integration tests
+uv run pytest                # Runs all 236 unit, contract, and integration tests
 ```
 
 ### Frontend (`linkauto-frontend`)
@@ -210,7 +211,7 @@ uv run pytest                # Runs all 161 unit, contract, and integration test
 cd linkauto-frontend
 npm run typecheck            # Strict TypeScript compilation (exactOptionalPropertyTypes)
 npm run lint                 # Static code analysis with ESLint
-npm run test                 # Runs all 97 automated tests with Vitest
+npm run test                 # Runs all 102 automated tests with Vitest
 ```
 
 ### E2E Testing and Visual Validation

@@ -1,5 +1,4 @@
 import { httpClient } from "./httpClient";
-import { instructorService } from "./instructorService";
 import type { ApiBookingResource } from "../types/api.types";
 import type { BookingPreview, BookingStatus } from "../types/booking";
 import type { InstructorSummary } from "../types/instructor";
@@ -62,29 +61,28 @@ export const formatTimeLabel = (slots: ApiBookingResource["slots"]): string => {
   }
 };
 
-export const mapApiBookingToPreview = (
-  api: ApiBookingResource,
-  instructors: InstructorSummary[]
-): BookingPreview => {
-  let instructor = instructors.find((inst) => inst.id === api.instructor_id);
-  
-  if (!instructor) {
-    // Fallback instructor summary to avoid crashes
-    instructor = {
-      id: api.instructor_id,
-      fullName: "Instrutor LinkAuto",
-      city: "Mogi Mirim",
-      neighborhood: "Centro",
-      rating: 5.0,
-      reviewsCount: 1,
-      distanceKm: 0.0,
-      hourlyRate: 70.0,
-      detranApproved: true,
-      specialties: ["Carro"],
-      radiusKm: 10,
-      coordinates: { lat: 0.0, lng: 0.0 },
-    };
-  }
+const mapBookingInstructor = (api: ApiBookingResource): InstructorSummary => {
+  const summary = api.instructor;
+  return {
+    // The booking carries the instructor's public slug, never needing the public list
+    id: summary?.slug ?? api.instructor_id,
+    slug: summary?.slug,
+    fullName: summary?.full_name || "Instrutor LinkAuto",
+    city: summary?.city || "",
+    neighborhood: summary?.state || "",
+    rating: 0,
+    reviewsCount: 0,
+    distanceKm: 0.0,
+    hourlyRate: 0,
+    detranApproved: true,
+    specialties: [],
+    radiusKm: 0,
+    coordinates: { lat: 0.0, lng: 0.0 },
+  };
+};
+
+export const mapApiBookingToPreview = (api: ApiBookingResource): BookingPreview => {
+  const instructor = mapBookingInstructor(api);
 
   // Get date and time from the first slot
   const firstBookingSlot = api.slots?.[0];
@@ -114,10 +112,7 @@ export const bookingService = {
     const response = await httpClient.post<ApiBookingResource>("/bookings", data, {
       token,
     });
-    
-    // Fetch public instructors to map properly
-    const instructors = await instructorService.getPublicInstructors();
-    return mapApiBookingToPreview(response.data, instructors);
+    return mapApiBookingToPreview(response.data);
   },
 
   getMyBookings: async (token: string, status?: string): Promise<BookingPreview[]> => {
@@ -125,9 +120,7 @@ export const bookingService = {
     const response = await httpClient.get<ApiBookingResource[]>(path, { token });
     
     const list = response.data || [];
-    const instructors = await instructorService.getPublicInstructors();
-    
-    return list.map((item) => mapApiBookingToPreview(item, instructors));
+    return list.map((item) => mapApiBookingToPreview(item));
   },
 
   getBookingDetail: async (bookingId: string, token: string): Promise<ApiBookingResource> => {

@@ -52,7 +52,7 @@ A **US3** implementa ferramentas de comunicação assíncrona, governança de fe
 
 O projeto segue estritamente as diretrizes da **OWASP Top 10** e os padrões do guia de segurança do LinkAuto:
 - **Autenticação Robusta (OWASP A07):** Tokens JWT de ciclo curto (`access_token`) combinados com `refresh_token` trafegados em cookies seguros (`HttpOnly`, `Secure`, `SameSite=Strict`).
-- **Defesa Ativa Contra Brute-Force (Rate Limiting):** SlowAPI integrado limitando login (10/min), registro (5/min), refresh (20/min) e redefinição de senha (3/min), com status `429 Too Many Requests`.
+- **Defesa Ativa Contra Brute-Force (Rate Limiting):** SlowAPI integrado limitando login (10/min por IP e 10/15 min por conta), registro (5/min), refresh (20/min) e redefinição de senha (3/min), com status `429 Too Many Requests`. Contadores compartilháveis via Redis (opcional) e IP real do cliente atrás de proxies confiáveis.
 - **Prevenção de Mass Assignment (OWASP A01):** Schemas Pydantic fechados (`extra="forbid"`) bloqueando alterações de parâmetros confidenciais (ex: `detran_status`, `rating_avg`).
 - **Bloqueio de Privilégios:** Cadastro de novos usuários impede a indicação indevida de papel `ADMIN`.
 - **Prevenção de MIME Spoofing:** Validação binária estrita por Magic Bytes (assinaturas binárias hexadecimais) para comprovar a legitimidade de PDFs, JPEGs e PNGs carregados.
@@ -69,13 +69,18 @@ O projeto segue estritamente as diretrizes da **OWASP Top 10** e os padrões do 
 - [uv](https://docs.astral.sh/uv/) (gerencia o Python e as dependências)
 - Python 3.14+ (instalado automaticamente pelo uv, conforme `.python-version`)
 - SQLite3 (Ambiente de Desenvolvimento)
+- PostgreSQL 16 + PostGIS (staging/produção, opcional em dev)
 
 ### Configuração do Ambiente Local
 1. Crie o ambiente virtual (`.venv`) e instale as dependências a partir do `uv.lock`, incluindo o grupo `dev` (testes e lint):
    ```bash
    uv sync
    ```
-2. Inicialize o servidor de desenvolvimento:
+2. (Opcional) Copie as variáveis de exemplo e ajuste o que precisar — todas têm valor padrão de desenvolvimento:
+   ```bash
+   cp .env.example .env
+   ```
+3. Inicialize o servidor de desenvolvimento:
    ```bash
    uv run uvicorn app.main:app --reload --port 8000
    ```
@@ -91,6 +96,51 @@ uv lock --upgrade        # Atualiza todas as versões no uv.lock
 uv sync --no-dev         # Instala apenas as dependências de produção
 ```
 
+### Banco de Dados (`DATABASE_URL`)
+| Ambiente | Exemplo de `DATABASE_URL` |
+| :--- | :--- |
+| Desenvolvimento (padrão) | `sqlite:///./app.db` |
+| PostgreSQL + PostGIS | `postgresql+psycopg://usuario:senha@host:5432/linkauto` |
+
+O driver PostgreSQL é o **psycopg 3** (`psycopg[binary]`, já incluso nas dependências). URLs `postgresql://` ou `postgres://` (como as fornecidas por provedores gerenciados) são convertidas automaticamente para `postgresql+psycopg://`.
+
+### Rate Limiting e Proxy Reverso
+Os limites (login 10/min por IP **e** 10 tentativas/15 min por conta, registro 5/min, refresh 20/min, redefinição de senha 3/min) usam o storage em `RATE_LIMIT_STORAGE_URI`:
+
+O Redis é **opcional**:
+
+- `memory://` (padrão): contadores por processo. Suficiente com um único worker; com vários workers ou réplicas, cada um conta separadamente (o limite efetivo é multiplicado) e a aplicação registra um aviso em produção.
+- `redis://host:6379/0`: contadores compartilhados entre workers e réplicas. Se o Redis ficar indisponível, o limiter cai temporariamente para memória local em vez de derrubar a API.
+
+Atrás de um proxy reverso / load balancer, defina `TRUSTED_PROXIES` com os IPs ou CIDRs do proxy (ex.: `10.0.0.0/8`). Só o `X-Forwarded-For` vindo desses endereços é usado como IP do cliente; de qualquer outro, o cabeçalho é ignorado. Não use `uvicorn --proxy-headers --forwarded-allow-ips='*'`: a lista explícita da aplicação já cobre esse caso. `GET /api/v1/foundation/whoami` mostra o IP que a API enxerga.
+
+### Notificações por E-mail
+O envio de e-mails é **opcional**: sem provedor configurado a API funciona normalmente e as notificações são apenas ignoradas (registradas em log no nível INFO).
+
+| `EMAIL_BACKEND` | Comportamento |
+| :--- | :--- |
+| `auto` (padrão) | AWS SES quando `SES_FROM_EMAIL` está definido; senão, e-mails ficam em memória em `development`/`test`/`ci` e são descartados nos demais ambientes. |
+| `ses` | Sempre AWS SES. |
+| `memory` | Sempre em memória (nada é enviado; útil em testes). |
+| `disabled` | Nunca envia; notificações são descartadas. |
+
+Com SES, o envio acontece em segundo plano (pool de threads), então um SES lento não atrasa as respostas da API; falhas são registradas em log. As credenciais vêm de `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` ou da cadeia padrão da AWS (IAM role), na região `AWS_REGION`.
+
+### Documentos de Credenciamento (S3)
+Os arquivos enviados em `POST /instructors/{id}/documents` são validados (MIME, tamanho e magic bytes) e gravados em armazenamento privado, com chaves geradas pelo servidor (`instructors/<id>/<tipo>-<uuid>.<ext>`); o nome original do arquivo fica apenas como metadado.
+
+O S3 é **opcional**: sem `S3_BUCKET`, os arquivos ficam no disco local do servidor.
+
+| `DOCUMENT_STORAGE` | Comportamento |
+| :--- | :--- |
+| `auto` (padrão) | S3 privado (`S3_BUCKET`, criptografia SSE-S3) quando definido; senão, disco local em `DOCUMENT_STORAGE_PATH` (padrão `./storage`). |
+| `s3` / `local` / `memory` | Força o backend. `memory` é usado nos testes. |
+
+- Admins listam os documentos em `GET /admin/instructors/{id}/documents`, com links de **5 minutos** (URLs pré-assinadas SigV4 no S3; links assinados por HMAC no disco local).
+- Ao aprovar ou rejeitar o instrutor, os registros **e os arquivos** são excluídos (retenção mínima, LGPD / RF11).
+- **Disco local:** em containers, monte um volume persistente em `DOCUMENT_STORAGE_PATH` (senão os arquivos somem a cada deploy) e use uma única réplica ou um volume compartilhado. Defina `PUBLIC_API_URL` com a URL pública da API para que os links de visualização funcionem.
+- **S3:** o bucket deve bloquear acesso público (*Block Public Access*); a aplicação precisa de `s3:PutObject`, `s3:GetObject` e `s3:DeleteObject` no prefixo `instructors/`.
+
 ### Migrações de Banco (Alembic)
 Em desenvolvimento, o SQLite local é recriado e populado a cada inicialização (`RESET_SQLITE_ON_STARTUP=true`), sem usar migrações. Em qualquer outro ambiente o schema é gerenciado pelo Alembic, usando a mesma `DATABASE_URL` da aplicação:
 
@@ -103,6 +153,7 @@ uv run alembic check                                      # Falha se os models d
 - Configuração: `[tool.alembic]` no `pyproject.toml` (código) e `alembic.ini` (logging).
 - Revisões geradas são formatadas automaticamente pelo Ruff; revise sempre o arquivo antes de commitar.
 - `tests/unit/test_migrations.py` garante que as migrações aplicam do zero, revertem e batem com os models.
+- **Deploy:** a API não migra o schema no startup. Rode `scripts/migrate.sh` uma vez por deploy, antes da nova versão receber tráfego (detalhes em [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)).
 
 A API estará acessível em `http://localhost:8000` e a documentação interativa Swagger em `http://localhost:8000/docs`.
 

@@ -74,8 +74,8 @@ Abaixo, algumas das principais interfaces do LinkAuto em operação:
 | **Phase 8 - Tooling & Stack Integration** | Concluída | Migração para `uv`, `SQLModel 0.0.48`, typechecker `ty`, Alembic baseline e workspace multi-root |
 
 ### Resumo de Validação
-- 🟢 **Backend:** **161 testes verdes** no Pytest, 0 erros no `ty check`, 0 avisos no `ruff check` (regras `ALL`).
-- 🟢 **Frontend:** **97 testes verdes** no Vitest, 0 erros no TypeScript (`npm run typecheck` estrito).
+- 🟢 **Backend:** **236 testes verdes** no Pytest, 0 erros no `ty check`, 0 avisos no `ruff check` (regras `ALL`).
+- 🟢 **Frontend:** **102 testes verdes** no Vitest, 0 erros no TypeScript (`npm run typecheck` estrito).
 
 ---
 
@@ -89,7 +89,8 @@ Todos os endpoints estão implementados e disponíveis com contratos estritos va
 - **Autenticação:**
   - `POST /api/v1/auth/register` — Cadastro de alunos e instrutores (bloqueio de role ADMIN pública)
   - `POST /api/v1/auth/login` — Autenticação com rate limiting e emissão de tokens
-  - `POST /api/v1/auth/refresh` — Rotação automática de refresh token
+  - `POST /api/v1/auth/refresh` — Rotação de refresh token de uso único, com detecção de reuso
+  - `POST /api/v1/auth/logout` — Revoga o refresh token da sessão e apaga o cookie
   - `POST /api/v1/auth/password-reset` — Solicitação de recuperação de senha
 - **Usuários & Perfis Privados:**
   - `GET /api/v1/users/me` — Dados do usuário logado
@@ -138,7 +139,7 @@ Todos os endpoints estão implementados e disponíveis com contratos estritos va
 ```
 
 - **Frontend:** React 19.2, Vite, Tailwind CSS 4, Chakra UI v3, React Router DOM 7, Leaflet, Vitest.
-- **Backend:** Python 3.14 (gerenciado por `uv`), FastAPI, SQLModel 0.0.48, Alembic, Pydantic v2, Ruff, ty.
+- **Backend:** Python 3.14 (gerenciado por `uv`), FastAPI, SQLModel 0.0.48, Alembic, Pydantic v2, psycopg 3, Ruff, ty.
 - **Banco de Dados:** SQLite com auto-seed no ambiente de desenvolvimento; PostgreSQL + PostGIS em produção.
 - **Serviços Cloud:** AWS S3 (armazenamento temporário de credenciais) e AWS SES (notificações por e-mail).
 
@@ -202,7 +203,7 @@ cd linkauto-backend
 uv run ty check              # Verificação estrita de tipos estáticos
 uv run ruff check .          # Linting com todas as regras Ruff habilitadas
 uv run ruff format --check . # Verificação de formatação de código
-uv run pytest                # Execução dos 161 testes unitários, de contrato e integração
+uv run pytest                # Execução dos 236 testes unitários, de contrato e integração
 ```
 
 ### Frontend (`linkauto-frontend`)
@@ -210,8 +211,16 @@ uv run pytest                # Execução dos 161 testes unitários, de contrato
 cd linkauto-frontend
 npm run typecheck            # Compilação estrita TypeScript (exactOptionalPropertyTypes)
 npm run lint                 # Análise estática com ESLint
-npm run test                 # Execução dos 97 testes automatizados com Vitest
+npm run test                 # Execução dos 102 testes automatizados com Vitest
 ```
+
+### Integração Contínua (GitHub Actions)
+Cada pull request e cada push em `main` executam os workflows em [`.github/workflows/`](.github/workflows/):
+
+- **Backend** (`backend.yml`): `uv sync --locked`, Ruff (lint e formatação), ty, pytest, `alembic upgrade head` + `alembic check` em um SQLite novo, e um job que aplica, verifica e reverte as migrações em um container `postgis/postgis:16-3.4-alpine`.
+- **Frontend** (`frontend.yml`): `npm ci`, ESLint, TypeScript, Vitest e build do Vite.
+
+Os jobs só rodam quando o respectivo app muda, mas os checks agregadores **`Backend OK`** e **`Frontend OK`** sempre reportam um status. Configure esses dois como *required status checks* na proteção da branch `main` (Settings → Branches); em PRs empilhados cada camada roda os checks contra a sua base.
 
 ### Testes E2E e Validação Visual
 Os testes de interface e jornada do usuário são conduzidos nativamente através do **Chrome DevTools MCP** (`@browser-testing-with-devtools`), permitindo capturas em alta resolução, inspeção de DOM e validação de contratos em tempo de execução.

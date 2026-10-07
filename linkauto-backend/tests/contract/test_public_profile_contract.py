@@ -92,7 +92,10 @@ def _seed_contract_profiles(db_session: Session) -> None:
         comment="Ótima didática!",
     )
 
-    db_session.add_all([u_inst, p_inst, u_pending, p_pending, u_stud, p_stud, b1, r1])
+    # Parents first: SQLite enforces the foreign keys
+    for batch in ([u_inst, u_pending, u_stud], [p_inst, p_pending, p_stud], [b1], [r1]):
+        db_session.add_all(batch)
+        db_session.flush()
     db_session.commit()
 
 
