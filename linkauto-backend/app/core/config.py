@@ -2,6 +2,7 @@
 
 import logging
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -39,6 +40,11 @@ class Settings(BaseSettings):
     aws_secret_access_key: str | None = Field(default=None, alias="AWS_SECRET_ACCESS_KEY")
     s3_bucket: str | None = Field(default=None, alias="S3_BUCKET")
     ses_from_email: str | None = Field(default=None, alias="SES_FROM_EMAIL")
+    # E-mail is optional. "auto": SES when SES_FROM_EMAIL is set; otherwise kept in memory in
+    # development/tests and disabled (dropped, logged) elsewhere. "disabled" never sends.
+    email_backend: Literal["auto", "ses", "memory", "disabled"] = Field(
+        default="auto", alias="EMAIL_BACKEND"
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -56,7 +62,7 @@ class Settings(BaseSettings):
         """Reject insecure settings when APP_ENV is production.
 
         Raises if JWT_SECRET is the placeholder or RESET_SQLITE_ON_STARTUP is enabled, and
-        logs a warning if CORS_ORIGINS contains localhost or 127.0.0.1.
+        logs a warning if CORS_ORIGINS contains localhost or 127.0.0.1. E-mail is optional.
         """
         if self.app_env.lower() == "production":
             if self.jwt_secret == INSECURE_JWT_SECRET:

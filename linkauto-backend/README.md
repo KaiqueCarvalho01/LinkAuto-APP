@@ -104,6 +104,18 @@ uv sync --no-dev         # Instala apenas as dependências de produção
 
 O driver PostgreSQL é o **psycopg 3** (`psycopg[binary]`, já incluso nas dependências). URLs `postgresql://` ou `postgres://` (como as fornecidas por provedores gerenciados) são convertidas automaticamente para `postgresql+psycopg://`.
 
+### Notificações por E-mail
+O envio de e-mails é **opcional**: sem provedor configurado a API funciona normalmente e as notificações são apenas ignoradas (registradas em log no nível INFO).
+
+| `EMAIL_BACKEND` | Comportamento |
+| :--- | :--- |
+| `auto` (padrão) | AWS SES quando `SES_FROM_EMAIL` está definido; senão, e-mails ficam em memória em `development`/`test`/`ci` e são descartados nos demais ambientes. |
+| `ses` | Sempre AWS SES. |
+| `memory` | Sempre em memória (nada é enviado; útil em testes). |
+| `disabled` | Nunca envia; notificações são descartadas. |
+
+Com SES, o envio acontece em segundo plano (pool de threads), então um SES lento não atrasa as respostas da API; falhas são registradas em log. As credenciais vêm de `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` ou da cadeia padrão da AWS (IAM role), na região `AWS_REGION`.
+
 ### Migrações de Banco (Alembic)
 Em desenvolvimento, o SQLite local é recriado e populado a cada inicialização (`RESET_SQLITE_ON_STARTUP=true`), sem usar migrações. Em qualquer outro ambiente o schema é gerenciado pelo Alembic, usando a mesma `DATABASE_URL` da aplicação:
 

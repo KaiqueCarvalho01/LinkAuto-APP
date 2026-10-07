@@ -14,15 +14,19 @@ from app.services.auth_service import AuthService
 from app.services.document_cleanup_service import DocumentCleanupService
 from app.services.identity_repository import IdentityRepository
 from app.services.instructor_document_service import InstructorDocumentService
-from app.services.notification_service import InMemoryEmailGateway, NotificationService
+from app.services.notification_service import NotificationService, build_email_gateway
 from app.services.profile_service import ProfileService
 from app.services.refresh_token_repository import RefreshTokenRepository
 
 
 @lru_cache(maxsize=1)
 def get_notification_service() -> NotificationService:
-    """Return the cached notification service, backed by the in-memory email gateway."""
-    return NotificationService(email_gateway=InMemoryEmailGateway())
+    """Return the process-wide notification service, on the gateway chosen by the settings.
+
+    E-mail is optional: SES when ``SES_FROM_EMAIL`` is configured, the in-memory gateway in
+    development/tests, and no e-mail at all otherwise.
+    """
+    return NotificationService(email_gateway=build_email_gateway(get_settings()))
 
 
 def get_identity_repository(db: DbSession) -> IdentityRepository:

@@ -28,12 +28,15 @@ from app.services.instructor_document_service import (
     InstructorDocumentService,
 )
 from app.services.notification_service import (
+    BackgroundEmailGateway,
+    DisabledEmailGateway,
     InMemoryEmailGateway,
     NotificationDispatchResult,
     NotificationEvent,
     NotificationPayload,
     NotificationService,
     SESEmailGateway,
+    build_email_gateway,
 )
 from app.services.penalty_service import PenaltyService
 from app.services.profile_service import ProfileService
@@ -48,12 +51,14 @@ from app.services.slot_service import SlotOverlapError, SlotService
 __all__ = [
     "AdminValidationService",
     "AuthService",
+    "BackgroundEmailGateway",
     "BookingAccessError",
     "BookingLockService",
     "BookingMessageAccessError",
     "BookingMessageService",
     "BookingScheduler",
     "BookingService",
+    "DisabledEmailGateway",
     "DocumentCleanupService",
     "DocumentTooLargeError",
     "DocumentValidationError",
@@ -80,4 +85,5 @@ __all__ = [
     "SlotValidationError",
     "SqlAlchemySlotReservationStore",
     "UserNotFoundError",
+    "build_email_gateway",
 ]
