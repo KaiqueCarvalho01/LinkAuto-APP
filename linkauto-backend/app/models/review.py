@@ -1,3 +1,5 @@
+"""Review model for rating the other party of a booking."""
+
 from __future__ import annotations
 
 from sqlalchemy import ForeignKey, Index, Integer, String, Text, UniqueConstraint
@@ -7,6 +9,11 @@ from app.models.base import AuditUUIDBase
 
 
 class Review(AuditUUIDBase):
+    """Rating and optional comment left by one user about another for a booking.
+
+    Each reviewer can review a given booking only once.
+    """
+
     __tablename__ = "reviews"
 
     booking_id: Mapped[str] = mapped_column(

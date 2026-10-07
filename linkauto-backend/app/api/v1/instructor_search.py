@@ -1,45 +1,35 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+"""Public instructor search endpoint."""
 
-from app.core.database import get_db
+from typing import TYPE_CHECKING, Annotated
+
+from fastapi import APIRouter, Query, Response
+
+from app.api.deps.types import DbSession
 from app.core.slug import generate_profile_slug
 from app.schemas.common import success_response
+from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
+
+if TYPE_CHECKING:
+    from app.models.user import InstructorProfile
 
 router = APIRouter(tags=["Instructor Search"])
 
 
 @router.get("/instructors/search")
 def search_instructors(
-    latitude: float = Query(..., description="Latitude do aluno"),
-    longitude: float = Query(..., description="Longitude do aluno"),
-    radius_km: float = Query(20.0, ge=1, le=100),
-    min_rating: float | None = Query(None, ge=0, le=5),
-    max_price: float | None = Query(None, ge=0),
-    specialties: list[str] | None = Query(None, description="Filtro de especialidades"),
-    sort_by: str | None = Query("distance", pattern="^(rating|price_asc|price_desc|distance)$"),
-    db: Session = Depends(get_db),
-):
-    # Parse potential comma-separated specialties in query params
-    cleaned_specialties: list[str] = []
-    if specialties:
-        for s in specialties:
-            for part in s.split(","):
-                if part.strip():
-                    cleaned_specialties.append(part.strip())
+    filters: Annotated[InstructorSearchFilters, Query()],
+    db: DbSession,
+) -> Response:
+    """Search approved, active instructors within a radius of a location.
 
-    service = InstructorSearchService(db)
-    results = service.search(
-        latitude=latitude,
-        longitude=longitude,
-        radius_km=radius_km,
-        min_rating=min_rating,
-        max_price=max_price,
-        specialties=cleaned_specialties if cleaned_specialties else None,
-        sort_by=sort_by,
-    )
+    Public. Supports filtering by minimum rating, maximum hourly price and
+    specialties, and sorting by distance (default), rating or price. Instructors are
+    identified by their public slug, never by internal ID.
+    """
+    results = InstructorSearchService(db).search(filters)
 
-    def _resolve_slug(p) -> str:
+    def _resolve_slug(p: InstructorProfile) -> str:
         if not p.slug:
             p.slug = generate_profile_slug(p.full_name, p.city, default_prefix="instrutor")
             db.flush()

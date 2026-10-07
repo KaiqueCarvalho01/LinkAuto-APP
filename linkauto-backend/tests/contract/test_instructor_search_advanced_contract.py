@@ -1,14 +1,31 @@
+from typing import TYPE_CHECKING
+
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
 
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session
 
-def _seed_contract_instructors(db_session):
+
+def _seed_contract_instructors(db_session: Session) -> None:
     instructors_data = [
-        ("c-inst-1", "Carlos Baliza", -22.4319, -46.9578, ["Baliza", "Direção Defensiva"], 80.0, 4.9, 25),
+        (
+            "c-inst-1",
+            "Carlos Baliza",
+            -22.4319,
+            -46.9578,
+            ["Baliza", "Direção Defensiva"],
+            80.0,
+            4.9,
+            25,
+        ),
         ("c-inst-2", "Ana Rodovia", -22.4400, -46.9600, ["Rodovias", "Baliza"], 110.0, 5.0, 40),
         ("c-inst-3", "Marcos Geral", -22.4200, -46.9400, ["Primeira Habilitação"], 70.0, 4.2, 10),
     ]
     for uid, name, lat, lon, specs, price, rating, count in instructors_data:
-        user = User(id=uid, email=f"{uid}@test.com", password_hash="hash", roles=[UserRole.INSTRUTOR.value])
+        user = User(
+            id=uid, email=f"{uid}@test.com", password_hash="hash", roles=[UserRole.INSTRUTOR.value]
+        )
         profile = InstructorProfile(
             user_id=uid,
             full_name=name,
@@ -30,7 +47,7 @@ def _seed_contract_instructors(db_session):
 
 
 class TestInstructorSearchAdvancedContract:
-    def test_search_with_specialty_and_sort(self, client, db_session):
+    def test_search_with_specialty_and_sort(self, client: TestClient, db_session: Session) -> None:
         _seed_contract_instructors(db_session)
 
         resp = client.get(
@@ -50,7 +67,9 @@ class TestInstructorSearchAdvancedContract:
         assert "c-inst-1" not in str(data)
         assert "c-inst-2" not in str(data)
 
-    def test_search_with_multiple_specialties(self, client, db_session):
+    def test_search_with_multiple_specialties(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _seed_contract_instructors(db_session)
 
         resp = client.get(

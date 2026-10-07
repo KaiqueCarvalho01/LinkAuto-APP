@@ -1,26 +1,57 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, override
 
 from app.domain.booking import BookingStatus
-from app.models.booking import Booking
+from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot, SlotStatus
-from app.models.booking import BookingSlot
 from app.models.user import (
-    DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
+    DetranStatus,
+    InstructorProfile,
+    StudentProfile,
+    User,
+    UserRole,
 )
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
-from app.services.booking_scheduler import BookingScheduler
+from app.services.booking_scheduler import BookingAutomationPort, BookingScheduler
+from app.services.notification_service import InMemoryEmailGateway, NotificationService
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
-def _seed_full_booking(db_session, status, starts_offset_hours, booking_id="book-auto"):
-    inst = User(id="auto-inst", email="autoinst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
-    inst_p = InstructorProfile(user_id="auto-inst", full_name="I", phone="1", city="C", state="SP", detran_status=DetranStatus.APROVADO)
-    stu = User(id="auto-stu", email="autostu@t.com", password_hash="h", roles=[UserRole.ALUNO.value])
+def _seed_full_booking(
+    db_session: Session, status: str, starts_offset_hours: int, booking_id: str = "book-auto"
+) -> Booking:
+    inst = User(
+        id="auto-inst", email="autoinst@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
+    )
+    inst_p = InstructorProfile(
+        user_id="auto-inst",
+        full_name="I",
+        phone="1",
+        city="C",
+        state="SP",
+        detran_status=DetranStatus.APROVADO,
+    )
+    stu = User(
+        id="auto-stu", email="autostu@t.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
     stu_p = StudentProfile(user_id="auto-stu", full_name="S", phone="2", city="C", state="SP")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     base = now + timedelta(hours=starts_offset_hours)
-    slot1 = Slot(instructor_id="auto-inst", starts_at=base, ends_at=base + timedelta(hours=1), status=SlotStatus.RESERVADO.value)
-    slot2 = Slot(instructor_id="auto-inst", starts_at=base + timedelta(hours=1), ends_at=base + timedelta(hours=2), status=SlotStatus.RESERVADO.value)
+    slot1 = Slot(
+        instructor_id="auto-inst",
+        starts_at=base,
+        ends_at=base + timedelta(hours=1),
+        status=SlotStatus.RESERVADO.value,
+    )
+    slot2 = Slot(
+        instructor_id="auto-inst",
+        starts_at=base + timedelta(hours=1),
+        ends_at=base + timedelta(hours=2),
+        status=SlotStatus.RESERVADO.value,
+    )
 
     # Set created_at to 48 hours ago for pending timeout testing
     booking = Booking(
@@ -33,17 +64,21 @@ def _seed_full_booking(db_session, status, starts_offset_hours, booking_id="book
     db_session.add_all([inst, inst_p, stu, stu_p, slot1, slot2, booking])
     db_session.flush()
 
-    db_session.add_all([
-        BookingSlot(booking_id=booking.id, slot_id=slot1.id),
-        BookingSlot(booking_id=booking.id, slot_id=slot2.id),
-    ])
+    db_session.add_all(
+        [
+            BookingSlot(booking_id=booking.id, slot_id=slot1.id),
+            BookingSlot(booking_id=booking.id, slot_id=slot2.id),
+        ]
+    )
     db_session.flush()
     return booking
 
 
 class TestBookingAutomationPort:
-    def test_pending_timeout_cancels_old_bookings(self, db_session):
-        booking = _seed_full_booking(db_session, BookingStatus.PENDENTE.value, starts_offset_hours=-48)
+    def test_pending_timeout_cancels_old_bookings(self, db_session: Session) -> None:
+        booking = _seed_full_booking(
+            db_session, BookingStatus.PENDENTE.value, starts_offset_hours=-48
+        )
         port = SqlAlchemyBookingAutomationPort(db_session)
         scheduler = BookingScheduler(port)
 
@@ -53,8 +88,10 @@ class TestBookingAutomationPort:
         assert booking.status == BookingStatus.CANCELADA.value
         assert result.processed == 1
 
-    def test_confirmed_completion_after_2h(self, db_session):
-        booking = _seed_full_booking(db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=-6)
+    def test_confirmed_completion_after_2h(self, db_session: Session) -> None:
+        booking = _seed_full_booking(
+            db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=-6
+        )
         port = SqlAlchemyBookingAutomationPort(db_session)
         scheduler = BookingScheduler(port)
 
@@ -64,14 +101,18 @@ class TestBookingAutomationPort:
         assert booking.status == BookingStatus.REALIZADA.value
         assert result.processed == 1
 
+    def test_lesson_reminder_cron_triggers(self, db_session: Session) -> None:
 
-    def test_lesson_reminder_cron_triggers(self, db_session):
-        from app.services.notification_service import NotificationService, InMemoryEmailGateway
         gateway = InMemoryEmailGateway()
         notification_svc = NotificationService(email_gateway=gateway)
 
-        booking = _seed_full_booking(db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=24, booking_id="book-reminder")
-        
+        booking = _seed_full_booking(
+            db_session,
+            BookingStatus.CONFIRMADA.value,
+            starts_offset_hours=24,
+            booking_id="book-reminder",
+        )
+
         port = SqlAlchemyBookingAutomationPort(db_session)
         scheduler = BookingScheduler(port, notification_service=notification_svc)
 
@@ -80,7 +121,7 @@ class TestBookingAutomationPort:
         db_session.refresh(booking)
         assert booking.reminder_sent is True
         assert result.processed == 1
-        
+
         # Verify emails sent to both student and instructor
         assert len(gateway.sent_messages) == 1
         email = gateway.sent_messages[0]
@@ -90,42 +131,47 @@ class TestBookingAutomationPort:
         assert "Lembrete" in email["subject"]
 
 
-class FailingBookingAutomationPort:
+class FailingBookingAutomationPort(BookingAutomationPort):
+    @override
     def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
         return ["book-failed", "book-success"]
 
+    @override
     def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
         if booking_id == "book-failed":
-            raise RuntimeError("Database connection timed out for this item")
-        return
+            msg = "Database connection timed out for this item"
+            raise RuntimeError(msg)
 
+    @override
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
         return []
 
+    @override
     def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
         return []
 
+    @override
     def mark_reminder_sent(self, booking_id: str) -> None:
         pass
 
+    @override
     def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
         return None, None
 
 
-def test_scheduler_pending_timeout_resilience_per_item():
-    """
-    D13 - P2: Resiliência per-item no scheduler.
+def test_scheduler_pending_timeout_resilience_per_item() -> None:
+    """D13 - P2: Resiliência per-item no scheduler.
+
     Garante que se uma transição de booking falhar, o lote continue sendo processado
     para os próximos itens, retornando contadores adequados de processados e falhos.
     """
     port = FailingBookingAutomationPort()
     scheduler = BookingScheduler(port)
-    
+
     result = scheduler.run_pending_timeout()
-    
+
     # Deve reportar 1 processado com sucesso, 1 falhado
     assert result.processed == 1
     assert result.failed == 1
     assert result.booking_ids == ["book-success"]
     assert result.failed_booking_ids == ["book-failed"]
-

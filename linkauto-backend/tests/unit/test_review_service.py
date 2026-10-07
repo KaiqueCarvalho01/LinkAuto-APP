@@ -1,19 +1,32 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 from app.models.booking import Booking
-from app.models.user import User, InstructorProfile, StudentProfile
 from app.models.review import Review
-from app.services.review_service import ReviewService, ReviewAccessError, ReviewStateError, ReviewDuplicateError
-from app.services.notification_service import NotificationService, InMemoryEmailGateway
+from app.models.user import InstructorProfile, StudentProfile, User
+from app.services.notification_service import InMemoryEmailGateway, NotificationService
+from app.services.review_service import (
+    ReviewAccessError,
+    ReviewDuplicateError,
+    ReviewService,
+    ReviewStateError,
+)
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 @pytest.fixture
-def mock_notification_service():
+def mock_notification_service() -> tuple[NotificationService, InMemoryEmailGateway]:
     gateway = InMemoryEmailGateway()
     return NotificationService(email_gateway=gateway), gateway
 
 
-def test_create_review_valid_student_to_instructor(db_session, mock_notification_service):
+def test_create_review_valid_student_to_instructor(
+    db_session: Session,
+    mock_notification_service: tuple[NotificationService, InMemoryEmailGateway],
+) -> None:
     """create_review creates review, updates instructor average and dispatches notification."""
     notification_svc, gateway = mock_notification_service
 
@@ -44,13 +57,13 @@ def test_create_review_valid_student_to_instructor(db_session, mock_notification
     db_session.flush()
 
     service = ReviewService(db_session, notification_service=notification_svc)
-    
+
     review = service.create_review(
         booking_id="booking-123",
         reviewer_id="student-1",
         rating=5,
         comment="Excelente!",
-        recipient_email="instructor@test.com"
+        recipient_email="instructor@test.com",
     )
 
     assert review.id is not None
@@ -73,7 +86,7 @@ def test_create_review_valid_student_to_instructor(db_session, mock_notification
     assert "5" in email["body"]
 
 
-def test_create_review_rejects_non_realizada_booking(db_session):
+def test_create_review_rejects_non_realizada_booking(db_session: Session) -> None:
     """create_review raises error if booking status is not REALIZADA."""
     booking = Booking(
         id="booking-123",
@@ -85,7 +98,7 @@ def test_create_review_rejects_non_realizada_booking(db_session):
     db_session.flush()
 
     service = ReviewService(db_session)
-    
+
     with pytest.raises(ReviewStateError):
         service.create_review(
             booking_id="booking-123",
@@ -95,7 +108,7 @@ def test_create_review_rejects_non_realizada_booking(db_session):
         )
 
 
-def test_create_review_rejects_duplicate_submission(db_session):
+def test_create_review_rejects_duplicate_submission(db_session: Session) -> None:
     """create_review raises error if reviewer already submitted a review for this booking."""
     booking = Booking(
         id="booking-123",
@@ -117,7 +130,7 @@ def test_create_review_rejects_duplicate_submission(db_session):
     db_session.flush()
 
     service = ReviewService(db_session)
-    
+
     with pytest.raises(ReviewDuplicateError):
         service.create_review(
             booking_id="booking-123",
@@ -127,7 +140,7 @@ def test_create_review_rejects_duplicate_submission(db_session):
         )
 
 
-def test_create_review_rejects_unauthorized_user(db_session):
+def test_create_review_rejects_unauthorized_user(db_session: Session) -> None:
     """create_review raises error if reviewer is not part of the booking."""
     booking = Booking(
         id="booking-123",
@@ -139,7 +152,7 @@ def test_create_review_rejects_unauthorized_user(db_session):
     db_session.flush()
 
     service = ReviewService(db_session)
-    
+
     with pytest.raises(ReviewAccessError):
         service.create_review(
             booking_id="booking-123",

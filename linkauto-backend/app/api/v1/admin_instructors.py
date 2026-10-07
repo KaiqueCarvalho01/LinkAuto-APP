@@ -1,48 +1,68 @@
+"""Admin endpoints for reviewing instructor credentials."""
+
 from __future__ import annotations
+
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
 
-from app.api.deps import AuthenticatedUser, require_roles
+from app.api.deps.types import CurrentAdmin
+from app.core.security_logger import log_admin_action
+from app.schemas.common import success_response
 from app.services.admin_validation_service import AdminValidationService
 from app.services.dependencies import get_admin_validation_service
-from app.schemas.common import success_response
-from app.core.security_logger import log_admin_action
 
 router = APIRouter(prefix="/admin/instructors", tags=["admin-instructors"])
 
 
 class RejectInstructorRequest(BaseModel):
+    """Payload for rejecting an instructor, with an optional reason."""
+
     reason: str | None = None
 
 
 @router.get("")
 def list_instructors(
-    status_filter: str | None = Query(default=None, alias="status"),
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-    _: AuthenticatedUser = Depends(require_roles("ADMIN")),
-    service: AdminValidationService = Depends(get_admin_validation_service),
+    _: CurrentAdmin,
+    service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
+    status_filter: Annotated[str | None, Query(alias="status")] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> Response:
+    """List instructors with pagination, optionally filtered by validation status.
+
+    Requires the ADMIN role. Pagination details are returned in `meta.pagination`.
+    """
     result = service.list_instructors(status=status_filter, page=page, page_size=page_size)
     return success_response(
         result["items"],
-        meta={"pagination": {"page": result["page"], "page_size": result["page_size"], "total": result["total"]}},
+        meta={
+            "pagination": {
+                "page": result["page"],
+                "page_size": result["page_size"],
+                "total": result["total"],
+            }
+        },
     )
 
 
 @router.patch("/{instructor_id}/approve")
 def approve_instructor(
     instructor_id: str,
-    admin_user: AuthenticatedUser = Depends(require_roles("ADMIN")),
-    service: AdminValidationService = Depends(get_admin_validation_service),
+    admin_user: CurrentAdmin,
+    service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
 ) -> Response:
+    """Approve an instructor's credentials.
+
+    Requires the ADMIN role. Marks the instructor as APROVADO, purges the uploaded
+    documents, notifies the instructor and returns the updated user. Returns 404
+    when the instructor does not exist.
+    """
     try:
         result = service.approve(instructor_id=instructor_id, admin_id=admin_user.user_id)
         log_admin_action(
-            admin_id=admin_user.user_id,
-            action="approve_instructor",
-            target_id=instructor_id
+            admin_id=admin_user.user_id, action="approve_instructor", target_id=instructor_id
         )
     except ValueError as exc:
         raise HTTPException(
@@ -56,9 +76,15 @@ def approve_instructor(
 def reject_instructor(
     instructor_id: str,
     payload: RejectInstructorRequest,
-    admin_user: AuthenticatedUser = Depends(require_roles("ADMIN")),
-    service: AdminValidationService = Depends(get_admin_validation_service),
+    admin_user: CurrentAdmin,
+    service: Annotated[AdminValidationService, Depends(get_admin_validation_service)],
 ) -> Response:
+    """Reject an instructor's credentials.
+
+    Requires the ADMIN role. Marks the instructor as REJEITADO with the optional
+    reason, purges the uploaded documents, notifies the instructor and returns the
+    updated user. Returns 404 when the instructor does not exist.
+    """
     try:
         result = service.reject(
             instructor_id=instructor_id,
@@ -66,9 +92,7 @@ def reject_instructor(
             reason=payload.reason,
         )
         log_admin_action(
-            admin_id=admin_user.user_id,
-            action="reject_instructor",
-            target_id=instructor_id
+            admin_id=admin_user.user_id, action="reject_instructor", target_id=instructor_id
         )
     except ValueError as exc:
         raise HTTPException(

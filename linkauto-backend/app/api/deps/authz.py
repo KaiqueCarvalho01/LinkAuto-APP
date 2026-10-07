@@ -1,17 +1,27 @@
+"""Role-based authorization dependency factory."""
+
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import Depends, HTTPException, status
 
 from app.api.deps.authn import AuthenticatedUser, get_current_user
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 def require_roles(*allowed_roles: str) -> Callable[[AuthenticatedUser], AuthenticatedUser]:
+    """Build a dependency that admits users holding any of the given roles.
+
+    The dependency authenticates the request first (401 on failure) and raises
+    403 when the user has none of the allowed roles.
+    """
     allowed = set(allowed_roles)
 
     def role_dependency(
-        current_user: AuthenticatedUser = Depends(get_current_user),
+        current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
     ) -> AuthenticatedUser:
         if allowed.intersection(current_user.roles):
             return current_user

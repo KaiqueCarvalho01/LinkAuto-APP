@@ -1,31 +1,44 @@
+"""Authentication endpoints: registration, login, token refresh, password reset."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
-from app.core import Settings, get_settings
+from app.api.deps.types import AppSettings
+from app.core.rate_limit import limiter
+from app.core.security_logger import log_auth_failure, log_auth_success
+from app.schemas.common import success_response
 from app.services.auth_service import AuthService
 from app.services.dependencies import get_auth_service, get_profile_service
 from app.services.profile_service import ProfileService
-from app.schemas.common import success_response
-from app.core.security_logger import log_auth_success, log_auth_failure
-from app.core.rate_limit import limiter
+
+if TYPE_CHECKING:
+    from app.core import Settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class RegisterRequest(BaseModel):
+    """Credentials and requested roles for a new account."""
+
     email: str = Field(min_length=3)
     password: str = Field(min_length=8)
     roles: list[str] = Field(min_length=1)
 
 
 class LoginRequest(BaseModel):
+    """Email and password credentials for logging in."""
+
     email: str = Field(min_length=3)
     password: str = Field(min_length=1)
 
 
 class PasswordResetRequest(BaseModel):
+    """Email address of the account requesting a password reset."""
+
     email: str = Field(min_length=3)
 
 
@@ -46,13 +59,20 @@ def _set_refresh_cookie(
 @router.post("/register")
 @limiter.limit("5/minute")
 def register(
-    request: Request,
+    request: Request,  # noqa: ARG001 - required by slowapi's @limiter.limit
     payload: RegisterRequest,
-    auth_service: AuthService = Depends(get_auth_service),
-    profile_service: ProfileService = Depends(get_profile_service),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
+    """Register a new user account and return its profile.
+
+    Public; rate-limited to 5 requests per minute. Registering with the ADMIN role
+    is not allowed. Returns 400 for a duplicate email, unsupported or forbidden roles.
+    """
     try:
-        user = auth_service.register(email=payload.email, password=payload.password, roles=payload.roles)
+        user = auth_service.register(
+            email=payload.email, password=payload.password, roles=payload.roles
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -66,9 +86,15 @@ def register(
 def login(
     payload: LoginRequest,
     request: Request,
-    auth_service: AuthService = Depends(get_auth_service),
-    settings: Settings = Depends(get_settings),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: AppSettings,
 ) -> Response:
+    """Authenticate with email and password and issue tokens.
+
+    Public; rate-limited to 10 requests per minute. Returns a bearer access token in
+    the body and sets the refresh token as an HTTP-only cookie scoped to the refresh
+    endpoint. Returns 401 for invalid credentials.
+    """
     client_ip = request.client.host if request.client else "unknown"
     try:
         tokens = auth_service.login(email=payload.email, password=payload.password)
@@ -87,7 +113,9 @@ def login(
             "expires_in": settings.jwt_access_minutes * 60,
         }
     )
-    _set_refresh_cookie(response, refresh_token=tokens.refresh_token, request=request, settings=settings)
+    _set_refresh_cookie(
+        response, refresh_token=tokens.refresh_token, request=request, settings=settings
+    )
     return response
 
 
@@ -95,10 +123,16 @@ def login(
 @limiter.limit("20/minute")
 def refresh(
     request: Request,
-    refresh_token: str | None = Cookie(default=None),
-    auth_service: AuthService = Depends(get_auth_service),
-    settings: Settings = Depends(get_settings),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: AppSettings,
+    refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> Response:
+    """Issue a new access token using the refresh token cookie.
+
+    Rate-limited to 20 requests per minute. The refresh token is rotated and the new
+    one is set as a cookie. Returns 401 when the cookie is missing or the token is
+    invalid.
+    """
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -119,16 +153,23 @@ def refresh(
             "expires_in": settings.jwt_access_minutes * 60,
         }
     )
-    _set_refresh_cookie(response, refresh_token=tokens.refresh_token, request=request, settings=settings)
+    _set_refresh_cookie(
+        response, refresh_token=tokens.refresh_token, request=request, settings=settings
+    )
     return response
 
 
 @router.post("/password-reset")
 @limiter.limit("3/minute")
 def password_reset(
-    request: Request,
+    request: Request,  # noqa: ARG001 - required by slowapi's @limiter.limit
     payload: PasswordResetRequest,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Response:
+    """Accept a password reset request for the given email.
+
+    Public; rate-limited to 3 requests per minute. Always returns 202 so that the
+    response does not reveal whether the email is registered.
+    """
     auth_service.trigger_password_reset(email=payload.email)
     return success_response({"status": "accepted"}, status_code=status.HTTP_202_ACCEPTED)

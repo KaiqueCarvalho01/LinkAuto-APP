@@ -1,26 +1,43 @@
 import pytest
 
-from app.domain.booking import BookingStatus, BookingTransitionError, can_transition, transition_booking
+from app.domain.booking import (
+    BookingStatus,
+    BookingTransitionError,
+    can_transition,
+    transition_booking,
+)
 
 
-def test_allows_valid_transitions():
-    assert transition_booking(BookingStatus.PENDENTE, BookingStatus.CONFIRMADA) == BookingStatus.CONFIRMADA
-    assert transition_booking(BookingStatus.PENDENTE, BookingStatus.CANCELADA) == BookingStatus.CANCELADA
-    assert transition_booking(BookingStatus.CONFIRMADA, BookingStatus.CANCELADA) == BookingStatus.CANCELADA
-    assert transition_booking(BookingStatus.CONFIRMADA, BookingStatus.REALIZADA) == BookingStatus.REALIZADA
+def test_allows_valid_transitions() -> None:
+    assert (
+        transition_booking(BookingStatus.PENDENTE, BookingStatus.CONFIRMADA)
+        == BookingStatus.CONFIRMADA
+    )
+    assert (
+        transition_booking(BookingStatus.PENDENTE, BookingStatus.CANCELADA)
+        == BookingStatus.CANCELADA
+    )
+    assert (
+        transition_booking(BookingStatus.CONFIRMADA, BookingStatus.CANCELADA)
+        == BookingStatus.CANCELADA
+    )
+    assert (
+        transition_booking(BookingStatus.CONFIRMADA, BookingStatus.REALIZADA)
+        == BookingStatus.REALIZADA
+    )
 
 
-def test_blocks_invalid_transition_from_pending_to_realizada():
+def test_blocks_invalid_transition_from_pending_to_realizada() -> None:
     with pytest.raises(BookingTransitionError):
         transition_booking(BookingStatus.PENDENTE, BookingStatus.REALIZADA)
 
 
-def test_blocks_invalid_transition_from_terminal_without_admin_override():
+def test_blocks_invalid_transition_from_terminal_without_admin_override() -> None:
     with pytest.raises(BookingTransitionError):
         transition_booking(BookingStatus.CANCELADA, BookingStatus.REALIZADA)
 
 
-def test_allows_terminal_admin_override_for_operational_correction():
+def test_allows_terminal_admin_override_for_operational_correction() -> None:
     assert can_transition(
         BookingStatus.CANCELADA,
         BookingStatus.REALIZADA,

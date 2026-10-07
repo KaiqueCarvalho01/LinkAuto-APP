@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -8,16 +8,16 @@ from app.schemas.review import ReviewCreateRequest, ReviewResource
 
 
 class TestBookingMessageSchemas:
-    def test_message_create_valid(self):
+    def test_message_create_valid(self) -> None:
         req = BookingMessageCreateRequest(content="Olá, tudo bem?")
         assert req.content == "Olá, tudo bem?"
 
-    def test_message_create_rejects_empty(self):
+    def test_message_create_rejects_empty(self) -> None:
         with pytest.raises(ValidationError):
             BookingMessageCreateRequest(content="")
 
-    def test_message_resource_serialization(self):
-        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=timezone.utc)
+    def test_message_resource_serialization(self) -> None:
+        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=UTC)
         res = MessageResource(
             id="msg-uuid-placeholder",
             booking_id="booking-uuid-placeholder",
@@ -31,23 +31,23 @@ class TestBookingMessageSchemas:
 
 
 class TestReviewSchemas:
-    def test_review_create_valid(self):
+    def test_review_create_valid(self) -> None:
         req = ReviewCreateRequest(rating=5, comment="Excelente aula!")
         assert req.rating == 5
         assert req.comment == "Excelente aula!"
 
-    def test_review_create_rejects_invalid_rating(self):
+    def test_review_create_rejects_invalid_rating(self) -> None:
         with pytest.raises(ValidationError):
             ReviewCreateRequest(rating=0)
         with pytest.raises(ValidationError):
             ReviewCreateRequest(rating=6)
 
-    def test_review_create_rejects_too_long_comment(self):
+    def test_review_create_rejects_too_long_comment(self) -> None:
         with pytest.raises(ValidationError):
             ReviewCreateRequest(rating=5, comment="A" * 1001)
 
-    def test_review_resource_serialization(self):
-        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=timezone.utc)
+    def test_review_resource_serialization(self) -> None:
+        dt = datetime(2026, 5, 28, 15, 30, 0, tzinfo=UTC)
         res = ReviewResource(
             id="rev-uuid-placeholder",
             booking_id="booking-uuid-placeholder",

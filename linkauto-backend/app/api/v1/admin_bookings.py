@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+"""Admin endpoints for overriding booking status."""
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.api.deps.authz import require_roles
-from app.core.database import get_db
+from fastapi import APIRouter, HTTPException, Response
+
+from app.api.deps.types import CurrentAdmin, DbSession
 from app.domain.booking import BookingTransitionError
 from app.schemas.booking import BookingAdminOverrideRequest, BookingResource
 from app.schemas.common import success_response
@@ -16,10 +15,18 @@ router = APIRouter(tags=["Admin Bookings"])
 def admin_override_booking(
     booking_id: str,
     body: BookingAdminOverrideRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
-):
+    current_user: CurrentAdmin,
+    db: DbSession,
+) -> Response:
+    """Force a booking into a terminal status (REALIZADA or CANCELADA).
+
+    Requires the ADMIN role. The reason is required (min. 3 characters) and is echoed
+    in the response metadata with the admin's user ID. Unlike regular transitions,
+    an admin may move a booking between the two terminal statuses.
+
+    Returns 404 when the booking does not exist and 422 when the transition is not
+    allowed or the body is invalid.
+    """
     service = AdminBookingService(db)
     try:
         booking = service.override_status(booking_id, body.status, body.reason)
@@ -29,6 +36,8 @@ def admin_override_booking(
             meta={"overridden_by": current_user.user_id, "reason": body.reason},
         )
     except BookingTransitionError as e:
-        raise HTTPException(status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)})
+        raise HTTPException(
+            status_code=422, detail={"code": "INVALID_TRANSITION", "message": str(e)}
+        ) from e
     except ValueError as e:
-        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)})
+        raise HTTPException(status_code=404, detail={"code": "NOT_FOUND", "message": str(e)}) from e

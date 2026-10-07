@@ -1,21 +1,28 @@
+"""User account and student/instructor profile models with related enums."""
+
 from __future__ import annotations
 
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
-from sqlalchemy import Boolean, Enum as SqlEnum, ForeignKey, JSON, Numeric, String
+from sqlalchemy import JSON, Boolean, ForeignKey, Numeric, String
+from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import AuditTimestampsMixin, AuditUUIDBase, Base
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
+    """Role of a user account: student (ALUNO), instructor (INSTRUTOR) or administrator."""
+
     ALUNO = "ALUNO"
     INSTRUTOR = "INSTRUTOR"
     ADMIN = "ADMIN"
 
 
-class LicenseType(str, Enum):
+class LicenseType(StrEnum):
+    """Driver's license category held by a student: none, A-E, AB or in process."""
+
     NENHUMA = "NENHUMA"
     A = "A"
     B = "B"
@@ -26,13 +33,20 @@ class LicenseType(str, Enum):
     EM_PROCESSO = "EM_PROCESSO"
 
 
-class DetranStatus(str, Enum):
+class DetranStatus(StrEnum):
+    """Admin validation status of an instructor's DETRAN credentials."""
+
     PENDENTE = "PENDENTE"
     APROVADO = "APROVADO"
     REJEITADO = "REJEITADO"
 
 
 class User(AuditUUIDBase):
+    """User account with unique email, password hash and list of roles (``users`` table).
+
+    Owns at most one student profile and one instructor profile.
+    """
+
     __tablename__ = "users"
 
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
@@ -49,14 +63,14 @@ class User(AuditUUIDBase):
 
 
 class StudentProfile(Base, AuditTimestampsMixin):
+    """Student profile keyed by its user ID, with an optional unique public slug."""
+
     __tablename__ = "student_profiles"
 
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-    slug: Mapped[str | None] = mapped_column(
-        String(150), unique=True, index=True, nullable=True
-    )
+    slug: Mapped[str | None] = mapped_column(String(150), unique=True, index=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)
@@ -70,14 +84,18 @@ class StudentProfile(Base, AuditTimestampsMixin):
 
 
 class InstructorProfile(Base, AuditTimestampsMixin):
+    """Instructor profile keyed by its user ID, with an optional unique public slug.
+
+    Holds public listing data (bio, specialties, hourly price, service radius, location),
+    the DETRAN validation status and the aggregated rating.
+    """
+
     __tablename__ = "instructor_profiles"
 
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-    slug: Mapped[str | None] = mapped_column(
-        String(150), unique=True, index=True, nullable=True
-    )
+    slug: Mapped[str | None] = mapped_column(String(150), unique=True, index=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)

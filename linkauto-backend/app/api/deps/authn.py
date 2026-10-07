@@ -1,4 +1,8 @@
+"""Bearer-token authentication dependency."""
+
 from __future__ import annotations
+
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -11,6 +15,8 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 class AuthenticatedUser(BaseModel):
+    """Identity extracted from a validated access token."""
+
     user_id: str
     roles: list[str]
     token_type: str
@@ -24,11 +30,16 @@ def _unauthorized(message: str) -> HTTPException:
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
-    settings: Settings = Depends(get_settings),
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> AuthenticatedUser:
+    """Return the user identified by the request's bearer access token.
+
+    Raises 401 when the token is missing, invalid, expired or not an access token.
+    """
     if credentials is None:
-        raise _unauthorized("Missing bearer token.")
+        msg = "Missing bearer token."
+        raise _unauthorized(msg)
 
     try:
         payload = decode_token(credentials.credentials, settings, expected_type="access")

@@ -1,35 +1,68 @@
+from typing import TYPE_CHECKING
 
-from app.models.booking import Booking
-from app.models.user import User, StudentProfile, InstructorProfile, UserRole, DetranStatus
-from app.core.security import create_access_token
 from app.core.config import get_settings
+from app.core.security import create_access_token
+from app.models.booking import Booking
+from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session
 
 
-def _seed_auth_users(db_session):
+def _seed_auth_users(db_session: Session) -> tuple[str, str, str]:
     settings = get_settings()
-    student = User(id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value])
-    stu_profile = StudentProfile(user_id="student-1", full_name="Student", phone="1", city="C", state="SP")
-    
-    instructor = User(id="instructor-1", email="instructor@test.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
-    inst_profile = InstructorProfile(user_id="instructor-1", full_name="Instructor", phone="2", city="C", state="SP", detran_status=DetranStatus.APROVADO)
-    
-    intruder = User(id="intruder-1", email="intruder@test.com", password_hash="h", roles=[UserRole.ALUNO.value])
-    int_profile = StudentProfile(user_id="intruder-1", full_name="Intruder", phone="3", city="C", state="SP")
+    student = User(
+        id="student-1", email="student@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
+    stu_profile = StudentProfile(
+        user_id="student-1", full_name="Student", phone="1", city="C", state="SP"
+    )
+
+    instructor = User(
+        id="instructor-1",
+        email="instructor@test.com",
+        password_hash="h",
+        roles=[UserRole.INSTRUTOR.value],
+    )
+    inst_profile = InstructorProfile(
+        user_id="instructor-1",
+        full_name="Instructor",
+        phone="2",
+        city="C",
+        state="SP",
+        detran_status=DetranStatus.APROVADO,
+    )
+
+    intruder = User(
+        id="intruder-1", email="intruder@test.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
+    int_profile = StudentProfile(
+        user_id="intruder-1", full_name="Intruder", phone="3", city="C", state="SP"
+    )
 
     db_session.add_all([student, stu_profile, instructor, inst_profile, intruder, int_profile])
     db_session.flush()
 
-    student_token = create_access_token("student-1", settings=settings, roles=[UserRole.ALUNO.value])
-    instructor_token = create_access_token("instructor-1", settings=settings, roles=[UserRole.INSTRUTOR.value])
-    intruder_token = create_access_token("intruder-1", settings=settings, roles=[UserRole.ALUNO.value])
+    student_token = create_access_token(
+        "student-1", settings=settings, roles=[UserRole.ALUNO.value]
+    )
+    instructor_token = create_access_token(
+        "instructor-1", settings=settings, roles=[UserRole.INSTRUTOR.value]
+    )
+    intruder_token = create_access_token(
+        "intruder-1", settings=settings, roles=[UserRole.ALUNO.value]
+    )
 
     return student_token, instructor_token, intruder_token
 
 
-def test_booking_messages_endpoints_contract_and_auth(client, db_session):
-    """POST and GET /bookings/{id}/messages validate participants and return correctly formatted envelope."""
-    student_token, instructor_token, intruder_token = _seed_auth_users(db_session)
-    
+def test_booking_messages_endpoints_contract_and_auth(
+    client: TestClient, db_session: Session
+) -> None:
+    """POST and GET /bookings/{id}/messages validate participants and the response envelope."""
+    student_token, _, intruder_token = _seed_auth_users(db_session)
+
     # Create booking
     booking = Booking(
         id="booking-123",
@@ -79,10 +112,12 @@ def test_booking_messages_endpoints_contract_and_auth(client, db_session):
     assert json_data["data"][0]["created_at"].endswith("Z")
 
 
-def test_booking_reviews_endpoints_contract_and_auth(client, db_session):
-    """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce business rules and validate contract."""
-    student_token, instructor_token, intruder_token = _seed_auth_users(db_session)
-    
+def test_booking_reviews_endpoints_contract_and_auth(
+    client: TestClient, db_session: Session
+) -> None:
+    """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce rules and contract."""
+    student_token, _, intruder_token = _seed_auth_users(db_session)
+
     # Create non-realizada booking
     booking_pending = Booking(
         id="booking-pending",

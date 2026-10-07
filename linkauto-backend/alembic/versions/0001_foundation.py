@@ -1,11 +1,14 @@
-"""foundation bootstrap
+"""Foundation bootstrap.
 
 Revision ID: 0001_foundation
 Revises:
 Create Date: 2026-04-17 00:00:00.000000
 """
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 revision: str = "0001_foundation"
 down_revision: str | None = None

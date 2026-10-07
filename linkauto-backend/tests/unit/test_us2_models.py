@@ -1,13 +1,17 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
-from app.models.slot import Slot, SlotStatus
-from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.domain.booking import BookingStatus
+from app.models.booking import Booking, BookingSlot, StudentPenalty
+from app.models.slot import Slot, SlotStatus
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
-def test_slot_model_creation(db_session):
+def test_slot_model_creation(db_session: Session) -> None:
     """Slot model persists with required fields."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     slot = Slot(
         instructor_id="instructor-001",
         starts_at=now,
@@ -22,7 +26,7 @@ def test_slot_model_creation(db_session):
     assert slot.ends_at - slot.starts_at == timedelta(hours=1)
 
 
-def test_booking_model_creation(db_session):
+def test_booking_model_creation(db_session: Session) -> None:
     """Booking model persists with required fields and default status."""
     booking = Booking(
         student_id="student-001",
@@ -37,9 +41,9 @@ def test_booking_model_creation(db_session):
     assert booking.cancelled_by is None
 
 
-def test_booking_slot_association(db_session):
+def test_booking_slot_association(db_session: Session) -> None:
     """BookingSlot links a Booking to a Slot."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     slot = Slot(
         instructor_id="instructor-001",
         starts_at=now,
@@ -62,11 +66,11 @@ def test_booking_slot_association(db_session):
     assert link.slot_id == slot.id
 
 
-def test_student_penalty_model(db_session):
+def test_student_penalty_model(db_session: Session) -> None:
     """StudentPenalty persists with blocking date."""
     penalty = StudentPenalty(
         student_id="student-001",
-        blocked_until=datetime.now(timezone.utc) + timedelta(days=7),
+        blocked_until=datetime.now(UTC) + timedelta(days=7),
         reason="Cancelamento tardio conforme RN04",
     )
     db_session.add(penalty)

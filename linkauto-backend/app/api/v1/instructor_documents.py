@@ -1,15 +1,19 @@
+"""Endpoint for uploading instructor credential documents."""
+
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from typing import Annotated
 
-from app.api.deps import AuthenticatedUser, get_current_user
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
+
+from app.api.deps.types import CurrentUser
+from app.schemas.common import success_response
 from app.services.dependencies import get_instructor_document_service
 from app.services.instructor_document_service import (
     DocumentTooLargeError,
     DocumentValidationError,
     InstructorDocumentService,
 )
-from app.schemas.common import success_response
 
 router = APIRouter(prefix="/instructors", tags=["instructor-documents"])
 
@@ -17,15 +21,25 @@ router = APIRouter(prefix="/instructors", tags=["instructor-documents"])
 @router.post("/{instructor_id}/documents")
 async def upload_documents(
     instructor_id: str,
-    detran_credential: UploadFile = File(...),
-    criminal_record: UploadFile = File(...),
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    service: InstructorDocumentService = Depends(get_instructor_document_service),
-):
+    detran_credential: Annotated[UploadFile, File()],
+    criminal_record: Annotated[UploadFile, File()],
+    current_user: CurrentUser,
+    service: Annotated[InstructorDocumentService, Depends(get_instructor_document_service)],
+) -> Response:
+    """Upload an instructor's DETRAN credential and criminal record documents.
+
+    May be called by the instructor themself or by an ADMIN; any other caller gets
+    403. Each file must be a PDF, JPEG or PNG whose content matches its declared type
+    (400 otherwise) and at most 10 MB (413 otherwise). Returns 404 when the instructor
+    does not exist.
+    """
     if current_user.user_id != instructor_id and "ADMIN" not in current_user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "FORBIDDEN", "message": "Cannot upload documents for another instructor."},
+            detail={
+                "code": "FORBIDDEN",
+                "message": "Cannot upload documents for another instructor.",
+            },
         )
     try:
         result = await service.upload_documents(

@@ -1,12 +1,20 @@
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from typing import TYPE_CHECKING
 
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from app.core.database import get_db
+from app.main import create_app
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @pytest.fixture(scope="session")
-def test_engine():
+def test_engine() -> Iterator[Engine]:
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -16,8 +24,8 @@ def test_engine():
     engine.dispose()
 
 
-@pytest.fixture()
-def db_session(test_engine):
+@pytest.fixture
+def db_session(test_engine: Engine) -> Iterator[Session]:
     connection = test_engine.connect()
     transaction = connection.begin()
     session_factory = sessionmaker(bind=connection)
@@ -28,12 +36,8 @@ def db_session(test_engine):
     connection.close()
 
 
-@pytest.fixture()
-def client(db_session):
-    from fastapi.testclient import TestClient
-    from app.main import create_app
-    from app.core.database import get_db
-
+@pytest.fixture
+def client(db_session: Session) -> TestClient:
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db_session
     return TestClient(app)

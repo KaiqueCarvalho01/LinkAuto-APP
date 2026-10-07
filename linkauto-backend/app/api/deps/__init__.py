@@ -1,3 +1,5 @@
+"""FastAPI dependencies for authentication and authorization."""
+
 from app.api.deps.authn import AuthenticatedUser, get_current_user
 from app.api.deps.authz import require_roles
 

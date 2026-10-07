@@ -1,39 +1,56 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+"""Endpoints for booking reviews."""
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.core.database import get_db
+from typing import Annotated
+
+from fastapi import APIRouter, Query, Response
+
+from app.api.deps.types import CurrentUser, DbSession
 from app.models.booking import Booking
 from app.models.user import User
-from app.schemas.review import ReviewCreateRequest, ReviewResource
 from app.schemas.common import error_response, success_response
-from app.services.review_service import ReviewService, ReviewAccessError, ReviewStateError, ReviewDuplicateError
+from app.schemas.review import ReviewCreateRequest, ReviewResource
 from app.services.dependencies import get_notification_service
+from app.services.review_service import (
+    ReviewAccessError,
+    ReviewDuplicateError,
+    ReviewService,
+    ReviewStateError,
+)
 
 router = APIRouter(tags=["Reviews"])
 
 
-@router.post("/bookings/{id}/reviews", response_model=dict, status_code=201)
+@router.post("/bookings/{booking_id}/reviews", response_model=dict, status_code=201)
 def create_booking_review(
-    id: str,
+    booking_id: str,
     payload: ReviewCreateRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+    current_user: CurrentUser,
+    db: DbSession,
+) -> Response:
+    """Submit a review of the other participant of a completed booking.
+
+    Any authenticated user may call it, but only the booking's student or instructor
+    may review, once per booking. Reviewing the instructor updates their rating
+    average, and the reviewed user is notified by email. Returns 404 when the booking
+    does not exist, 409 when it is not REALIZADA or was already reviewed by the
+    caller, and 403 when the caller is not a participant.
+    """
     # Fetch booking to determine recipient
-    booking = db.query(Booking).filter(Booking.id == id).first()
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         return error_response(code="NOT_FOUND", message="Booking not found", status_code=404)
 
     # Determine recipient email
-    recipient_id = booking.instructor_id if current_user.user_id == booking.student_id else booking.student_id
+    recipient_id = (
+        booking.instructor_id if current_user.user_id == booking.student_id else booking.student_id
+    )
     recipient = db.query(User).filter(User.id == recipient_id).first()
     recipient_email = recipient.email if recipient else None
 
     service = ReviewService(db, notification_service=get_notification_service())
     try:
         review = service.create_review(
-            booking_id=id,
+            booking_id=booking_id,
             reviewer_id=current_user.user_id,
             rating=payload.rating,
             comment=payload.comment,
@@ -49,16 +66,20 @@ def create_booking_review(
         return error_response(code="NOT_FOUND", message=str(e), status_code=404)
 
 
-@router.get("/instructors/{id}/reviews", response_model=dict)
+@router.get("/instructors/{instructor_id}/reviews", response_model=dict)
 def list_instructor_reviews(
-    id: str,
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-    db: Session = Depends(get_db),
-):
+    instructor_id: str,
+    db: DbSession,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> Response:
+    """List reviews received by an instructor, newest first, paginated.
+
+    Public.
+    """
     service = ReviewService(db)
     reviews = service.list_instructor_reviews(
-        instructor_id=id,
+        instructor_id=instructor_id,
         page=page,
         page_size=page_size,
     )

@@ -1,8 +1,14 @@
+"""Logging setup with per-request correlation IDs."""
+
 import contextvars
 import logging
 import uuid
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from typing import TYPE_CHECKING
+
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+
+if TYPE_CHECKING:
+    from fastapi import Request, Response
 
 # ContextVar to store the correlation/trace ID async-safely
 correlation_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
@@ -12,17 +18,21 @@ correlation_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
 
 class CorrelationIDFilter(logging.Filter):
     """Logging filter to inject the current correlation ID into log records."""
-    def filter(self, record):
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Set ``record.correlation_id`` (or "no-trace") and always keep the record."""
         record.correlation_id = correlation_id_ctx.get() or "no-trace"
         return True
 
 
 class CorrelationIDMiddleware(BaseHTTPMiddleware):
     """FastAPI Middleware to manage the correlation ID context for each request."""
-    async def dispatch(self, request: Request, call_next):
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        """Bind the X-Correlation-ID header (or a new UUID4) to the request and echo it back."""
         # Extract from header or generate a new unique UUID4
         correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
-        
+
         # Set the context variable
         token = correlation_id_ctx.set(correlation_id)
         try:
@@ -35,8 +45,8 @@ class CorrelationIDMiddleware(BaseHTTPMiddleware):
             correlation_id_ctx.reset(token)
 
 
-def setup_logging():
-    """Configures the logging system with the trace/correlation ID filter and standard format."""
+def setup_logging() -> None:
+    """Configure logging with the trace/correlation ID filter and the standard format."""
     # Create the filter
     corr_filter = CorrelationIDFilter()
 
@@ -53,7 +63,7 @@ def setup_logging():
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
-    
+
     # Avoid duplicate handlers
     root_logger.handlers = [handler]
 

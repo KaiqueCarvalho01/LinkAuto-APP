@@ -1,3 +1,5 @@
+"""Framework-independent domain rules for LinkAuto (booking state machine)."""
+
 from app.domain.booking import (
     ALLOWED_TRANSITIONS,
     BookingStatus,
@@ -8,9 +10,9 @@ from app.domain.booking import (
 )
 
 __all__ = [
+    "ALLOWED_TRANSITIONS",
     "BookingStatus",
     "BookingTransitionError",
-    "ALLOWED_TRANSITIONS",
     "can_transition",
     "ensure_transition_allowed",
     "transition_booking",

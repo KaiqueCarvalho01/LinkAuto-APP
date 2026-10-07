@@ -1,6 +1,8 @@
+"""Instructor availability slot model and status enum."""
+
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -8,13 +10,17 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import AuditUUIDBase
 
 
-class SlotStatus(str, Enum):
+class SlotStatus(StrEnum):
+    """Availability of a slot: open for booking, reserved by a booking, or blocked."""
+
     DISPONIVEL = "DISPONIVEL"
     RESERVADO = "RESERVADO"
     BLOQUEADO = "BLOQUEADO"
 
 
 class Slot(AuditUUIDBase):
+    """Time window of an instructor's agenda that students can book (``slots`` table)."""
+
     __tablename__ = "slots"
 
     instructor_id: Mapped[str] = mapped_column(
@@ -26,6 +32,4 @@ class Slot(AuditUUIDBase):
         String(20), nullable=False, default=SlotStatus.DISPONIVEL.value
     )
 
-    __table_args__ = (
-        Index("ix_slots_instructor_starts", "instructor_id", "starts_at"),
-    )
+    __table_args__ = (Index("ix_slots_instructor_starts", "instructor_id", "starts_at"),)

@@ -1,17 +1,37 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.user import (
-    DetranStatus, InstructorProfile, StudentProfile, User, UserRole,
+    DetranStatus,
+    InstructorProfile,
+    StudentProfile,
+    User,
+    UserRole,
 )
 from app.services.admin_booking_service import AdminBookingService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_booking(db_session):
-    inst = User(id="inst-admin", email="instadm@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
-    inst_p = InstructorProfile(user_id="inst-admin", full_name="I", phone="1", city="C", state="SP", detran_status=DetranStatus.APROVADO)
-    stu = User(id="stu-admin", email="stuadm@t.com", password_hash="h", roles=[UserRole.ALUNO.value])
+
+def _seed_booking(db_session: Session) -> Booking:
+    inst = User(
+        id="inst-admin", email="instadm@t.com", password_hash="h", roles=[UserRole.INSTRUTOR.value]
+    )
+    inst_p = InstructorProfile(
+        user_id="inst-admin",
+        full_name="I",
+        phone="1",
+        city="C",
+        state="SP",
+        detran_status=DetranStatus.APROVADO,
+    )
+    stu = User(
+        id="stu-admin", email="stuadm@t.com", password_hash="h", roles=[UserRole.ALUNO.value]
+    )
     stu_p = StudentProfile(user_id="stu-admin", full_name="S", phone="2", city="C", state="SP")
     booking = Booking(
         student_id="stu-admin",
@@ -24,7 +44,7 @@ def _seed_booking(db_session):
 
 
 class TestAdminBookingOverride:
-    def test_admin_overrides_terminal_to_terminal(self, db_session):
+    def test_admin_overrides_terminal_to_terminal(self, db_session: Session) -> None:
         booking = _seed_booking(db_session)
         service = AdminBookingService(db_session)
 
@@ -36,7 +56,7 @@ class TestAdminBookingOverride:
 
         assert result.status == BookingStatus.REALIZADA.value
 
-    def test_admin_override_rejects_non_terminal(self, db_session):
+    def test_admin_override_rejects_non_terminal(self, db_session: Session) -> None:
         booking = _seed_booking(db_session)
         service = AdminBookingService(db_session)
 

@@ -1,11 +1,12 @@
-from __future__ import with_statement
+"""Alembic migration environment wired to the application settings and model metadata."""
 
+import sys
 from logging.config import fileConfig
 from pathlib import Path
-import sys
+
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -26,6 +27,7 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
+    """Run migrations in offline mode, emitting SQL with literal binds instead of connecting."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -39,6 +41,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run migrations in online mode against a live database connection (no pooling)."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

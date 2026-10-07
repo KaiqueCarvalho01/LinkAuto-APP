@@ -1,22 +1,22 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+"""Admin-only endpoints that trigger the booking automation jobs on demand."""
 
-from app.api.deps.authn import AuthenticatedUser, get_current_user
-from app.api.deps.authz import require_roles
-from app.core.database import get_db
+from fastapi import APIRouter, Response
+
+from app.api.deps.types import CurrentAdmin, DbSession
 from app.schemas.common import success_response
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
 from app.services.booking_scheduler import BookingScheduler
+from app.services.dependencies import get_notification_service
 
 router = APIRouter(tags=["Jobs"])
 
 
 @router.post("/jobs/booking-timeout")
 def run_booking_timeout(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
-):
+    _: CurrentAdmin,
+    db: DbSession,
+) -> Response:
+    """Cancel PENDENTE bookings created more than 24 hours ago. Admin only."""
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
     result = scheduler.run_pending_timeout()
@@ -29,10 +29,10 @@ def run_booking_timeout(
 
 @router.post("/jobs/booking-completion")
 def run_booking_completion(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
-):
+    _: CurrentAdmin,
+    db: DbSession,
+) -> Response:
+    """Mark CONFIRMADA bookings as REALIZADA once their last slot ended 2+ hours ago. Admin only."""
     port = SqlAlchemyBookingAutomationPort(db)
     scheduler = BookingScheduler(port)
     result = scheduler.run_confirmed_completion()
@@ -45,12 +45,16 @@ def run_booking_completion(
 
 @router.post("/jobs/booking-reminder")
 def run_booking_reminder(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    _authz=Depends(require_roles("ADMIN")),
-    db: Session = Depends(get_db),
-):
+    _: CurrentAdmin,
+    db: DbSession,
+) -> Response:
+    """E-mail a reminder for bookings whose lesson starts in about 24 hours. Admin only.
+
+    Covers bookings starting 23 to 25 hours from now that have not been reminded yet,
+    and returns the number of bookings reminded and their IDs.
+    """
     port = SqlAlchemyBookingAutomationPort(db)
-    from app.services.dependencies import get_notification_service
+
     scheduler = BookingScheduler(port, notification_service=get_notification_service())
     result = scheduler.run_lesson_reminders()
     db.commit()

@@ -1,3 +1,5 @@
+"""Shared slowapi rate limiter keyed by client IP address."""
+
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 

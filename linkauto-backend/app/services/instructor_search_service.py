@@ -1,10 +1,16 @@
+"""Geographic search of approved instructors with rating, price and specialty filters."""
+
 from __future__ import annotations
 
 import math
-
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.models.user import DetranStatus, InstructorProfile
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from app.schemas.instructor_search import InstructorSearchFilters
 
 EARTH_RADIUS_KM = 6371.0
 
@@ -19,19 +25,23 @@ def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> f
 
 
 class InstructorSearchService:
-    def __init__(self, db: Session):
+    """Find publicly visible instructors near a location."""
+
+    def __init__(self, db: Session) -> None:
+        """Store the DB session used to query instructor profiles."""
         self._db = db
 
-    def search(
-        self,
-        latitude: float,
-        longitude: float,
-        radius_km: float = 20.0,
-        min_rating: float | None = None,
-        max_price: float | None = None,
-        specialties: list[str] | None = None,
-        sort_by: str | None = None,
-    ) -> list[InstructorProfile]:
+    def search(self, filters: InstructorSearchFilters) -> list[InstructorProfile]:
+        """Return active, DETRAN-approved instructors within ``radius_km`` of the given point.
+
+        Rating and price are filtered in SQL; distance (Haversine) and specialties
+        (case-insensitive substring match on any requested specialty) are filtered in
+        Python. Results are sorted by distance unless ``sort_by`` is ``rating``,
+        ``price_asc`` or ``price_desc``.
+        """
+        latitude, longitude = filters.latitude, filters.longitude
+        radius_km, min_rating, max_price = filters.radius_km, filters.min_rating, filters.max_price
+        specialties, sort_by = filters.specialties, filters.sort_by
         query = self._db.query(InstructorProfile).filter(
             InstructorProfile.detran_status == DetranStatus.APROVADO.value,
             InstructorProfile.is_active.is_(True),
@@ -56,7 +66,10 @@ class InstructorSearchService:
             if target_specialties:
                 prof_specs = [s.lower() for s in (p.specialties or [])]
                 # Match if any of the target specialties is present in profile specialties
-                if not any(ts in prof_specs or any(ts in ps for ps in prof_specs) for ts in target_specialties):
+                if not any(
+                    ts in prof_specs or any(ts in ps for ps in prof_specs)
+                    for ts in target_specialties
+                ):
                     continue
 
             dist = _haversine_distance(latitude, longitude, float(p.latitude), float(p.longitude))
@@ -65,11 +78,13 @@ class InstructorSearchService:
 
         # Sort results
         if sort_by == "rating":
-            matched_entries.sort(key=lambda item: (item[0].rating_avg or 0.0), reverse=True)
+            matched_entries.sort(key=lambda item: item[0].rating_avg or 0.0, reverse=True)
         elif sort_by == "price_asc":
             matched_entries.sort(key=lambda item: float(item[0].price_per_hour or 0.0))
         elif sort_by == "price_desc":
-            matched_entries.sort(key=lambda item: float(item[0].price_per_hour or 0.0), reverse=True)
+            matched_entries.sort(
+                key=lambda item: float(item[0].price_per_hour or 0.0), reverse=True
+            )
         else:  # default or "distance"
             matched_entries.sort(key=lambda item: item[1])
 

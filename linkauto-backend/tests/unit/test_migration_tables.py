@@ -1,7 +1,7 @@
-from sqlalchemy import inspect
+from sqlalchemy import Engine, inspect
 
 
-def test_all_us2_tables_exist(test_engine):
+def test_all_us2_tables_exist(test_engine: Engine) -> None:
     """Migration must create slots, bookings, booking_slots, student_penalties tables."""
     inspector = inspect(test_engine)
     tables = inspector.get_table_names()
@@ -11,7 +11,7 @@ def test_all_us2_tables_exist(test_engine):
     assert "student_penalties" in tables
 
 
-def test_slot_unique_constraint_on_booking_slots(test_engine):
+def test_slot_unique_constraint_on_booking_slots(test_engine: Engine) -> None:
     """booking_slots.slot_id must be unique (a slot belongs to at most one booking)."""
     inspector = inspect(test_engine)
     columns = {c["name"] for c in inspector.get_columns("booking_slots")}
@@ -19,7 +19,7 @@ def test_slot_unique_constraint_on_booking_slots(test_engine):
     assert "booking_id" in columns
 
 
-def test_all_us3_tables_exist(test_engine):
+def test_all_us3_tables_exist(test_engine: Engine) -> None:
     """Migration must create booking_messages and reviews tables."""
     inspector = inspect(test_engine)
     tables = inspector.get_table_names()
@@ -27,8 +27,8 @@ def test_all_us3_tables_exist(test_engine):
     assert "reviews" in tables
 
 
-def test_review_unique_constraint_on_reviewer(test_engine):
-    """reviews must have a unique constraint/index on booking_id + reviewer_id."""
+def test_review_unique_constraint_on_reviewer(test_engine: Engine) -> None:
+    """Reviews must have a unique constraint/index on booking_id + reviewer_id."""
     inspector = inspect(test_engine)
     unique_constraints = inspector.get_unique_constraints("reviews")
     # Check if there is a unique constraint on (booking_id, reviewer_id)
@@ -37,8 +37,9 @@ def test_review_unique_constraint_on_reviewer(test_engine):
         if set(uq["column_names"]) == {"booking_id", "reviewer_id"}:
             has_uq = True
             break
-    
-    # In SQLite, UniqueConstraint might also be mapped as a unique index, so we also check unique indexes
+
+    # In SQLite, UniqueConstraint might also be mapped as a unique index,
+    # so we also check unique indexes
     if not has_uq:
         indexes = inspector.get_indexes("reviews")
         for idx in indexes:
@@ -46,7 +47,6 @@ def test_review_unique_constraint_on_reviewer(test_engine):
                 has_uq = True
                 break
 
-    assert has_uq, "Reviews table must have a unique constraint or unique index on (booking_id, reviewer_id)"
-
-
-
+    assert has_uq, (
+        "Reviews table must have a unique constraint or unique index on (booking_id, reviewer_id)"
+    )

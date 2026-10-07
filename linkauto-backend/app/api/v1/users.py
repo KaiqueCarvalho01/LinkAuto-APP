@@ -1,17 +1,23 @@
+"""Endpoints for the current user's account and profiles."""
+
 from __future__ import annotations
+
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict
 
-from app.api.deps import AuthenticatedUser, get_current_user
+from app.api.deps.types import CurrentUser
+from app.schemas.common import success_response
 from app.services.dependencies import get_profile_service
 from app.services.profile_service import ProfileService
-from app.schemas.common import success_response
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 class StudentProfilePatch(BaseModel):
+    """Partial update of the student profile; unknown fields are rejected."""
+
     model_config = ConfigDict(extra="forbid")
     full_name: str | None = None
     phone: str | None = None
@@ -22,6 +28,8 @@ class StudentProfilePatch(BaseModel):
 
 
 class InstructorProfilePatch(BaseModel):
+    """Partial update of the instructor profile; unknown fields are rejected."""
+
     model_config = ConfigDict(extra="forbid")
     full_name: str | None = None
     phone: str | None = None
@@ -38,6 +46,8 @@ class InstructorProfilePatch(BaseModel):
 
 
 class UserMePatchRequest(BaseModel):
+    """Partial update of the current user's student and/or instructor profile."""
+
     model_config = ConfigDict(extra="forbid")
     student_profile: StudentProfilePatch | None = None
     instructor_profile: InstructorProfilePatch | None = None
@@ -45,9 +55,13 @@ class UserMePatchRequest(BaseModel):
 
 @router.get("/me")
 def get_me(
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    profile_service: ProfileService = Depends(get_profile_service),
+    current_user: CurrentUser,
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
+    """Return the current user's account and profiles.
+
+    Requires authentication. Returns 404 when the user no longer exists.
+    """
     try:
         payload = profile_service.get_me(current_user.user_id)
     except ValueError as exc:
@@ -61,13 +75,17 @@ def get_me(
 @router.patch("/me")
 def patch_me(
     payload: UserMePatchRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    profile_service: ProfileService = Depends(get_profile_service),
+    current_user: CurrentUser,
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
+    """Update the current user's student and/or instructor profile.
+
+    Requires authentication. Only provided fields are changed. Returns 400 when the
+    user lacks the role matching a submitted profile or does not exist.
+    """
     try:
         user_payload = profile_service.update_me(
-            current_user.user_id, 
-            payload.model_dump(exclude_unset=True)
+            current_user.user_id, payload.model_dump(exclude_unset=True)
         )
     except ValueError as exc:
         raise HTTPException(
@@ -79,6 +97,10 @@ def patch_me(
 
 @router.get("/public-instructors")
 def list_public_instructors(
-    profile_service: ProfileService = Depends(get_profile_service),
+    profile_service: Annotated[ProfileService, Depends(get_profile_service)],
 ) -> Response:
+    """List instructors whose credentials have been approved.
+
+    Public.
+    """
     return success_response(profile_service.list_public_instructors())

@@ -1,9 +1,22 @@
+from typing import TYPE_CHECKING
+
 from app.models.booking import Booking
 from app.models.review import Review
-from app.models.user import DetranStatus, InstructorProfile, LicenseType, StudentProfile, User, UserRole
+from app.models.user import (
+    DetranStatus,
+    InstructorProfile,
+    LicenseType,
+    StudentProfile,
+    User,
+    UserRole,
+)
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session
 
 
-def _seed_contract_profiles(db_session):
+def _seed_contract_profiles(db_session: Session) -> None:
     u_inst = User(
         id="inst-contract-uuid-1",
         email="inst_contract@secret.com",
@@ -84,7 +97,9 @@ def _seed_contract_profiles(db_session):
 
 
 class TestPublicProfileContract:
-    def test_get_public_instructor_profile_by_slug_and_conceals_uuid(self, client, db_session):
+    def test_get_public_instructor_profile_by_slug_and_conceals_uuid(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _seed_contract_profiles(db_session)
 
         # Anonymous public request using public slug
@@ -123,7 +138,9 @@ class TestPublicProfileContract:
         assert "cnh" not in data
         assert "11999990000" not in data_str
 
-    def test_get_public_instructor_profile_returns_404_for_unapproved_or_missing(self, client, db_session):
+    def test_get_public_instructor_profile_returns_404_for_unapproved_or_missing(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _seed_contract_profiles(db_session)
 
         # Pending instructor slug
@@ -134,7 +151,9 @@ class TestPublicProfileContract:
         resp = client.get("/api/v1/instructors/invalid-slug/public")
         assert resp.status_code == 404
 
-    def test_get_public_student_profile_by_slug_and_conceals_uuid(self, client, db_session):
+    def test_get_public_student_profile_by_slug_and_conceals_uuid(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _seed_contract_profiles(db_session)
 
         # Anonymous public request using student public slug
@@ -167,13 +186,17 @@ class TestPublicProfileContract:
         assert "cpf" not in data
         assert "11977770000" not in data_str
 
-    def test_get_public_student_profile_returns_404_for_missing(self, client, db_session):
+    def test_get_public_student_profile_returns_404_for_missing(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _seed_contract_profiles(db_session)
 
         resp = client.get("/api/v1/students/invalid-student-slug/public")
         assert resp.status_code == 404
 
-    def test_get_public_profile_rejects_raw_uuid_with_404(self, client, db_session):
+    def test_get_public_profile_rejects_raw_uuid_with_404(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _seed_contract_profiles(db_session)
 
         # Attempt to access using internal instructor UUID instead of slug -> MUST BE 404

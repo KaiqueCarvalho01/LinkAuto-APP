@@ -1,35 +1,47 @@
+"""Reviews between students and instructors after completed lessons."""
+
 from __future__ import annotations
 
 import logging
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking
-from app.models.user import InstructorProfile
 from app.models.review import Review
-from app.services.notification_service import NotificationService, NotificationPayload, NotificationEvent
+from app.models.user import InstructorProfile
+from app.services.notification_service import (
+    NotificationEvent,
+    NotificationPayload,
+    NotificationService,
+)
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
 
 class ReviewAccessError(ValueError):
-    pass
+    """Raised when the reviewer did not take part in the booking."""
 
 
 class ReviewStateError(ValueError):
-    pass
+    """Raised when reviewing a booking that is not REALIZADA."""
 
 
 class ReviewDuplicateError(ValueError):
-    pass
+    """Raised when the reviewer has already reviewed the booking."""
 
 
 class ReviewService:
+    """Create and list reviews exchanged between students and instructors."""
+
     def __init__(
         self,
         db: Session,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Store the database session and optional notification service."""
         self._db = db
         self._notification_service = notification_service
 
@@ -41,24 +53,43 @@ class ReviewService:
         comment: str | None = None,
         recipient_email: str | None = None,
     ) -> Review:
+        """Create a review of the other participant of a REALIZADA booking.
+
+        Reviews of the instructor update their profile's rating average and count. The reviewed
+        user is emailed when ``recipient_email`` is given.
+
+        Raises:
+            ValueError: If the booking does not exist.
+            ReviewStateError: If the booking is not REALIZADA.
+            ReviewAccessError: If the reviewer is not a participant of the booking.
+            ReviewDuplicateError: If the reviewer already reviewed this booking.
+
+        """
         # Fetch booking to check existence, status and access
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
-            raise ValueError(f"Booking {booking_id} not found")
+            msg = f"Booking {booking_id} not found"
+            raise ValueError(msg)
 
         # SC-004 / FR-019: creation only when booking status is REALIZADA
         if booking.status != BookingStatus.REALIZADA.value:
             logger.warning(
-                f"Validation failed: Booking {booking_id} status is {booking.status}, must be REALIZADA to review"
+                "Validation failed: Booking %s status is %s, must be REALIZADA to review",
+                booking_id,
+                booking.status,
             )
-            raise ReviewStateError("Reviews can only be submitted for completed bookings")
+            msg = "Reviews can only be submitted for completed bookings"
+            raise ReviewStateError(msg)
 
         # Validate access control
         if reviewer_id not in (booking.student_id, booking.instructor_id):
             logger.warning(
-                f"Access denied: User {reviewer_id} is not authorized to review booking {booking_id}"
+                "Access denied: User %s is not authorized to review booking %s",
+                reviewer_id,
+                booking_id,
             )
-            raise ReviewAccessError("You are not a participant in this booking")
+            msg = "You are not a participant in this booking"
+            raise ReviewAccessError(msg)
 
         # FR-020: enforce one review per reviewer-reviewed pair per booking
         existing = (
@@ -68,9 +99,12 @@ class ReviewService:
         )
         if existing:
             logger.warning(
-                f"Validation failed: User {reviewer_id} has already reviewed booking {booking_id}"
+                "Validation failed: User %s has already reviewed booking %s",
+                reviewer_id,
+                booking_id,
             )
-            raise ReviewDuplicateError("You have already submitted a review for this booking")
+            msg = "You have already submitted a review for this booking"
+            raise ReviewDuplicateError(msg)
 
         # Determine reviewed user id (the other participant)
         reviewed_id = (
@@ -98,10 +132,10 @@ class ReviewService:
             if profile:
                 current_count = profile.rating_count
                 current_avg = float(profile.rating_avg)
-                
+
                 new_count = current_count + 1
                 new_avg = ((current_avg * current_count) + rating) / new_count
-                
+
                 profile.rating_count = new_count
                 profile.rating_avg = new_avg
                 self._db.flush()
@@ -112,7 +146,10 @@ class ReviewService:
                 NotificationPayload(
                     event=NotificationEvent.NEW_REVIEW_RECEIVED,
                     subject="Nova avaliação recebida",
-                    body=f"Você recebeu uma nova avaliação de {reviewer_id}: {rating} estrelas. Comentário: '{comment or ''}'",
+                    body=(
+                        f"Você recebeu uma nova avaliação de {reviewer_id}: {rating} estrelas. "
+                        f"Comentário: '{comment or ''}'"
+                    ),
                     recipients=[recipient_email],
                 )
             )
@@ -125,6 +162,7 @@ class ReviewService:
         page: int = 1,
         page_size: int = 20,
     ) -> list[Review]:
+        """Return a page of reviews received by the instructor, newest first."""
         offset = (page - 1) * page_size
         return (
             self._db.query(Review)

@@ -1,6 +1,12 @@
+from typing import TYPE_CHECKING
+
 from app.core.config import get_settings
 from app.core.security import create_access_token
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import Session
 
 
 def _create_token_for(user_id: str, roles: list[str]) -> str:
@@ -9,14 +15,31 @@ def _create_token_for(user_id: str, roles: list[str]) -> str:
 
 
 class TestAdminStatsContract:
-    def test_admin_stats_endpoint_success_for_admin(self, client, db_session):
+    def test_admin_stats_endpoint_success_for_admin(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         # Create an admin user
-        admin = User(id="admin-stat-user", email="admin@stats.com", password_hash="h", roles=[UserRole.ADMIN.value])
+        admin = User(
+            id="admin-stat-user",
+            email="admin@stats.com",
+            password_hash="h",
+            roles=[UserRole.ADMIN.value],
+        )
         # Create an instructor
-        inst = User(id="inst-stat-user", email="inst@stats.com", password_hash="h", roles=[UserRole.INSTRUTOR.value])
+        inst = User(
+            id="inst-stat-user",
+            email="inst@stats.com",
+            password_hash="h",
+            roles=[UserRole.INSTRUTOR.value],
+        )
         prof = InstructorProfile(
-            user_id="inst-stat-user", full_name="Inst 1", phone="1", city="Mogi Mirim", state="SP",
-            detran_status=DetranStatus.PENDENTE.value, is_active=True,
+            user_id="inst-stat-user",
+            full_name="Inst 1",
+            phone="1",
+            city="Mogi Mirim",
+            state="SP",
+            detran_status=DetranStatus.PENDENTE.value,
+            is_active=True,
         )
         db_session.add_all([admin, inst, prof])
         db_session.commit()
@@ -36,8 +59,15 @@ class TestAdminStatsContract:
         assert "total_bookings" in data
         assert data["pending_instructors"] >= 1
 
-    def test_admin_stats_forbidden_for_non_admin(self, client, db_session):
-        student = User(id="student-stat-user", email="stud@stats.com", password_hash="h", roles=[UserRole.ALUNO.value])
+    def test_admin_stats_forbidden_for_non_admin(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        student = User(
+            id="student-stat-user",
+            email="stud@stats.com",
+            password_hash="h",
+            roles=[UserRole.ALUNO.value],
+        )
         db_session.add(student)
         db_session.commit()
 
@@ -46,6 +76,6 @@ class TestAdminStatsContract:
 
         assert resp.status_code == 403
 
-    def test_admin_stats_unauthorized_without_token(self, client):
+    def test_admin_stats_unauthorized_without_token(self, client: TestClient) -> None:
         resp = client.get("/api/v1/admin/stats")
         assert resp.status_code == 401

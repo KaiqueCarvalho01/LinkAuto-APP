@@ -1,25 +1,37 @@
+"""Chat messages exchanged between the student and instructor of a booking."""
+
 from __future__ import annotations
 
 import logging
-from sqlalchemy.orm import Session
+from typing import TYPE_CHECKING
 
 from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
-from app.services.notification_service import NotificationService, NotificationPayload, NotificationEvent
+from app.services.notification_service import (
+    NotificationEvent,
+    NotificationPayload,
+    NotificationService,
+)
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
 
 class BookingMessageAccessError(ValueError):
-    pass
+    """Raised when a user who is not the booking's student or instructor accesses its chat."""
 
 
 class BookingMessageService:
+    """Send and list booking messages, restricted to the booking's participants."""
+
     def __init__(
         self,
         db: Session,
         notification_service: NotificationService | None = None,
     ) -> None:
+        """Store the DB session and the optional service used to notify the recipient."""
         self._db = db
         self._notification_service = notification_service
 
@@ -28,20 +40,29 @@ class BookingMessageService:
         booking_id: str,
         sender_id: str,
         content: str,
-        sender_email: str | None = None,
         recipient_email: str | None = None,
     ) -> BookingMessage:
+        """Persist a message on the booking and notify the other party by e-mail.
+
+        The notification is sent only when a notification service and ``recipient_email``
+        are available. Raises ``ValueError`` if the booking does not exist and
+        ``BookingMessageAccessError`` if the sender is not a participant.
+        """
         # Fetch booking to check existence and authorization
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
-            raise ValueError(f"Booking {booking_id} not found")
+            msg = f"Booking {booking_id} not found"
+            raise ValueError(msg)
 
         # Validate access control: sender must be student or instructor
         if sender_id not in (booking.student_id, booking.instructor_id):
             logger.warning(
-                f"Access denied: User {sender_id} is not authorized to message on booking {booking_id}"
+                "Access denied: User %s is not authorized to message on booking %s",
+                sender_id,
+                booking_id,
             )
-            raise BookingMessageAccessError("You are not a participant in this booking")
+            msg = "You are not a participant in this booking"
+            raise BookingMessageAccessError(msg)
 
         # Create the message
         message = BookingMessage(
@@ -55,12 +76,15 @@ class BookingMessageService:
         # Send notification to the opposite party
         if self._notification_service and recipient_email:
             opposing_role = "ALUNO" if sender_id == booking.instructor_id else "INSTRUTOR"
-            
+
             self._notification_service.dispatch(
                 NotificationPayload(
                     event=NotificationEvent.NEW_BOOKING_MESSAGE,
                     subject="Nova mensagem recebida",
-                    body=f"Você recebeu uma nova mensagem de {sender_id} ({opposing_role}): '{content}'",
+                    body=(
+                        f"Você recebeu uma nova mensagem de {sender_id} ({opposing_role}): '"
+                        f"{content}'"
+                    ),
                     recipients=[recipient_email],
                 )
             )
@@ -74,17 +98,26 @@ class BookingMessageService:
         page: int = 1,
         page_size: int = 20,
     ) -> list[BookingMessage]:
+        """Return a page of the booking's messages, oldest first.
+
+        Raises ``ValueError`` if the booking does not exist and ``BookingMessageAccessError``
+        if the user is not a participant.
+        """
         # Fetch booking to check existence and authorization
         booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
         if not booking:
-            raise ValueError(f"Booking {booking_id} not found")
+            msg = f"Booking {booking_id} not found"
+            raise ValueError(msg)
 
         # Validate access control
         if user_id not in (booking.student_id, booking.instructor_id):
             logger.warning(
-                f"Access denied: User {user_id} is not authorized to list messages on booking {booking_id}"
+                "Access denied: User %s is not authorized to list messages on booking %s",
+                user_id,
+                booking_id,
             )
-            raise BookingMessageAccessError("You are not a participant in this booking")
+            msg = "You are not a participant in this booking"
+            raise BookingMessageAccessError(msg)
 
         # Query messages chronologically
         offset = (page - 1) * page_size

@@ -1,11 +1,24 @@
+from typing import TYPE_CHECKING
+
 import pytest
+
 from app.models.booking import Booking
 from app.models.review import Review
-from app.models.user import DetranStatus, InstructorProfile, LicenseType, StudentProfile, User, UserRole
+from app.models.user import (
+    DetranStatus,
+    InstructorProfile,
+    LicenseType,
+    StudentProfile,
+    User,
+    UserRole,
+)
 from app.services.public_profile_service import PublicProfileService
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def _seed_public_profiles_data(db_session):
+
+def _seed_public_profiles_data(db_session: Session) -> None:
     # 1. Approved Instructor with Slug
     u_inst = User(
         id="inst-pub-1",
@@ -118,19 +131,29 @@ def _seed_public_profiles_data(db_session):
         comment="Aluna muito dedicada e pontual.",
     )
 
-    db_session.add_all([
-        u_inst, p_inst,
-        u_inst_pending, p_inst_pending,
-        u_stud1, p_stud1,
-        u_stud2, p_stud2,
-        b1, b2,
-        r_inst, r_stud,
-    ])
+    db_session.add_all(
+        [
+            u_inst,
+            p_inst,
+            u_inst_pending,
+            p_inst_pending,
+            u_stud1,
+            p_stud1,
+            u_stud2,
+            p_stud2,
+            b1,
+            b2,
+            r_inst,
+            r_stud,
+        ]
+    )
     db_session.flush()
 
 
 class TestPublicProfileService:
-    def test_get_public_instructor_profile_by_slug_and_conceals_uuid(self, db_session):
+    def test_get_public_instructor_profile_by_slug_and_conceals_uuid(
+        self, db_session: Session
+    ) -> None:
         _seed_public_profiles_data(db_session)
         service = PublicProfileService(db_session)
 
@@ -154,7 +177,9 @@ class TestPublicProfileService:
         assert profile.reviews[0].reviewer.full_name == "Ana Paula Aluna"
         assert profile.reviews[0].reviewer.avatar_url == "https://example.com/ana.jpg"
 
-    def test_get_public_instructor_pending_or_inactive_raises_value_error(self, db_session):
+    def test_get_public_instructor_pending_or_inactive_raises_value_error(
+        self, db_session: Session
+    ) -> None:
         _seed_public_profiles_data(db_session)
         service = PublicProfileService(db_session)
 
@@ -166,7 +191,9 @@ class TestPublicProfileService:
         with pytest.raises(ValueError, match="Instructor not found or not approved"):
             service.get_public_instructor("non-existent-slug")
 
-    def test_get_public_student_profile_by_slug_and_conceals_uuid(self, db_session):
+    def test_get_public_student_profile_by_slug_and_conceals_uuid(
+        self, db_session: Session
+    ) -> None:
         _seed_public_profiles_data(db_session)
         service = PublicProfileService(db_session)
 
@@ -188,7 +215,7 @@ class TestPublicProfileService:
         assert profile.reviews[0].reviewer.slug == "carlos-silva-mogi-mirim-8f2a"
         assert profile.reviews[0].reviewer.full_name == "Carlos Silva Instrutor"
 
-    def test_get_public_student_non_existent_raises_value_error(self, db_session):
+    def test_get_public_student_non_existent_raises_value_error(self, db_session: Session) -> None:
         _seed_public_profiles_data(db_session)
         service = PublicProfileService(db_session)
 

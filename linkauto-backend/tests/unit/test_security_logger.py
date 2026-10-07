@@ -1,34 +1,35 @@
 import logging
+from typing import TYPE_CHECKING
+
 from app.core.security_logger import (
-    log_auth_success,
+    log_admin_action,
     log_auth_failure,
+    log_auth_success,
     log_forbidden,
     log_upload_rejected,
-    log_admin_action,
-    mask_token
+    mask_token,
 )
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_mask_token_leaves_only_last_four_characters():
-    """
-    D07 - P2: mask_token deve mascarar segredos exibindo apenas os 4 últimos caracteres.
-    """
+
+def test_mask_token_leaves_only_last_four_characters() -> None:
+    """D07 - P2: mask_token deve mascarar segredos exibindo apenas os 4 últimos caracteres."""
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIi"
     masked = mask_token(token)
     assert masked.startswith("...")
     assert masked.endswith(token[-4:])
-    
+
     # Se o token for muito curto, deve mascarar de forma segura ou não quebrar
     assert mask_token("abc") == "..."
 
 
-def test_log_auth_success_emits_structured_info_log(caplog):
-    """
-    D07 - P2: log_auth_success deve emitir log INFO com dados estruturados.
-    """
+def test_log_auth_success_emits_structured_info_log(caplog: pytest.LogCaptureFixture) -> None:
+    """D07 - P2: log_auth_success deve emitir log INFO com dados estruturados."""
     with caplog.at_level(logging.INFO):
         log_auth_success("user@example.com", "192.168.1.1")
-        
+
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "INFO"
@@ -37,13 +38,11 @@ def test_log_auth_success_emits_structured_info_log(caplog):
     assert "192.168.1.1" in record.message
 
 
-def test_log_auth_failure_emits_structured_warning_log(caplog):
-    """
-    D07 - P2: log_auth_failure deve emitir log WARNING com dados estruturados.
-    """
+def test_log_auth_failure_emits_structured_warning_log(caplog: pytest.LogCaptureFixture) -> None:
+    """D07 - P2: log_auth_failure deve emitir log WARNING com dados estruturados."""
     with caplog.at_level(logging.WARNING):
         log_auth_failure("attacker@example.com", "10.0.0.5")
-        
+
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "WARNING"
@@ -52,13 +51,11 @@ def test_log_auth_failure_emits_structured_warning_log(caplog):
     assert "10.0.0.5" in record.message
 
 
-def test_log_forbidden_emits_structured_warning_log(caplog):
-    """
-    D07 - P2: log_forbidden deve emitir log WARNING com dados estruturados.
-    """
+def test_log_forbidden_emits_structured_warning_log(caplog: pytest.LogCaptureFixture) -> None:
+    """D07 - P2: log_forbidden deve emitir log WARNING com dados estruturados."""
     with caplog.at_level(logging.WARNING):
         log_forbidden("user-123", "/admin/stats", "172.16.0.2")
-        
+
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "WARNING"
@@ -68,13 +65,11 @@ def test_log_forbidden_emits_structured_warning_log(caplog):
     assert "172.16.0.2" in record.message
 
 
-def test_log_upload_rejected_emits_structured_warning_log(caplog):
-    """
-    D07 - P2: log_upload_rejected deve emitir log WARNING com dados estruturados.
-    """
+def test_log_upload_rejected_emits_structured_warning_log(caplog: pytest.LogCaptureFixture) -> None:
+    """D07 - P2: log_upload_rejected deve emitir log WARNING com dados estruturados."""
     with caplog.at_level(logging.WARNING):
         log_upload_rejected("instructor-456", "INVALID_FILE_CONTENT")
-        
+
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "WARNING"
@@ -83,13 +78,11 @@ def test_log_upload_rejected_emits_structured_warning_log(caplog):
     assert "INVALID_FILE_CONTENT" in record.message
 
 
-def test_log_admin_action_emits_structured_info_log(caplog):
-    """
-    D07 - P2: log_admin_action deve emitir log INFO com dados estruturados.
-    """
+def test_log_admin_action_emits_structured_info_log(caplog: pytest.LogCaptureFixture) -> None:
+    """D07 - P2: log_admin_action deve emitir log INFO com dados estruturados."""
     with caplog.at_level(logging.INFO):
         log_admin_action("admin-789", "approve_instructor", "instructor-012")
-        
+
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "INFO"

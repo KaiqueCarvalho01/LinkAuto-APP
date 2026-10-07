@@ -1,9 +1,10 @@
+"""Public, slug-based instructor and student profile endpoints."""
+
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Response, status
 
-from app.core.database import get_db
+from app.api.deps.types import DbSession
 from app.schemas.common import success_response
 from app.services.public_profile_service import PublicProfileService
 
@@ -13,8 +14,13 @@ router = APIRouter(tags=["public-profiles"])
 @router.get("/instructors/{instructor_id}/public")
 def get_public_instructor_profile(
     instructor_id: str,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ) -> Response:
+    """Return the public profile and reviews of an approved, active instructor.
+
+    Public. The path parameter is the instructor's slug; internal IDs are not
+    accepted. Returns 404 when no approved, active instructor has that slug.
+    """
     service = PublicProfileService(db)
     try:
         profile = service.get_public_instructor(instructor_id)
@@ -29,8 +35,13 @@ def get_public_instructor_profile(
 @router.get("/students/{student_id}/public")
 def get_public_student_profile(
     student_id: str,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ) -> Response:
+    """Return the public profile, reviews and completed lesson count of a student.
+
+    Public. The path parameter is the student's slug; internal IDs are not
+    accepted. Returns 404 when no active student has that slug.
+    """
     service = PublicProfileService(db)
     try:
         profile = service.get_public_student(student_id)

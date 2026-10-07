@@ -1,18 +1,23 @@
+"""Email notifications for booking and account events, with SES and in-memory gateways."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import Enum
 import logging
-from typing import Protocol
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import TYPE_CHECKING, Protocol
 
 import boto3
 
-from app.core import Settings
+if TYPE_CHECKING:
+    from app.core import Settings
 
 logger = logging.getLogger("app.services.notification_service")
 
 
-class NotificationEvent(str, Enum):
+class NotificationEvent(StrEnum):
+    """Business events that trigger an email notification."""
+
     INSTRUCTOR_REGISTERED = "instructor_registered_waiting_validation"
     INSTRUCTOR_VALIDATION_DECISION = "instructor_validation_decision"
     NEW_PENDING_BOOKING = "new_pending_booking_for_instructor"
@@ -25,6 +30,8 @@ class NotificationEvent(str, Enum):
 
 @dataclass(slots=True)
 class NotificationPayload:
+    """Email notification to send for a given event."""
+
     event: NotificationEvent
     subject: str
     body: str
@@ -33,6 +40,8 @@ class NotificationPayload:
 
 @dataclass(slots=True)
 class NotificationDispatchResult:
+    """Outcome of a notification dispatch attempt."""
+
     event: NotificationEvent
     recipients: list[str]
     delivered: bool
@@ -40,12 +49,18 @@ class NotificationDispatchResult:
 
 
 class EmailGateway(Protocol):
+    """Interface for email providers used by ``NotificationService``."""
+
     def send(self, subject: str, body: str, recipients: list[str]) -> str:
+        """Send a plain-text email and return the provider message ID."""
         ...
 
 
 class SESEmailGateway:
+    """Email gateway that sends plain-text emails through AWS SES."""
+
     def __init__(self, settings: Settings) -> None:
+        """Store the configured sender address and create the SES client."""
         self._from_email = settings.ses_from_email
         self._client = boto3.client(
             "ses",
@@ -55,8 +70,13 @@ class SESEmailGateway:
         )
 
     def send(self, subject: str, body: str, recipients: list[str]) -> str:
+        """Send the email via SES and return its message ID.
+
+        Raises ``ValueError`` if no SES sender email is configured.
+        """
         if not self._from_email:
-            raise ValueError("SES sender email is not configured.")
+            msg = "SES sender email is not configured."
+            raise ValueError(msg)
 
         response = self._client.send_email(
             Source=self._from_email,
@@ -70,10 +90,14 @@ class SESEmailGateway:
 
 
 class InMemoryEmailGateway:
+    """Email gateway that records messages in memory instead of sending them."""
+
     def __init__(self) -> None:
+        """Initialize an empty list of sent messages."""
         self.sent_messages: list[dict[str, str | list[str]]] = []
 
     def send(self, subject: str, body: str, recipients: list[str]) -> str:
+        """Record the message and return a sequential ``mock-<n>`` message ID."""
         message_id = f"mock-{len(self.sent_messages) + 1}"
         self.sent_messages.append(
             {
@@ -87,12 +111,19 @@ class InMemoryEmailGateway:
 
 
 class NotificationService:
+    """Dispatch notification payloads through an email gateway."""
+
     def __init__(self, email_gateway: EmailGateway) -> None:
-        self._email_gateway = email_gateway
+        """Store the email gateway used to deliver notifications."""
+        self.email_gateway = email_gateway
 
     def dispatch(self, payload: NotificationPayload) -> NotificationDispatchResult:
+        """Send the payload and report whether it was delivered.
+
+        Gateway errors are logged and never raised; they yield ``delivered=False``.
+        """
         try:
-            message_id = self._email_gateway.send(
+            message_id = self.email_gateway.send(
                 subject=payload.subject,
                 body=payload.body,
                 recipients=payload.recipients,
@@ -105,12 +136,14 @@ class NotificationService:
             )
         except Exception as exc:
             logger.warning(
-                f"Failed to dispatch notification [event={payload.event.value}]: {str(exc)}",
+                "Failed to dispatch notification [event=%s]",
+                payload.event.value,
                 extra={
                     "event": "notification.dispatch.failure",
                     "notification_event": payload.event.value,
-                    "error": str(exc)
-                }
+                    "error": str(exc),
+                },
+                exc_info=True,
             )
             return NotificationDispatchResult(
                 event=payload.event,

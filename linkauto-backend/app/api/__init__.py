@@ -1,3 +1,5 @@
+"""HTTP API package exposing the top-level router."""
+
 from fastapi import APIRouter
 
 from app.api.v1 import api_v1_router

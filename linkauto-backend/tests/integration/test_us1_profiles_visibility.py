@@ -1,7 +1,13 @@
+from typing import TYPE_CHECKING
+
 from fastapi.testclient import TestClient
 
+from app.core.security import hash_password
 from app.main import create_app
+from app.services.us1_store import get_identity_store
 
+if TYPE_CHECKING:
+    from httpx2 import Response
 
 client = TestClient(create_app())
 
@@ -15,13 +21,13 @@ def _register_user(email: str, roles: list[str], password: str = "strong-passwor
     return response.json()["data"]
 
 
-def _login(email: str, password: str = "strong-password"):
+def _login(email: str, password: str = "strong-password") -> Response:
     response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200
     return response
 
 
-def test_multi_role_profile_updates_keep_other_profile_intact():
+def test_multi_role_profile_updates_keep_other_profile_intact() -> None:
     _register_user("multirole@example.com", ["ALUNO", "INSTRUTOR"])
     login_response = _login("multirole@example.com")
     headers = {"Authorization": f"Bearer {login_response.json()['data']['access_token']}"}
@@ -56,15 +62,11 @@ def test_multi_role_profile_updates_keep_other_profile_intact():
     assert data["instructor_profile"]["bio"] == "Especialista em direção defensiva"
 
 
-def test_non_approved_instructor_hidden_from_public_list_until_admin_approval():
-    from app.services.us1_store import get_identity_store
-    from app.core.security import hash_password
+def test_non_approved_instructor_hidden_from_public_list_until_admin_approval() -> None:
 
     instructor = _register_user("hidden-instructor@example.com", ["INSTRUTOR"])
     get_identity_store().create_user(
-        email="admin@example.com",
-        password_hash=hash_password("strong-password"),
-        roles=["ADMIN"]
+        email="admin@example.com", password_hash=hash_password("strong-password"), roles=["ADMIN"]
     )
 
     admin_login = _login("admin@example.com")
