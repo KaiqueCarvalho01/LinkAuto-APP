@@ -31,6 +31,11 @@ class Settings(BaseSettings):
         alias="CORS_ORIGINS",
     )
 
+    # Optional shared counters for rate limits, e.g. redis://redis:6379/0 (memory:// = per process)
+    rate_limit_storage_uri: str = Field(default="memory://", alias="RATE_LIMIT_STORAGE_URI")
+    # Comma-separated proxy IPs/CIDRs allowed to set X-Forwarded-For (empty = trust nobody)
+    trusted_proxies: str = Field(default="", alias="TRUSTED_PROXIES")
+
     jwt_secret: str = Field(default=INSECURE_JWT_SECRET, alias="JWT_SECRET")
     jwt_access_minutes: int = Field(default=15, alias="JWT_ACCESS_MINUTES")
     jwt_refresh_days: int = Field(default=7, alias="JWT_REFRESH_DAYS")
@@ -68,9 +73,9 @@ class Settings(BaseSettings):
     def validate_production_security(self) -> Settings:
         """Reject insecure settings when APP_ENV is production.
 
-        Raises if JWT_SECRET is the placeholder or RESET_SQLITE_ON_STARTUP is enabled, and
-        logs a warning if CORS_ORIGINS contains localhost or 127.0.0.1. E-mail and S3 are
-        optional.
+        Raises if JWT_SECRET is the placeholder or RESET_SQLITE_ON_STARTUP is enabled. Logs a
+        warning if rate limits aren't shared (no Redis) or CORS_ORIGINS contains localhost or
+        127.0.0.1. E-mail, S3 and Redis are optional.
         """
         if self.app_env.lower() == "production":
             if self.jwt_secret == INSECURE_JWT_SECRET:
@@ -79,6 +84,12 @@ class Settings(BaseSettings):
             if self.reset_sqlite_on_startup:
                 msg = "RESET_SQLITE_ON_STARTUP cannot be True in production environment."
                 raise ValueError(msg)
+            if self.rate_limit_storage_uri.startswith("memory://"):
+                logger.warning(
+                    "RATE_LIMIT_STORAGE_URI is memory:// in production: rate limits are counted "
+                    "per process, so with several workers or replicas the effective limit is "
+                    "multiplied. Set it to redis://... to share the counters."
+                )
 
             # CORS checks
             if "localhost" in self.cors_origins.lower() or "127.0.0.1" in self.cors_origins:

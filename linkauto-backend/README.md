@@ -52,7 +52,7 @@ A **US3** implementa ferramentas de comunicação assíncrona, governança de fe
 
 O projeto segue estritamente as diretrizes da **OWASP Top 10** e os padrões do guia de segurança do LinkAuto:
 - **Autenticação Robusta (OWASP A07):** Tokens JWT de ciclo curto (`access_token`) combinados com `refresh_token` trafegados em cookies seguros (`HttpOnly`, `Secure`, `SameSite=Strict`).
-- **Defesa Ativa Contra Brute-Force (Rate Limiting):** SlowAPI integrado limitando login (10/min), registro (5/min), refresh (20/min) e redefinição de senha (3/min), com status `429 Too Many Requests`.
+- **Defesa Ativa Contra Brute-Force (Rate Limiting):** SlowAPI integrado limitando login (10/min por IP e 10/15 min por conta), registro (5/min), refresh (20/min) e redefinição de senha (3/min), com status `429 Too Many Requests`. Contadores compartilháveis via Redis (opcional) e IP real do cliente atrás de proxies confiáveis.
 - **Prevenção de Mass Assignment (OWASP A01):** Schemas Pydantic fechados (`extra="forbid"`) bloqueando alterações de parâmetros confidenciais (ex: `detran_status`, `rating_avg`).
 - **Bloqueio de Privilégios:** Cadastro de novos usuários impede a indicação indevida de papel `ADMIN`.
 - **Prevenção de MIME Spoofing:** Validação binária estrita por Magic Bytes (assinaturas binárias hexadecimais) para comprovar a legitimidade de PDFs, JPEGs e PNGs carregados.
@@ -103,6 +103,16 @@ uv sync --no-dev         # Instala apenas as dependências de produção
 | PostgreSQL + PostGIS | `postgresql+psycopg://usuario:senha@host:5432/linkauto` |
 
 O driver PostgreSQL é o **psycopg 3** (`psycopg[binary]`, já incluso nas dependências). URLs `postgresql://` ou `postgres://` (como as fornecidas por provedores gerenciados) são convertidas automaticamente para `postgresql+psycopg://`.
+
+### Rate Limiting e Proxy Reverso
+Os limites (login 10/min por IP **e** 10 tentativas/15 min por conta, registro 5/min, refresh 20/min, redefinição de senha 3/min) usam o storage em `RATE_LIMIT_STORAGE_URI`:
+
+O Redis é **opcional**:
+
+- `memory://` (padrão): contadores por processo. Suficiente com um único worker; com vários workers ou réplicas, cada um conta separadamente (o limite efetivo é multiplicado) e a aplicação registra um aviso em produção.
+- `redis://host:6379/0`: contadores compartilhados entre workers e réplicas. Se o Redis ficar indisponível, o limiter cai temporariamente para memória local em vez de derrubar a API.
+
+Atrás de um proxy reverso / load balancer, defina `TRUSTED_PROXIES` com os IPs ou CIDRs do proxy (ex.: `10.0.0.0/8`). Só o `X-Forwarded-For` vindo desses endereços é usado como IP do cliente; de qualquer outro, o cabeçalho é ignorado. Não use `uvicorn --proxy-headers --forwarded-allow-ips='*'`: a lista explícita da aplicação já cobre esse caso. `GET /api/v1/foundation/whoami` mostra o IP que a API enxerga.
 
 ### Notificações por E-mail
 O envio de e-mails é **opcional**: sem provedor configurado a API funciona normalmente e as notificações são apenas ignoradas (registradas em log no nível INFO).

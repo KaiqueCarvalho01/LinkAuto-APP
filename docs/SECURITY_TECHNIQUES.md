@@ -144,6 +144,15 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
     - Origins permitidas vem de `CORS_ORIGINS`, evitando wildcard fixo no codigo.
     - Local: `linkauto-backend/app/core/config.py`.
 
+11.1. Rate limiting distribuido e IP real do cliente
+    - Contadores em storage configuravel (`RATE_LIMIT_STORAGE_URI`): Redis (opcional)
+      compartilha o limite entre workers e replicas; sem ele, cada processo conta separado
+      e a aplicacao avisa em producao.
+    - Login limitado por IP e tambem por conta (hash do e-mail normalizado), para que
+      trocar de IP nao ajude um ataque de forca bruta.
+    - `X-Forwarded-For` so e aceito de proxies listados em `TRUSTED_PROXIES`.
+    - Local: `linkauto-backend/app/core/rate_limit.py`, `linkauto-backend/app/main.py`.
+
 12. Envelopes padronizados de resposta
     - Respostas de sucesso e erro seguem formato consistente.
     - Ajuda clientes a tratar erros sem depender de mensagens soltas.

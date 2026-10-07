@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from app.api.deps.types import CurrentAdmin, CurrentUser
+from app.core.rate_limit import client_ip
 from app.schemas.common import success_response
 
 router = APIRouter(tags=["foundation"])
@@ -16,6 +17,12 @@ router = APIRouter(tags=["foundation"])
 def foundation_ping() -> Response:
     """Return a static success payload to check that the API is reachable."""
     return success_response({"message": "foundation_ok"})
+
+
+@router.get("/foundation/whoami")
+def foundation_whoami(request: Request) -> Response:
+    """Return the client IP the API sees (after trusted-proxy resolution), for diagnostics."""
+    return success_response({"client_ip": client_ip(request)})
 
 
 @router.get("/foundation/protected")

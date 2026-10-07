@@ -8,7 +8,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from app.api.deps.types import AppSettings, DbSession
-from app.core.rate_limit import limiter
+from app.core.rate_limit import check_login_account_limit, limiter
 from app.core.security_logger import log_auth_failure, log_auth_success
 from app.schemas.common import success_response
 from app.services.auth_service import AuthService
@@ -103,11 +103,14 @@ def login(
 ) -> Response:
     """Authenticate with email and password and issue tokens.
 
-    Public; rate-limited to 10 requests per minute. Returns a bearer access token in
+    Public; rate-limited to 10 requests per minute per client IP and 10 attempts per
+    15 minutes per account (e-mail). Returns a bearer access token in
     the body and sets the refresh token as an HTTP-only cookie scoped to the auth
     endpoints. Returns 401 for invalid credentials or a deactivated account.
     """
     client_ip = request.client.host if request.client else "unknown"
+    # Per-account limit, so a brute force can't dodge the per-IP limit by rotating IPs
+    check_login_account_limit(payload.email)
     try:
         tokens = auth_service.login(email=payload.email, password=payload.password)
         log_auth_success(email=payload.email, ip=client_ip)
