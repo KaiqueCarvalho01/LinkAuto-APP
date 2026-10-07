@@ -1,0 +1,10 @@
+{
+	// Folder settings for the backend. They apply when this folder is opened directly or as the
+	// "backend" folder of LinkAuto-APP.code-workspace (shared settings live in that file).
+	// Create the environment with `uv sync`.
+	"python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+	"python.testing.pytestEnabled": true,
+	"python.testing.unittestEnabled": false,
+	// Config (rootdir, testpaths, pythonpath) comes from [tool.pytest.ini_options] in pyproject.toml.
+	"python.testing.pytestArgs": []
+}

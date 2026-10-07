@@ -80,6 +80,9 @@ O projeto segue estritamente as diretrizes da **OWASP Top 10** e os padrões do 
    uv run uvicorn app.main:app --reload --port 8000
    ```
 
+### VS Code
+Abra o workspace `LinkAuto-APP.code-workspace` (na raiz do repositório) em vez da pasta raiz: cada app vira uma pasta própria, então o interpretador é o `.venv` criado pelo `uv sync`, e Ruff e ty usam as versões do `uv.lock`. Instale as extensões recomendadas quando o VS Code sugerir. O workspace também traz tasks (servidor, testes, lint, migrações) e configurações de debug do backend e do frontend.
+
 ### Gerenciamento de Dependências
 ```bash
 uv add <pacote>          # Adiciona dependência de runtime
