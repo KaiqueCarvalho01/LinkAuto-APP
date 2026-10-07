@@ -116,6 +116,7 @@ uv run alembic check                                      # Falha se os models d
 - Configuração: `[tool.alembic]` no `pyproject.toml` (código) e `alembic.ini` (logging).
 - Revisões geradas são formatadas automaticamente pelo Ruff; revise sempre o arquivo antes de commitar.
 - `tests/unit/test_migrations.py` garante que as migrações aplicam do zero, revertem e batem com os models.
+- **Deploy:** a API não migra o schema no startup. Rode `scripts/migrate.sh` uma vez por deploy, antes da nova versão receber tráfego (detalhes em [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)).
 
 A API estará acessível em `http://localhost:8000` e a documentação interativa Swagger em `http://localhost:8000/docs`.
 

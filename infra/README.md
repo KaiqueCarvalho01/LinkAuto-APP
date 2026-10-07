@@ -29,7 +29,7 @@ O LinkAuto utiliza containers Docker para garantir que todos os serviços (Front
 │                                                             │
 │  ┌──────────────────────┐        ┌──────────────────────┐  │
 │  │   linkauto-frontend  │        │   linkauto-backend   │  │
-│  │     (Node.js 20)     │ ─────> │    (Python 3.11)     │  │
+│  │     (Node.js 20)     │ ─────> │    (Python 3.14)     │  │
 │  │  http://localhost:5173│        │ http://localhost:8000│  │
 │  └──────────────────────┘        └──────────┬───────────┘  │
 │                                             │               │
@@ -120,7 +120,36 @@ Caso queira testar a aplicação integrada com o banco relacional geoespacial Po
 docker compose -f infra/docker-compose.yml --profile postgres up -d
 ```
 
-Isso inicializará o container `linkauto-postgres` na porta `5432` com a extensão PostGIS habilitada e volume persistente nomeado (`postgres_data`).
+Além dos serviços padrão, o perfil `postgres` sobe:
+
+| Serviço | Porta | Função |
+| :--- | :--- | :--- |
+| `postgres` | `5432` | PostgreSQL 16 + PostGIS com volume persistente (`postgres_data`). |
+| `migrate` | — | Passo de *release*: roda `scripts/migrate.sh` (`alembic upgrade head`) e encerra. |
+| `backend-postgres` | `8001` | Backend apontando para o Postgres; só inicia depois que `migrate` termina com sucesso. |
+
+Para aplicar novas migrações sem reiniciar tudo:
+
+```bash
+docker compose -f infra/docker-compose.yml --profile postgres run --rm migrate
+```
+
+### 🚀 Migrações no Deploy (Produção)
+
+O servidor **nunca** altera o schema sozinho: `uvicorn` não roda migrações no startup e o `create_all` só é usado no SQLite de desenvolvimento. Em todo deploy que traga uma nova revisão do Alembic, rode o passo de release **uma única vez**, **antes** de a nova versão receber tráfego:
+
+```bash
+# Mesma imagem de produção e mesmas variáveis de ambiente da aplicação
+docker run --rm --env-file prod.env linkauto-backend:<tag> scripts/migrate.sh
+```
+
+- **CI/CD:** um job de pré-deploy que executa o comando acima e bloqueia o rollout se falhar.
+- **Kubernetes:** um `Job` (ex.: hook `pre-upgrade` do Helm) ou um *init container* em um Deployment de **uma** réplica.
+- **Não** rode as migrações no startup de cada réplica: várias réplicas subindo ao mesmo tempo disputam o mesmo schema.
+- Escreva migrações compatíveis com a versão anterior (*expand/contract*), já que a versão antiga continua servindo enquanto a nova sobe.
+
+> [!NOTE]
+> Em desenvolvimento o backend SQLite continua usando `create_all` + seed a cada startup. Trocar o fluxo de dev para migrações + seed é uma mudança de workflow que ainda precisa ser acordada com o time (ver issue #28).
 
 ---
 
