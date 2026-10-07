@@ -16,6 +16,7 @@ from app.services.identity_repository import IdentityRepository
 from app.services.instructor_document_service import InstructorDocumentService
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
 from app.services.profile_service import ProfileService
+from app.services.refresh_token_repository import RefreshTokenRepository
 
 
 @lru_cache(maxsize=1)
@@ -33,12 +34,13 @@ Repository = Annotated[IdentityRepository, Depends(get_identity_repository)]
 
 
 def get_auth_service(
-    settings: Annotated[Settings, Depends(get_settings)], repository: Repository
+    settings: Annotated[Settings, Depends(get_settings)], repository: Repository, db: DbSession
 ) -> AuthService:
-    """Build an ``AuthService`` wired to the request's repository and notification service."""
+    """Build an ``AuthService`` wired to the request's repositories and notifications."""
     return AuthService(
         settings=settings,
         repository=repository,
+        refresh_tokens=RefreshTokenRepository(db),
         notification_service=get_notification_service(),
     )
 

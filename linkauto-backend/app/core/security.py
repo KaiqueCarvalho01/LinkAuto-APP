@@ -53,7 +53,11 @@ def _epoch_seconds(value: datetime) -> int:
 
 
 def _build_payload(
-    subject: str, token_type: TokenType, expires_delta: timedelta, roles: list[str] | None = None
+    subject: str,
+    token_type: TokenType,
+    expires_delta: timedelta,
+    roles: list[str] | None = None,
+    jti: str | None = None,
 ) -> dict[str, Any]:
     now = datetime.now(UTC)
     expires_at = now + expires_delta
@@ -63,7 +67,7 @@ def _build_payload(
         "roles": roles or [],
         "iat": _epoch_seconds(now),
         "exp": _epoch_seconds(expires_at),
-        "jti": str(uuid.uuid4()),
+        "jti": jti or str(uuid.uuid4()),
     }
 
 
@@ -78,13 +82,19 @@ def create_access_token(subject: str, settings: Settings, roles: list[str] | Non
     return jwt.encode(payload, settings.jwt_secret, algorithm=DEFAULT_ALGORITHM)
 
 
-def create_refresh_token(subject: str, settings: Settings, roles: list[str] | None = None) -> str:
-    """Return a signed refresh JWT that expires after JWT_REFRESH_DAYS."""
+def create_refresh_token(
+    subject: str, settings: Settings, roles: list[str] | None = None, *, jti: str | None = None
+) -> str:
+    """Return a signed refresh JWT that expires after JWT_REFRESH_DAYS.
+
+    ``jti`` sets the token ID (a random UUID by default), so the caller can record it.
+    """
     payload = _build_payload(
         subject=subject,
         token_type="refresh",  # noqa: S106 - token kind, not a secret
         expires_delta=timedelta(days=settings.jwt_refresh_days),
         roles=roles,
+        jti=jti,
     )
     return jwt.encode(payload, settings.jwt_secret, algorithm=DEFAULT_ALGORITHM)
 

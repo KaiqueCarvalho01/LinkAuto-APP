@@ -89,7 +89,8 @@ Todos os endpoints estão implementados e disponíveis com contratos estritos va
 - **Autenticação:**
   - `POST /api/v1/auth/register` — Cadastro de alunos e instrutores (bloqueio de role ADMIN pública)
   - `POST /api/v1/auth/login` — Autenticação com rate limiting e emissão de tokens
-  - `POST /api/v1/auth/refresh` — Rotação automática de refresh token
+  - `POST /api/v1/auth/refresh` — Rotação de refresh token de uso único, com detecção de reuso
+  - `POST /api/v1/auth/logout` — Revoga o refresh token da sessão e apaga o cookie
   - `POST /api/v1/auth/password-reset` — Solicitação de recuperação de senha
 - **Usuários & Perfis Privados:**
   - `GET /api/v1/users/me` — Dados do usuário logado

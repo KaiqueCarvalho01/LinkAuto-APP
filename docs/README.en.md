@@ -89,7 +89,8 @@ All endpoints are implemented with strict Pydantic schemas and typed responses:
 - **Authentication:**
   - `POST /api/v1/auth/register` — Public registration (public ADMIN creation blocked)
   - `POST /api/v1/auth/login` — Login with rate-limiting and token issue
-  - `POST /api/v1/auth/refresh` — Silent refresh token rotation
+  - `POST /api/v1/auth/refresh` — Single-use refresh token rotation with reuse detection
+  - `POST /api/v1/auth/logout` — Revokes the session's refresh token and clears the cookie
   - `POST /api/v1/auth/password-reset` — Password reset request
 - **Users & Private Profiles:**
   - `GET /api/v1/users/me` — Current authenticated user profile

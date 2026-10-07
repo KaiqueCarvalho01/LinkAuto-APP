@@ -10,6 +10,7 @@ from app.models.booking import (
 )
 from app.models.booking_message import BookingMessage
 from app.models.instructor_document import InstructorDocument, InstructorDocumentRepository
+from app.models.refresh_token import RefreshToken
 from app.models.review import Review
 from app.models.slot import Slot, SlotStatus
 from app.models.user import (
@@ -35,6 +36,7 @@ __all__ = [
     "InstructorDocumentRepository",
     "InstructorProfile",
     "LicenseType",
+    "RefreshToken",
     "Review",
     "Slot",
     "SlotStatus",

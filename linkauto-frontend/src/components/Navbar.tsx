@@ -351,7 +351,7 @@ export function Navbar() {
 							<IconButton
 								variant="ghost"
 								aria-label="Sair"
-								onClick={signOut}>
+								onClick={() => void signOut()}>
 								<LogOut size={20} />
 							</IconButton>
 						</HStack>
@@ -458,7 +458,7 @@ export function Navbar() {
 											justifyContent="flex-start"
 											w="full"
 											color="laStatus.cancelled"
-											onClick={signOut}>
+											onClick={() => void signOut()}>
 											<LogOut size={20} /> Sair
 										</Button>
 									</>

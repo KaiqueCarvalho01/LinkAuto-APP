@@ -245,7 +245,7 @@ function ProfileRoute() {
 			session={mergedSession}
 			token={session?.accessToken}
 			onLogout={() => {
-				signOut();
+				void signOut();
 				navigate("/login", { replace: true });
 			}}
 			onProfileUpdated={(updatedUser) => {

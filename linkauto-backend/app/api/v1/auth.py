@@ -1,4 +1,4 @@
-"""Authentication endpoints: registration, login, token refresh, password reset."""
+"""Authentication endpoints: registration, login, token refresh, logout, password reset."""
 
 from __future__ import annotations
 
@@ -42,17 +42,25 @@ class PasswordResetRequest(BaseModel):
     email: str = Field(min_length=3)
 
 
+REFRESH_COOKIE = "refresh_token"
+
+
+def _refresh_cookie_path(request: Request, settings: Settings) -> str:
+    # Sent only to the auth endpoints that need it: /auth/refresh and /auth/logout
+    return f"{request.scope.get('root_path', '')}{settings.api_v1_prefix}/auth"
+
+
 def _set_refresh_cookie(
     response: Response, *, refresh_token: str, request: Request, settings: Settings
 ) -> None:
     response.set_cookie(
-        key="refresh_token",
+        key=REFRESH_COOKIE,
         value=refresh_token,
         httponly=True,
         secure=True,
         samesite="strict",
         max_age=settings.jwt_refresh_days * 24 * 60 * 60,
-        path=f"{request.scope.get('root_path', '')}{settings.api_v1_prefix}/auth/refresh",
+        path=_refresh_cookie_path(request, settings),
     )
 
 
@@ -91,12 +99,13 @@ def login(
     request: Request,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     settings: AppSettings,
+    db: DbSession,
 ) -> Response:
     """Authenticate with email and password and issue tokens.
 
     Public; rate-limited to 10 requests per minute. Returns a bearer access token in
-    the body and sets the refresh token as an HTTP-only cookie scoped to the refresh
-    endpoint. Returns 401 for invalid credentials.
+    the body and sets the refresh token as an HTTP-only cookie scoped to the auth
+    endpoints. Returns 401 for invalid credentials or a deactivated account.
     """
     client_ip = request.client.host if request.client else "unknown"
     try:
@@ -108,6 +117,7 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "UNAUTHORIZED", "message": str(exc)},
         ) from exc
+    db.commit()
 
     response = success_response(
         {
@@ -128,13 +138,15 @@ def refresh(
     request: Request,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     settings: AppSettings,
+    db: DbSession,
     refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> Response:
     """Issue a new access token using the refresh token cookie.
 
-    Rate-limited to 20 requests per minute. The refresh token is rotated and the new
-    one is set as a cookie. Returns 401 when the cookie is missing or the token is
-    invalid.
+    Rate-limited to 20 requests per minute. Each refresh token works once: it is
+    rotated and the new one is set as a cookie. Presenting an already-rotated token
+    revokes every token of that login session (reuse detection). Returns 401 when the
+    cookie is missing or the token is invalid, revoked or reused.
     """
     if not refresh_token:
         raise HTTPException(
@@ -144,10 +156,13 @@ def refresh(
     try:
         tokens = auth_service.refresh(refresh_token=refresh_token)
     except ValueError as exc:
+        # Keep the reuse-detection revocation even though the request fails
+        db.commit()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "UNAUTHORIZED", "message": str(exc)},
         ) from exc
+    db.commit()
 
     response = success_response(
         {
@@ -158,6 +173,33 @@ def refresh(
     )
     _set_refresh_cookie(
         response, refresh_token=tokens.refresh_token, request=request, settings=settings
+    )
+    return response
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(
+    request: Request,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: AppSettings,
+    db: DbSession,
+    refresh_token: Annotated[str | None, Cookie()] = None,
+) -> Response:
+    """Revoke the refresh token of this session and clear its cookie.
+
+    Public (the refresh cookie identifies the session). Always returns 204, also when
+    the cookie is missing or invalid. Access tokens already issued stay valid until
+    they expire (15 minutes by default).
+    """
+    auth_service.logout(refresh_token=refresh_token)
+    db.commit()
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    response.delete_cookie(
+        key=REFRESH_COOKIE,
+        path=_refresh_cookie_path(request, settings),
+        secure=True,
+        httponly=True,
+        samesite="strict",
     )
     return response
 

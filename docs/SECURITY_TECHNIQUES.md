@@ -82,11 +82,26 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
 
 3. Refresh token em cookie com flags de seguranca
    - Cookie `refresh_token` usa `HttpOnly`, `Secure` e `SameSite=Strict`.
-   - Path restrito para `/api/v1/auth/refresh`.
+   - Path restrito a `/api/v1/auth` (enviado apenas para `/auth/refresh` e `/auth/logout`).
    - Local: `linkauto-backend/app/api/v1/auth.py`.
+
+3.1. Rotacao de refresh token com deteccao de reuso (OWASP)
+   - Todo refresh token emitido e registrado na tabela `refresh_tokens` (`jti`, usuario,
+     familia, expiracao, `used_at`, `revoked_at`).
+   - Cada refresh token so pode ser usado uma vez; o `UPDATE` condicional garante isso
+     mesmo com requisicoes concorrentes em varios workers.
+   - Reapresentar um token ja rotacionado e tratado como roubo: toda a familia (todos os
+     tokens derivados do mesmo login) e revogada e a resposta e 401.
+   - `POST /auth/logout` revoga a familia do token atual e apaga o cookie.
+   - Local: `linkauto-backend/app/services/auth_service.py`,
+     `linkauto-backend/app/services/refresh_token_repository.py`.
 
 4. Bearer token para endpoints protegidos
    - Dependencia centralizada valida o token e exige tipo `access`.
+   - A conta e carregada a cada requisicao: contas inativas (`is_active = false`) ou
+     removidas recebem 401, e os papeis vem do banco, nao do token.
+   - Login e refresh tambem rejeitam contas inativas, com a mesma mensagem de credenciais
+     invalidas.
    - Local: `linkauto-backend/app/api/deps/authn.py`.
 
 5. RBAC por papeis
