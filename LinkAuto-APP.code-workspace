@@ -1,0 +1,213 @@
+{
+	// Multi-root workspace: open with "File > Open Workspace from File..." or `code LinkAuto-APP.code-workspace`.
+	// Each app is its own folder, so tools resolve per app: the backend uses linkauto-backend/.venv
+	// (`uv sync`) and its pyproject.toml, the frontend uses linkauto-frontend/node_modules.
+	// Settings a workspace file can't scope to one folder (interpreter, pytest) are in
+	// linkauto-backend/.vscode/settings.json.
+	"folders": [
+		{ "name": "backend", "path": "linkauto-backend" },
+		{ "name": "frontend", "path": "linkauto-frontend" },
+		// Top-level files (README, infra/, docs/); the app folders are hidden here (files.exclude)
+		// so they aren't listed or searched twice.
+		{ "name": "LinkAuto-APP", "path": "." }
+	],
+	"settings": {
+		"files.exclude": {
+			"linkauto-backend": true,
+			"linkauto-frontend": true,
+			"**/__pycache__": true,
+			"**/.pytest_cache": true,
+			"**/.ruff_cache": true
+		},
+		"files.watcherExclude": {
+			"**/.venv/**": true,
+			"**/node_modules/**": true
+		},
+
+		// Python: Ruff lints and formats, ty type-checks and provides the language server. Both run
+		// the versions pinned in uv.lock from the selected .venv (their default "fromEnvironment"
+		// strategy), so the editor matches `uv run ruff` / `uv run ty`.
+		"[python]": {
+			"editor.defaultFormatter": "charliermarsh.ruff",
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll.ruff": "explicit",
+				"source.organizeImports.ruff": "explicit"
+			}
+		},
+		// The ty extension already defaults this to "None"; explicit so Pylance stays off if installed.
+		"python.languageServer": "None",
+		"[toml]": {
+			"editor.defaultFormatter": "tamasfe.even-better-toml"
+		},
+
+		// Frontend: ESLint (flat config) and the project's TypeScript instead of VS Code's bundled one.
+		"eslint.workingDirectories": [{ "mode": "auto" }],
+		"typescript.tsdk": "linkauto-frontend/node_modules/typescript/lib",
+		"typescript.enablePromptUseWorkspaceTsdk": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-python.debugpy",
+			"astral-sh.ty",
+			"charliermarsh.ruff",
+			"tamasfe.even-better-toml",
+			"dbaeumer.vscode-eslint",
+			"vitest.explorer",
+			"ms-playwright.playwright",
+			"ms-azuretools.vscode-containers"
+		],
+		"unwantedRecommendations": [
+			// ty is the language server; Pylance alongside it gives duplicate, conflicting diagnostics.
+			"ms-python.vscode-pylance",
+			// Replaced by Ruff.
+			"ms-python.black-formatter",
+			"ms-python.isort",
+			"ms-python.flake8",
+			"ms-python.pylint"
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "backend: uv sync",
+				"detail": "Create/update linkauto-backend/.venv from uv.lock",
+				"type": "shell",
+				"command": "uv sync",
+				"options": { "cwd": "${workspaceFolder:backend}" },
+				"problemMatcher": []
+			},
+			{
+				"label": "backend: dev server",
+				"detail": "uvicorn --reload on http://localhost:8000",
+				"type": "shell",
+				"command": "uv run uvicorn app.main:app --reload --port 8000",
+				"options": { "cwd": "${workspaceFolder:backend}" },
+				"isBackground": true,
+				"problemMatcher": {
+					"owner": "uvicorn",
+					"pattern": { "regexp": "^__no_problems__$" },
+					"background": {
+						"activeBegins": true,
+						"beginsPattern": "Started reloader process|Reloading\\.\\.\\.",
+						"endsPattern": "Application startup complete"
+					}
+				}
+			},
+			{
+				"label": "backend: test",
+				"type": "shell",
+				"command": "uv run pytest",
+				"options": { "cwd": "${workspaceFolder:backend}" },
+				"group": "test",
+				"problemMatcher": []
+			},
+			{
+				"label": "backend: lint",
+				"detail": "ruff check, ruff format --check, ty check",
+				"type": "shell",
+				"command": "uv run ruff check --output-format concise . && uv run ruff format --check . && uv run ty check --output-format concise",
+				"options": { "cwd": "${workspaceFolder:backend}" },
+				"problemMatcher": {
+					"owner": "linkauto-backend",
+					"fileLocation": ["relative", "${workspaceFolder:backend}"],
+					"pattern": {
+						// ruff: "app/x.py:1:8: F401 [*] message" | ty: "app/x.py:2:10: error[rule] message"
+						"regexp": "^(.+?\\.py):(\\d+):(\\d+): (?:(error|warning)\\[\\S+\\] )?(.*)$",
+						"file": 1,
+						"line": 2,
+						"column": 3,
+						"severity": 4,
+						"message": 5
+					}
+				}
+			},
+			{
+				"label": "backend: migrate",
+				"detail": "alembic upgrade head (uses DATABASE_URL)",
+				"type": "shell",
+				"command": "uv run alembic upgrade head",
+				"options": { "cwd": "${workspaceFolder:backend}" },
+				"problemMatcher": []
+			},
+			{
+				"label": "frontend: npm install",
+				"type": "shell",
+				"command": "npm install",
+				"options": { "cwd": "${workspaceFolder:frontend}" },
+				"problemMatcher": []
+			},
+			{
+				"label": "frontend: dev server",
+				"detail": "Vite on http://localhost:5173",
+				"type": "shell",
+				"command": "npm run dev",
+				"options": { "cwd": "${workspaceFolder:frontend}" },
+				"isBackground": true,
+				"problemMatcher": {
+					"owner": "vite",
+					"pattern": { "regexp": "^__no_problems__$" },
+					"background": {
+						"activeBegins": true,
+						"beginsPattern": "VITE v",
+						"endsPattern": "Local:"
+					}
+				}
+			},
+			{
+				"label": "frontend: test",
+				"type": "shell",
+				"command": "npm test",
+				"options": { "cwd": "${workspaceFolder:frontend}" },
+				"group": "test",
+				"problemMatcher": []
+			},
+			{
+				"label": "frontend: lint",
+				"detail": "eslint and tsc -b",
+				"type": "shell",
+				"command": "npm run lint && npm run typecheck",
+				"options": { "cwd": "${workspaceFolder:frontend}" },
+				"problemMatcher": ["$eslint-stylish", "$tsc"]
+			},
+			{
+				"label": "dev: backend + frontend",
+				"detail": "Start both dev servers",
+				"dependsOn": ["backend: dev server", "frontend: dev server"],
+				"problemMatcher": []
+			}
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "backend: FastAPI",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "uvicorn",
+				"args": ["app.main:app", "--reload", "--port", "8000"],
+				"cwd": "${workspaceFolder:backend}",
+				"python": "${workspaceFolder:backend}/.venv/bin/python",
+				"jinja": true
+			},
+			{
+				"name": "frontend: Chrome",
+				"type": "chrome",
+				"request": "launch",
+				"url": "http://localhost:5173",
+				"webRoot": "${workspaceFolder:frontend}",
+				"preLaunchTask": "frontend: dev server"
+			}
+		],
+		"compounds": [
+			{
+				"name": "Full stack",
+				"configurations": ["backend: FastAPI", "frontend: Chrome"],
+				"stopAll": true
+			}
+		]
+	}
+}
