@@ -18,7 +18,8 @@ linkauto-backend/
 │   ├── schemas/         # Validação de Entrada/Saída e schemas de serialização (Pydantic)
 │   └── services/        # Regras de Negócio e Casos de Uso (Services e Ports)
 ├── tests/               # Suíte completa de testes (Unitários, Integração e Contratos)
-└── pyproject.toml       # Gerenciamento de dependências e configuração Ruff/Pytest
+├── pyproject.toml       # Metadados, dependências (uv) e configuração Ruff/Pytest
+└── uv.lock              # Lockfile de dependências gerado pelo uv (versionado)
 ```
 
 ---
@@ -63,23 +64,27 @@ O projeto segue estritamente as diretrizes da **OWASP Top 10** e os padrões do 
 ## 🛠️ Como Executar o Backend
 
 ### Requisitos Próximos
-- Python 3.11
+- [uv](https://docs.astral.sh/uv/) (gerencia o Python e as dependências)
+- Python 3.14+ (instalado automaticamente pelo uv, conforme `.python-version`)
 - SQLite3 (Ambiente de Desenvolvimento)
 
 ### Configuração do Ambiente Local
-1. Crie e ative o ambiente virtual:
+1. Crie o ambiente virtual (`.venv`) e instale as dependências a partir do `uv.lock`, incluindo o grupo `dev` (testes e lint):
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate
+   uv sync
    ```
-2. Instale o pacote em modo de desenvolvimento com as dependências adicionais de teste:
+2. Inicialize o servidor de desenvolvimento:
    ```bash
-   pip install -e ".[dev]"
+   uv run uvicorn app.main:app --reload --port 8000
    ```
-3. Inicialize o servidor de desenvolvimento:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
+
+### Gerenciamento de Dependências
+```bash
+uv add <pacote>          # Adiciona dependência de runtime
+uv add --dev <pacote>    # Adiciona dependência de desenvolvimento (grupo `dev`)
+uv lock --upgrade        # Atualiza todas as versões no uv.lock
+uv sync --no-dev         # Instala apenas as dependências de produção
+```
 
 A API estará acessível em `http://localhost:8000` e a documentação interativa Swagger em `http://localhost:8000/docs`.
 
@@ -92,14 +97,14 @@ Seguindo o ciclo rigoroso do **TDD**, todos os desenvolvimentos são validados p
 ### Executar a Suíte de Testes
 ```bash
 # Rodar todos os testes unitários, integração e contrato
-pytest
+uv run pytest
 
 # Rodar com saída detalhada
-pytest -v
+uv run pytest -v
 ```
 
 ### Verificação de Qualidade e Linter
 ```bash
 # Executar análise estática de código com o Ruff
-ruff check .
+uv run ruff check .
 ```
