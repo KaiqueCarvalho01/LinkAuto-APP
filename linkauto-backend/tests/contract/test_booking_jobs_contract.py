@@ -3,11 +3,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from app.core.config import get_settings
-from app.core.security import create_access_token
 from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot, SlotStatus
-from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
+from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User
+from tests.factories import admin_headers as seed_admin_headers
+from tests.factories import auth_headers, seed_student
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -17,9 +17,8 @@ JOB_SUMMARY_KEYS = {"processed", "booking_ids", "failed", "failed_booking_ids"}
 
 
 @pytest.fixture
-def admin_headers() -> dict[str, str]:
-    token = create_access_token("admin-1", get_settings(), roles=[UserRole.ADMIN.value])
-    return {"Authorization": f"Bearer {token}"}
+def admin_headers(db_session: Session) -> dict[str, str]:
+    return seed_admin_headers(db_session)
 
 
 def _seed_booking(
@@ -124,9 +123,9 @@ def test_jobs_share_the_summary_shape(
 
 
 @pytest.mark.parametrize("job", ["booking-timeout", "booking-completion", "booking-reminder"])
-def test_jobs_require_admin(client: TestClient, job: str) -> None:
-    token = create_access_token("stu-1", get_settings(), roles=[UserRole.ALUNO.value])
+def test_jobs_require_admin(client: TestClient, db_session: Session, job: str) -> None:
+    headers = auth_headers(seed_student(db_session, "stu-1").user)
 
-    resp = client.post(f"/api/v1/jobs/{job}", headers={"Authorization": f"Bearer {token}"})
+    resp = client.post(f"/api/v1/jobs/{job}", headers=headers)
 
     assert resp.status_code == 403

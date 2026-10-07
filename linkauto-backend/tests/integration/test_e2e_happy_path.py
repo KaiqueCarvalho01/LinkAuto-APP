@@ -3,11 +3,10 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import col, update
 
-from app.core.config import get_settings
-from app.core.security import create_access_token
 from app.domain.booking import BookingStatus
 from app.models.slot import Slot
 from app.models.user import UserRole
+from tests.factories import admin_headers
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -95,10 +94,7 @@ def test_happy_path_e2e_journey(client: TestClient, db_session: Session) -> None
     instructor_id = _register(
         client, "inst_e2e@test.com", UserRole.INSTRUTOR, "Instructor E2E", "11988888888"
     )
-    admin_token = create_access_token(
-        "admin-1", settings=get_settings(), roles=[UserRole.ADMIN.value]
-    )
-    headers_admin = {"Authorization": f"Bearer {admin_token}"}
+    headers_admin = admin_headers(db_session)
     headers_student = _login(client, "student_e2e@test.com")
     headers_instructor = _login(client, "inst_e2e@test.com")
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from app.core.config import get_settings
+from app.core.security import create_access_token
 from app.models import DetranStatus, InstructorProfile, StudentProfile, User, UserRole
 
 if TYPE_CHECKING:
@@ -57,3 +59,29 @@ def seed_participants(db: Session, student_id: str, instructor_id: str) -> None:
     """Insert the student and instructor a booking refers to."""
     seed_student(db, student_id)
     seed_instructor(db, instructor_id)
+
+
+def seed_admin(db: Session, user_id: str = "admin-1") -> User:
+    """Insert (or reuse) an active ADMIN account with the given ID."""
+    user = db.get(User, user_id)
+    if user is None:
+        user = User(
+            id=user_id,
+            email=f"{user_id}@seed.test",
+            password_hash="h",
+            roles=[UserRole.ADMIN.value],
+        )
+        db.add(user)
+        db.flush()
+    return user
+
+
+def auth_headers(user: User) -> dict[str, str]:
+    """Return a bearer header with an access token for the stored user."""
+    token = create_access_token(user.id, settings=get_settings(), roles=list(user.roles))
+    return {"Authorization": f"Bearer {token}"}
+
+
+def admin_headers(db: Session, user_id: str = "admin-1") -> dict[str, str]:
+    """Seed an admin account and return its bearer header."""
+    return auth_headers(seed_admin(db, user_id))

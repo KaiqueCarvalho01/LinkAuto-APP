@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlmodel import col, select
 
-from app.core.config import get_settings
-from app.core.security import create_access_token
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking, BookingSlot, BookingStatusOverride, CancelledBy
 from app.models.slot import Slot, SlotStatus
@@ -19,6 +17,7 @@ from app.models.user import (
 from app.services.admin_booking_service import AdminBookingService
 from app.services.booking_service import BookingNotFoundError
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
+from tests.factories import admin_headers
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -170,12 +169,10 @@ def test_override_endpoint_persists_reason_and_admin(
     client: TestClient, db_session: Session
 ) -> None:
     booking = _seed_booking(db_session, BookingStatus.CONFIRMADA)
-    token = create_access_token("admin-42", settings=get_settings(), roles=["ADMIN"])
-
     resp = client.patch(
         f"/api/v1/admin/bookings/{booking.id}/override-status",
         json={"status": "CANCELADA", "reason": "Fraude confirmada"},
-        headers={"Authorization": f"Bearer {token}"},
+        headers=admin_headers(db_session, "admin-42"),
     )
 
     assert resp.status_code == 200
@@ -189,13 +186,13 @@ def test_override_endpoint_persists_reason_and_admin(
     assert entry.admin_id == "admin-42"
 
 
-def test_override_endpoint_missing_booking_returns_404(client: TestClient) -> None:
-    token = create_access_token("admin-42", settings=get_settings(), roles=["ADMIN"])
-
+def test_override_endpoint_missing_booking_returns_404(
+    client: TestClient, db_session: Session
+) -> None:
     resp = client.patch(
         "/api/v1/admin/bookings/missing/override-status",
         json={"status": "CANCELADA", "reason": "Fraude"},
-        headers={"Authorization": f"Bearer {token}"},
+        headers=admin_headers(db_session, "admin-42"),
     )
 
     assert resp.status_code == 404

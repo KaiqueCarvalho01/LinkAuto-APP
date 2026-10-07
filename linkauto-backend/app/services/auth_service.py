@@ -76,9 +76,17 @@ class AuthService:
         return user
 
     def login(self, *, email: str, password: str) -> AuthTokens:
-        """Return new tokens for valid credentials, raising ``ValueError`` otherwise."""
+        """Return new tokens for valid credentials of an active account.
+
+        Raises ``ValueError`` with the same message for an unknown email, a wrong password
+        and a deactivated account, so the response doesn't reveal which accounts exist.
+        """
         user = self._repository.get_user_by_email(email)
         if user is None or not verify_password(password, user.password_hash):
+            msg = "Invalid credentials."
+            raise ValueError(msg)
+        # Checked after the password so a deactivated account can't be probed for existence
+        if not user.is_active:
             msg = "Invalid credentials."
             raise ValueError(msg)
 
@@ -89,11 +97,11 @@ class AuthService:
     def refresh(self, *, refresh_token: str) -> AuthTokens:
         """Return a new access token and a rotated refresh token.
 
-        Raises ``ValueError`` if the token's subject does not match a known user.
+        Raises ``ValueError`` if the token's subject is not a known, active user.
         """
         payload = decode_token(refresh_token, self._settings, expected_type="refresh")
         user = self._repository.get_user(payload.sub)
-        if user is None:
+        if user is None or not user.is_active:
             msg = "Invalid refresh token subject."
             raise ValueError(msg)
         access_token = create_access_token(user.id, settings=self._settings, roles=user.roles)

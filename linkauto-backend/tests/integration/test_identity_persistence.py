@@ -5,11 +5,10 @@ from typing import TYPE_CHECKING
 from fastapi.testclient import TestClient
 from sqlmodel import col, select
 
-from app.core.config import get_settings
 from app.core.database import get_db
-from app.core.security import create_access_token
 from app.main import create_app
 from app.models import DetranStatus, InstructorDocument, InstructorProfile, StudentProfile, User
+from tests.factories import admin_headers
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -95,10 +94,9 @@ def test_admin_approval_and_documents_are_persisted(db_session: Session) -> None
     ).all()
     assert len(stored) == 1
 
-    admin = create_access_token("admin-x", settings=get_settings(), roles=["ADMIN"])
     resp = client.patch(
         f"/api/v1/admin/instructors/{instructor_id}/approve",
-        headers={"Authorization": f"Bearer {admin}"},
+        headers=admin_headers(db_session),
     )
     assert resp.status_code == 200
 
@@ -118,11 +116,9 @@ def test_admin_instructor_listing_paginates_in_sql(db_session: Session) -> None:
     client = _fresh_client(db_session)
     for i in range(3):
         _register(client, f"page{i}@x.com", ["INSTRUTOR"])
-    admin = create_access_token("admin-x", settings=get_settings(), roles=["ADMIN"])
-
     resp = client.get(
         "/api/v1/admin/instructors?status=PENDENTE&page=2&page_size=2",
-        headers={"Authorization": f"Bearer {admin}"},
+        headers=admin_headers(db_session),
     )
 
     assert resp.status_code == 200
