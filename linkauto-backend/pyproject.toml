@@ -44,6 +44,15 @@ type = "module"
 module = "ruff"
 options = "format REVISION_SCRIPT_FILENAME"
 
+[tool.ty.rules]
+all = "error"
+# `x: Mapped[T] = mapped_column(...)` is SQLAlchemy's own idiom; mapped_column() is MappedColumn[Any]
+unsound-assignment = "ignore"
+# Returning values from untyped libraries (python-jose, boto3) and parsed JSON
+unsound-return-statement = "ignore"
+# slowapi's @limiter.limit is untyped
+dynamic-function-decorator-return = "ignore"
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
@@ -112,4 +121,5 @@ dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.10",
+    "ty>=0.0.84",
 ]

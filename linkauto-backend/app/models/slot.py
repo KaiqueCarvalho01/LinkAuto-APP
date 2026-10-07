@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 
 from sqlalchemy import DateTime, ForeignKey, Index, String
@@ -26,8 +27,8 @@ class Slot(AuditUUIDBase):
     instructor_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("instructor_profiles.user_id"), nullable=False, index=True
     )
-    starts_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=False)
-    ends_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=False)
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=SlotStatus.DISPONIVEL.value
     )

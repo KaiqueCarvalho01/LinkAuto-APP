@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from app.models import DetranStatus
 
@@ -18,7 +18,7 @@ class ProfileService:
         self._store = store
 
     @staticmethod
-    def _serialize_user(user: UserRecord) -> dict:
+    def _serialize_user(user: UserRecord) -> dict[str, Any]:
         return {
             "id": user.id,
             "email": user.email,
@@ -30,7 +30,7 @@ class ProfileService:
             "updated_at": user.updated_at.isoformat().replace("+00:00", "Z"),
         }
 
-    def get_me(self, user_id: str) -> dict:
+    def get_me(self, user_id: str) -> dict[str, Any]:
         """Return the serialized user; raise ``ValueError`` if the user does not exist."""
         user = self._store.get_user(user_id)
         if user is None:
@@ -38,7 +38,7 @@ class ProfileService:
             raise ValueError(msg)
         return self._serialize_user(user)
 
-    def update_me(self, user_id: str, payload: dict) -> dict:
+    def update_me(self, user_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Merge the student/instructor profile updates in ``payload`` and return the user.
 
         The store raises ``ValueError`` if the user is missing or lacks the matching role.
@@ -46,10 +46,10 @@ class ProfileService:
         user = self._store.update_profile(user_id, payload)
         return self._serialize_user(user)
 
-    def list_public_instructors(self) -> list[dict]:
+    def list_public_instructors(self) -> list[dict[str, Any]]:
         """Return active instructors whose DETRAN status is APROVADO (approved by an admin)."""
         instructors = self._store.list_public_instructors()
-        response: list[dict] = []
+        response: list[dict[str, Any]] = []
         for user in instructors:
             if not user.instructor_profile:
                 continue

@@ -20,7 +20,7 @@ linkauto-backend/
 ├── alembic/             # Migrações do banco (Alembic)
 ├── tests/               # Suíte completa de testes (Unitários, Integração e Contratos)
 ├── alembic.ini          # Configuração de logging do Alembic
-├── pyproject.toml       # Metadados, dependências (uv) e configuração Ruff/Pytest/Alembic
+├── pyproject.toml       # Metadados, dependências (uv) e configuração Ruff/ty/Pytest/Alembic
 └── uv.lock              # Lockfile de dependências gerado pelo uv (versionado)
 ```
 
@@ -118,8 +118,9 @@ uv run pytest
 uv run pytest -v
 ```
 
-### Verificação de Qualidade e Linter
+### Verificação de Qualidade, Linter e Tipos
 ```bash
-# Executar análise estática de código com o Ruff
-uv run ruff check .
+uv run ruff check .          # Lint (todas as regras do Ruff habilitadas)
+uv run ruff format .         # Formatação
+uv run ty check              # Checagem de tipos (ty)
 ```

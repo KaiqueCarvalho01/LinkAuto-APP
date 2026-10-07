@@ -3,7 +3,7 @@
 import contextvars
 import logging
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
@@ -19,6 +19,7 @@ correlation_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
 class CorrelationIDFilter(logging.Filter):
     """Logging filter to inject the current correlation ID into log records."""
 
+    @override
     def filter(self, record: logging.LogRecord) -> bool:
         """Set ``record.correlation_id`` (or "no-trace") and always keep the record."""
         record.correlation_id = correlation_id_ctx.get() or "no-trace"
@@ -28,6 +29,7 @@ class CorrelationIDFilter(logging.Filter):
 class CorrelationIDMiddleware(BaseHTTPMiddleware):
     """FastAPI Middleware to manage the correlation ID context for each request."""
 
+    @override
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Bind the X-Correlation-ID header (or a new UUID4) to the request and echo it back."""
         # Extract from header or generate a new unique UUID4

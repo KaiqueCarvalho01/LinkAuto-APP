@@ -24,7 +24,7 @@ def test_sqlalchemy_slot_reservation_store_has_static_table_name() -> None:
     with pytest.raises(TypeError):
         # Essa chamada deve falhar na fase GREEN quando o construtor for ajustado.
         # Na fase RED ela não vai levantar erro se o construtor aceitar **kwargs ou table_name.
-        SqlAlchemySlotReservationStore(session, table_name="custom_table")
+        SqlAlchemySlotReservationStore(session, table_name="custom_table")  # ty: ignore[unknown-argument]
 
 
 def test_sqlalchemy_slot_reservation_store_reserves_all_or_nothing() -> None:

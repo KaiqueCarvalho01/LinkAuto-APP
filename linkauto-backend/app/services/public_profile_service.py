@@ -28,14 +28,18 @@ class PublicProfileService:
 
     def _ensure_instructor_slug(self, prof: InstructorProfile) -> str:
         if not prof.slug:
-            prof.slug = generate_profile_slug(prof.full_name, prof.city, default_prefix="instrutor")
+            slug = generate_profile_slug(prof.full_name, prof.city, default_prefix="instrutor")
+            prof.slug = slug
             self._db.flush()
+            return slug
         return prof.slug
 
     def _ensure_student_slug(self, prof: StudentProfile) -> str:
         if not prof.slug:
-            prof.slug = generate_profile_slug(prof.full_name, prof.city, default_prefix="aluno")
+            slug = generate_profile_slug(prof.full_name, prof.city, default_prefix="aluno")
+            prof.slug = slug
             self._db.flush()
+            return slug
         return prof.slug
 
     def _get_reviewer_author(self, reviewer_id: str) -> PublicReviewAuthor:
@@ -126,8 +130,8 @@ class PublicProfileService:
             )
 
         return PublicInstructorProfileResponse(
-            id=prof.slug,
-            slug=prof.slug,
+            id=slug,
+            slug=slug,
             full_name=prof.full_name or "Instrutor",
             avatar_url=prof.avatar_url,
             city=prof.city,
@@ -135,7 +139,7 @@ class PublicProfileService:
             bio=prof.bio,
             specialties=prof.specialties or [],
             price_per_hour=float(prof.price_per_hour) if prof.price_per_hour is not None else None,
-            rating_avg=float(prof.rating_avg) if prof.rating_avg is not None else 5.0,
+            rating_avg=prof.rating_avg,
             rating_count=prof.rating_count,
             detran_approved=True,
             reviews=review_items,
@@ -197,8 +201,8 @@ class PublicProfileService:
         rating_avg = round(total_rating / rating_count, 1) if rating_count > 0 else 5.0
 
         return PublicStudentProfileResponse(
-            id=prof.slug,
-            slug=prof.slug,
+            id=slug,
+            slug=slug,
             full_name=prof.full_name or "Aluno",
             avatar_url=prof.avatar_url,
             city=prof.city,

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi.testclient import TestClient
 
@@ -12,7 +12,9 @@ if TYPE_CHECKING:
 client = TestClient(create_app())
 
 
-def _register_user(email: str, roles: list[str], password: str = "strong-password") -> dict:
+def _register_user(
+    email: str, roles: list[str], password: str = "strong-password"
+) -> dict[str, Any]:
     response = client.post(
         "/api/v1/auth/register",
         json={"email": email, "password": password, "roles": roles},

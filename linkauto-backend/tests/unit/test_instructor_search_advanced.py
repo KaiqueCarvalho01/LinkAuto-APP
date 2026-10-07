@@ -92,7 +92,7 @@ class TestInstructorSearchAdvanced:
                 sort_by="price_asc",
             )
         )
-        prices = [float(r.price_per_hour) for r in results]
+        prices = [float(r.price_per_hour or 0) for r in results]
         assert prices == [70.0, 80.0, 110.0]
 
     def test_sort_by_price_desc(self, db_session: Session) -> None:
@@ -107,7 +107,7 @@ class TestInstructorSearchAdvanced:
                 sort_by="price_desc",
             )
         )
-        prices = [float(r.price_per_hour) for r in results]
+        prices = [float(r.price_per_hour or 0) for r in results]
         assert prices == [110.0, 80.0, 70.0]
 
     def test_sort_by_rating(self, db_session: Session) -> None:
