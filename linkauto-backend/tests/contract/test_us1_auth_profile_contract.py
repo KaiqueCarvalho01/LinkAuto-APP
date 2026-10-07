@@ -38,16 +38,17 @@ def test_auth_register_login_refresh_and_reset_contract(client: TestClient) -> N
     assert "SameSite=strict" in set_cookie
 
     refresh_cookie_value = set_cookie.split("refresh_token=", 1)[1].split(";", 1)[0]
-    refresh_response = client.post(
-        "/api/v1/auth/refresh",
-        cookies={"refresh_token": refresh_cookie_value},
-    )
+    # Cookies are set on the client: per-request cookies= is deprecated by Starlette
+    client.cookies.clear()
+    client.cookies.set("refresh_token", refresh_cookie_value)
+    refresh_response = client.post("/api/v1/auth/refresh")
     assert refresh_response.status_code == 200
     refresh_payload = refresh_response.json()
     assert refresh_payload["error"] is None
     assert isinstance(refresh_payload["data"]["access_token"], str)
     assert refresh_payload["data"]["token_type"] == "bearer"
 
+    client.cookies.clear()
     missing_cookie_response = client.post("/api/v1/auth/refresh")
     assert missing_cookie_response.status_code == 401
     assert missing_cookie_response.json()["error"]["code"] == "UNAUTHORIZED"

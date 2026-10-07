@@ -29,7 +29,7 @@ Before executing tasks, AI agents should consult this index and inspect the corr
 ---
 
 ### 🔵 1.2 Backend, Database & API Contracts
-**Stack**: Python 3.11+, FastAPI, SQLAlchemy 2.0, Pydantic v2, Alembic, SQLite (dev) / PostgreSQL + PostGIS (prod).
+**Stack**: Python 3.14 (uv), FastAPI, SQLModel / SQLAlchemy 2.x, Pydantic v2, Alembic, psycopg 3, Ruff, ty, SQLite (dev) / PostgreSQL + PostGIS (prod).
 
 | Specialist Skill | When to Read / Trigger | Absolute Path |
 | :--- | :--- | :--- |

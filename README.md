@@ -74,8 +74,8 @@ Abaixo, algumas das principais interfaces do LinkAuto em operação:
 | **Phase 8 - Tooling & Stack Integration** | Concluída | Migração para `uv`, `SQLModel 0.0.48`, typechecker `ty`, Alembic baseline e workspace multi-root |
 
 ### Resumo de Validação
-- 🟢 **Backend:** **161 testes verdes** no Pytest, 0 erros no `ty check`, 0 avisos no `ruff check` (regras `ALL`).
-- 🟢 **Frontend:** **97 testes verdes** no Vitest, 0 erros no TypeScript (`npm run typecheck` estrito).
+- 🟢 **Backend:** **236 testes verdes** no Pytest, 0 erros no `ty check`, 0 avisos no `ruff check` (regras `ALL`).
+- 🟢 **Frontend:** **102 testes verdes** no Vitest, 0 erros no TypeScript (`npm run typecheck` estrito).
 
 ---
 
@@ -139,7 +139,7 @@ Todos os endpoints estão implementados e disponíveis com contratos estritos va
 ```
 
 - **Frontend:** React 19.2, Vite, Tailwind CSS 4, Chakra UI v3, React Router DOM 7, Leaflet, Vitest.
-- **Backend:** Python 3.14 (gerenciado por `uv`), FastAPI, SQLModel 0.0.48, Alembic, Pydantic v2, Ruff, ty.
+- **Backend:** Python 3.14 (gerenciado por `uv`), FastAPI, SQLModel 0.0.48, Alembic, Pydantic v2, psycopg 3, Ruff, ty.
 - **Banco de Dados:** SQLite com auto-seed no ambiente de desenvolvimento; PostgreSQL + PostGIS em produção.
 - **Serviços Cloud:** AWS S3 (armazenamento temporário de credenciais) e AWS SES (notificações por e-mail).
 
@@ -203,7 +203,7 @@ cd linkauto-backend
 uv run ty check              # Verificação estrita de tipos estáticos
 uv run ruff check .          # Linting com todas as regras Ruff habilitadas
 uv run ruff format --check . # Verificação de formatação de código
-uv run pytest                # Execução dos 161 testes unitários, de contrato e integração
+uv run pytest                # Execução dos 236 testes unitários, de contrato e integração
 ```
 
 ### Frontend (`linkauto-frontend`)
@@ -211,7 +211,7 @@ uv run pytest                # Execução dos 161 testes unitários, de contrato
 cd linkauto-frontend
 npm run typecheck            # Compilação estrita TypeScript (exactOptionalPropertyTypes)
 npm run lint                 # Análise estática com ESLint
-npm run test                 # Execução dos 97 testes automatizados com Vitest
+npm run test                 # Execução dos 102 testes automatizados com Vitest
 ```
 
 ### Integração Contínua (GitHub Actions)
