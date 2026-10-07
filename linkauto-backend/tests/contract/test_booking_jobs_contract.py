@@ -44,6 +44,7 @@ def _seed_booking(
             StudentProfile(user_id="job-stu", full_name="S"),
         ]
     )
+    db_session.flush()
     start = datetime.now(UTC) + starts_in
     slots = [
         Slot(

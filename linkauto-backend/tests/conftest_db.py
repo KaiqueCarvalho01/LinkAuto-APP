@@ -3,11 +3,11 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import Connection, Engine, create_engine, event
+from sqlalchemy import Connection, Engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session
 
-from app.core.database import get_db
+from app.core.database import create_db_engine, get_db
 from app.main import create_app
 from app.models.base import Base
 
@@ -17,10 +17,8 @@ if TYPE_CHECKING:
 
 def create_test_engine() -> Engine:
     """Return an in-memory SQLite engine whose savepoints nest inside real transactions."""
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-    )
+    # Same engine setup as the app (incl. PRAGMA foreign_keys=ON); one shared in-memory DB
+    engine = create_db_engine("sqlite:///:memory:")
 
     # pysqlite's legacy transaction mode never emits BEGIN before a SAVEPOINT, so the
     # savepoint would become the outermost transaction and RELEASE would commit it. Let

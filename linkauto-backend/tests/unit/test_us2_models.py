@@ -7,6 +7,7 @@ from sqlalchemy.exc import StatementError
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.models.slot import Slot, SlotStatus
+from tests.factories import seed_instructor, seed_participants, seed_student
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
 
 def test_slot_model_creation(db_session: Session) -> None:
     """Slot model persists with required fields."""
+    seed_instructor(db_session, "instructor-001")
     now = datetime.now(UTC)
     slot = Slot(
         instructor_id="instructor-001",
@@ -31,6 +33,7 @@ def test_slot_model_creation(db_session: Session) -> None:
 
 def test_booking_model_creation(db_session: Session) -> None:
     """Booking model persists with required fields and default status."""
+    seed_participants(db_session, "student-001", "instructor-001")
     booking = Booking(
         student_id="student-001",
         instructor_id="instructor-001",
@@ -46,6 +49,7 @@ def test_booking_model_creation(db_session: Session) -> None:
 
 def test_booking_slot_association(db_session: Session) -> None:
     """BookingSlot links a Booking to a Slot."""
+    seed_participants(db_session, "student-001", "instructor-001")
     now = datetime.now(UTC)
     slot = Slot(
         instructor_id="instructor-001",
@@ -71,6 +75,7 @@ def test_booking_slot_association(db_session: Session) -> None:
 
 def test_student_penalty_model(db_session: Session) -> None:
     """StudentPenalty persists with blocking date."""
+    seed_student(db_session, "student-001")
     penalty = StudentPenalty(
         student_id="student-001",
         blocked_until=datetime.now(UTC) + timedelta(days=7),
@@ -85,6 +90,7 @@ def test_student_penalty_model(db_session: Session) -> None:
 
 def test_datetimes_round_trip_as_aware_utc(db_session: Session) -> None:
     """Datetime columns return aware UTC values, even on SQLite (SQLModel UTCDateTime)."""
+    seed_instructor(db_session, "instructor-001")
     start = datetime(2030, 1, 1, 12, tzinfo=UTC)
     slot = Slot(instructor_id="instructor-001", starts_at=start, ends_at=start + timedelta(hours=1))
     db_session.add(slot)

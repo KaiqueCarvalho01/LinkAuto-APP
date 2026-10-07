@@ -46,7 +46,11 @@ def _seed_booking(db_session: Session, status: BookingStatus = BookingStatus.CAN
         instructor_id="inst-admin",
         status=status.value,
     )
-    db_session.add_all([inst, inst_p, stu, stu_p, booking])
+    db_session.add_all([inst, stu])
+    db_session.flush()
+    db_session.add_all([inst_p, stu_p])
+    db_session.flush()
+    db_session.add(booking)
     db_session.flush()
     return booking
 

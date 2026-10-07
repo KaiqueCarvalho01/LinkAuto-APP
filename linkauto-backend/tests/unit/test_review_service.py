@@ -12,6 +12,7 @@ from app.services.review_service import (
     ReviewService,
     ReviewStateError,
 )
+from tests.factories import seed_participants
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -47,6 +48,7 @@ def test_create_review_valid_student_to_instructor(
     db_session.flush()
 
     # Setup completed booking
+    seed_participants(db_session, "student-1", "instructor-1")
     booking = Booking(
         id="booking-123",
         student_id="student-1",
@@ -88,6 +90,7 @@ def test_create_review_valid_student_to_instructor(
 
 def test_create_review_rejects_non_realizada_booking(db_session: Session) -> None:
     """create_review raises error if booking status is not REALIZADA."""
+    seed_participants(db_session, "student-1", "instructor-1")
     booking = Booking(
         id="booking-123",
         student_id="student-1",
@@ -110,6 +113,7 @@ def test_create_review_rejects_non_realizada_booking(db_session: Session) -> Non
 
 def test_create_review_rejects_duplicate_submission(db_session: Session) -> None:
     """create_review raises error if reviewer already submitted a review for this booking."""
+    seed_participants(db_session, "student-1", "instructor-1")
     booking = Booking(
         id="booking-123",
         student_id="student-1",
@@ -142,6 +146,7 @@ def test_create_review_rejects_duplicate_submission(db_session: Session) -> None
 
 def test_create_review_rejects_unauthorized_user(db_session: Session) -> None:
     """create_review raises error if reviewer is not part of the booking."""
+    seed_participants(db_session, "student-1", "instructor-1")
     booking = Booking(
         id="booking-123",
         student_id="student-1",
