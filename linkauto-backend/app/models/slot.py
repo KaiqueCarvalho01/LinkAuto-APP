@@ -1,12 +1,10 @@
 """Instructor availability slot model and status enum."""
 
-from __future__ import annotations
-
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import DateTime, ForeignKey, Index, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Index, String
+from sqlmodel import Field
 
 from app.models.base import AuditUUIDBase
 
@@ -19,18 +17,15 @@ class SlotStatus(StrEnum):
     BLOQUEADO = "BLOQUEADO"
 
 
-class Slot(AuditUUIDBase):
+class Slot(AuditUUIDBase, table=True):
     """Time window of an instructor's agenda that students can book (``slots`` table)."""
 
     __tablename__ = "slots"
-
-    instructor_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("instructor_profiles.user_id"), nullable=False, index=True
-    )
-    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default=SlotStatus.DISPONIVEL.value
-    )
-
     __table_args__ = (Index("ix_slots_instructor_starts", "instructor_id", "starts_at"),)
+
+    instructor_id: str = Field(
+        sa_type=String(36), foreign_key="instructor_profiles.user_id", index=True
+    )
+    starts_at: datetime
+    ends_at: datetime
+    status: str = Field(default=SlotStatus.DISPONIVEL.value, sa_type=String(20))

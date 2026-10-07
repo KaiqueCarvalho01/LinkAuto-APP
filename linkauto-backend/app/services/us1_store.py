@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from threading import Lock
 from typing import TYPE_CHECKING, Any
 
+from sqlmodel import col, select
+
 from app.core.database import SessionLocal
 from app.models import DetranStatus, LicenseType, UserRole, generate_uuid7
 from app.models import User as DbUser
@@ -164,7 +166,9 @@ class IdentityStore:
 
         db = SessionLocal()
         try:
-            db_user = db.query(DbUser).filter_by(email=email.strip().lower()).first()
+            db_user = db.exec(
+                select(DbUser).where(col(DbUser.email) == email.strip().lower())
+            ).first()
             if db_user:
                 self._sync_db_user_to_memory(db_user)
                 return db_user.id
@@ -178,7 +182,7 @@ class IdentityStore:
 
         db = SessionLocal()
         try:
-            db_user = db.query(DbUser).filter_by(id=user_id).first()
+            db_user = db.exec(select(DbUser).where(col(DbUser.id) == user_id)).first()
             if db_user:
                 return self._sync_db_user_to_memory(db_user)
         except Exception:

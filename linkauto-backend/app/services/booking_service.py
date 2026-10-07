@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, select
+
 from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
@@ -19,7 +21,7 @@ from app.services.notification_service import (
 from app.services.penalty_service import PenaltyService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 CANCELLATION_NOTICE_HOURS = 24
 
@@ -83,11 +85,9 @@ class BookingService:
 
         # Resolve instructor slug if necessary
 
-        inst_prof = (
-            self._db.query(InstructorProfile)
-            .filter(InstructorProfile.slug == instructor_id)
-            .first()
-        )
+        inst_prof = self._db.exec(
+            select(InstructorProfile).where(col(InstructorProfile.slug) == instructor_id)
+        ).first()
         effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
 
         slots = self._get_bookable_slots(slot_ids, effective_instructor_id)
@@ -116,7 +116,7 @@ class BookingService:
         self._db.flush()
 
         # FR-021: trigger email notification to instructor
-        instructor_user = self._db.query(User).filter(User.id == instructor_id).first()
+        instructor_user = self._db.exec(select(User).where(col(User.id) == instructor_id)).first()
         if instructor_user and self._notification_service:
             self._notification_service.dispatch(
                 NotificationPayload(
@@ -135,7 +135,11 @@ class BookingService:
             msg = "Booking requires minimum 2 consecutive slots (RN02)"
             raise SlotValidationError(msg)
 
-        slots = self._db.query(Slot).filter(Slot.id.in_(slot_ids)).order_by(Slot.starts_at).all()
+        slots = list(
+            self._db.exec(
+                select(Slot).where(col(Slot.id).in_(slot_ids)).order_by(col(Slot.starts_at))
+            ).all()
+        )
 
         if len(slots) != len(slot_ids):
             msg = "One or more slot IDs not found"
@@ -177,7 +181,7 @@ class BookingService:
         self._db.flush()
 
         # FR-021: trigger email notification to student
-        student_user = self._db.query(User).filter(User.id == booking.student_id).first()
+        student_user = self._db.exec(select(User).where(col(User.id) == booking.student_id)).first()
         if student_user and self._notification_service:
             self._notification_service.dispatch(
                 NotificationPayload(
@@ -249,25 +253,22 @@ class BookingService:
         slot_ids = [link.slot_id for link in booking.slots]
         if not slot_ids:
             return
-        for slot in self._db.query(Slot).filter(Slot.id.in_(slot_ids)).all():
+        for slot in self._db.exec(select(Slot).where(col(Slot.id).in_(slot_ids))).all():
             if slot.status == SlotStatus.RESERVADO.value:
                 slot.status = SlotStatus.DISPONIVEL.value
 
     def _apply_late_cancellation_penalty(self, booking: Booking, now: datetime) -> None:
         # RN04: penalty if student cancels within 24h of first slot
-        first_slot = (
-            self._db.query(Slot)
-            .join(BookingSlot, BookingSlot.slot_id == Slot.id)
-            .filter(BookingSlot.booking_id == booking.id)
-            .order_by(Slot.starts_at)
-            .first()
-        )
+        first_slot = self._db.exec(
+            select(Slot)
+            .join(BookingSlot, col(BookingSlot.slot_id) == col(Slot.id))
+            .where(col(BookingSlot.booking_id) == booking.id)
+            .order_by(col(Slot.starts_at))
+        ).first()
         if not first_slot:
             return
-        first_slot_starts = first_slot.starts_at
-        if first_slot_starts.tzinfo is None:
-            first_slot_starts = first_slot_starts.replace(tzinfo=UTC)
-        if first_slot_starts - now < timedelta(hours=CANCELLATION_NOTICE_HOURS):
+        # Datetime columns use SQLModel's UTCDateTime, so loaded values are aware UTC
+        if first_slot.starts_at - now < timedelta(hours=CANCELLATION_NOTICE_HOURS):
             self._penalty.apply_penalty(
                 booking.student_id,
                 reason=f"Cancelamento tardio (< 24h) do booking {booking.id} conforme RN04",
@@ -283,14 +284,14 @@ class BookingService:
             user_ids = [booking.student_id, booking.instructor_id]
         recipients = []
         for user_id in user_ids:
-            user = self._db.query(User).filter(User.id == user_id).first()
+            user = self._db.exec(select(User).where(col(User.id) == user_id)).first()
             if user:
                 recipients.append(user.email)
         return recipients
 
     def get_booking(self, booking_id: str) -> Booking | None:
         """Return the booking with the given ID, or ``None`` if it does not exist."""
-        return self._db.query(Booking).filter(Booking.id == booking_id).first()
+        return self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
 
     def list_bookings(
         self,
@@ -300,14 +301,14 @@ class BookingService:
     ) -> list[Booking]:
         """Return the user's bookings as student (``ALUNO``) or instructor, newest first."""
         if role == "ALUNO":
-            query = self._db.query(Booking).filter(Booking.student_id == user_id)
+            stmt = select(Booking).where(col(Booking.student_id) == user_id)
         else:
-            query = self._db.query(Booking).filter(Booking.instructor_id == user_id)
+            stmt = select(Booking).where(col(Booking.instructor_id) == user_id)
 
         if status_filter:
-            query = query.filter(Booking.status == status_filter)
+            stmt = stmt.where(col(Booking.status) == status_filter)
 
-        return query.order_by(Booking.created_at.desc()).all()
+        return list(self._db.exec(stmt.order_by(col(Booking.created_at).desc())).all())
 
     def _get_booking_or_raise(self, booking_id: str) -> Booking:
         booking = self.get_booking(booking_id)

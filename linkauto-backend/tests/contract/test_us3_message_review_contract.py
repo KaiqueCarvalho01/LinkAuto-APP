@@ -7,7 +7,7 @@ from app.models.user import DetranStatus, InstructorProfile, StudentProfile, Use
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_auth_users(db_session: Session) -> tuple[str, str, str]:

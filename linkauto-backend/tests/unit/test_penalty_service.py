@@ -6,7 +6,7 @@ from app.models.user import StudentProfile, User, UserRole
 from app.services.penalty_service import PenaltyService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_student(db_session: Session, student_id: str = "stu-001") -> str:

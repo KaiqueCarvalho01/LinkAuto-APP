@@ -1,12 +1,6 @@
-"""SQLAlchemy ORM models and enums for the LinkAuto domain."""
+"""SQLModel table models and enums for the LinkAuto domain."""
 
-from app.models.base import (
-    AuditTimestampsMixin,
-    AuditUUIDBase,
-    Base,
-    UUIDPrimaryKeyMixin,
-    generate_uuid7,
-)
+from app.models.base import AuditTimestampsMixin, AuditUUIDBase, Base, generate_uuid7
 from app.models.booking import Booking, BookingSlot, CancelledBy, StudentPenalty
 from app.models.booking_message import BookingMessage
 from app.models.instructor_document import InstructorDocument, InstructorDocumentRepository
@@ -39,7 +33,6 @@ __all__ = [
     "SlotStatus",
     "StudentPenalty",
     "StudentProfile",
-    "UUIDPrimaryKeyMixin",
     "User",
     "UserRole",
     "generate_uuid7",

@@ -15,7 +15,7 @@ from app.models.user import (
 from app.services.public_profile_service import PublicProfileService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_public_profiles_data(db_session: Session) -> None:

@@ -20,7 +20,7 @@ from app.services.booking_service import (
 from app.services.penalty_service import PenaltyService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_scenario(db_session: Session) -> None:

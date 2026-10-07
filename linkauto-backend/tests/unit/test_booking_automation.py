@@ -16,7 +16,7 @@ from app.services.booking_scheduler import BookingAutomationPort, BookingSchedul
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_full_booking(

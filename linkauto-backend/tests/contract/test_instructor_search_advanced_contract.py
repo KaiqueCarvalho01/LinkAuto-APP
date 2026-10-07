@@ -4,7 +4,7 @@ from app.models.user import DetranStatus, InstructorProfile, User, UserRole
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_contract_instructors(db_session: Session) -> None:

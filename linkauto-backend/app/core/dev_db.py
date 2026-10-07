@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session
+from sqlmodel import Session, col, select
 
 from app.core.security import hash_password
 from app.domain.booking import MIN_SLOTS_PER_BOOKING
@@ -124,7 +124,7 @@ SLOT_DAYS = 5
 
 def _upsert_user(session: Session, email: str, role: UserRole) -> tuple[User, bool]:
     """Return the dev user with this email, creating it if needed (and whether it was created)."""
-    user = session.query(User).filter_by(email=email).first()
+    user = session.exec(select(User).where(col(User.email) == email)).first()
     if user:
         return user, False
     user = User(
@@ -218,14 +218,14 @@ def _seed_pending_booking(
 ) -> None:
     """Create a PENDENTE booking for tomorrow morning."""
     tomorrow = now + timedelta(days=1)
-    slots = (
-        session.query(Slot)
-        .filter(
-            Slot.instructor_id == instructor_id,
-            Slot.starts_at >= tomorrow.replace(hour=9),
-            Slot.starts_at <= tomorrow.replace(hour=12),
-        )
-        .all()
+    slots = list(
+        session.exec(
+            select(Slot).where(
+                col(Slot.instructor_id) == instructor_id,
+                col(Slot.starts_at) >= tomorrow.replace(hour=9),
+                col(Slot.starts_at) <= tomorrow.replace(hour=12),
+            )
+        ).all()
     )
     if len(slots) < MIN_SLOTS_PER_BOOKING:
         return
@@ -297,7 +297,7 @@ def seed_dev_data(session: Session) -> None:
     session.flush()
 
     camila, rafael, fernanda = (instructor for instructor, _ in instructors)
-    if not session.query(Slot).filter_by(instructor_id=camila.id).first():
+    if not session.exec(select(Slot).where(col(Slot.instructor_id) == camila.id)).first():
         now = datetime.now(UTC).replace(minute=0, second=0, microsecond=0)
         for instructor, hours in instructors:
             _add_slots(session, instructor.id, now, hours)

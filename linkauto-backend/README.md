@@ -14,7 +14,7 @@ linkauto-backend/
 │   ├── api/             # Camada de Apresentação (HTTP Routers e dependências de Auth/RBAC)
 │   ├── core/            # Configurações globais, segurança (JWT/Bcrypt) e conexão de banco
 │   ├── domain/          # Entidades puras de domínio e regras de transição de estado
-│   ├── models/          # Mapeamento ORM (SQLAlchemy) e chaves primárias baseadas em UUIDv7
+│   ├── models/          # Modelos de tabela (SQLModel) e chaves primárias baseadas em UUIDv7
 │   ├── schemas/         # Validação de Entrada/Saída e schemas de serialização (Pydantic)
 │   └── services/        # Regras de Negócio e Casos de Uso (Services e Ports)
 ├── alembic/             # Migrações do banco (Alembic)

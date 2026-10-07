@@ -1,12 +1,15 @@
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+from sqlalchemy.exc import StatementError
+
 from app.domain.booking import BookingStatus
 from app.models.booking import Booking, BookingSlot, StudentPenalty
 from app.models.slot import Slot, SlotStatus
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def test_slot_model_creation(db_session: Session) -> None:
@@ -78,3 +81,29 @@ def test_student_penalty_model(db_session: Session) -> None:
 
     assert penalty.id is not None
     assert penalty.student_id == "student-001"
+
+
+def test_datetimes_round_trip_as_aware_utc(db_session: Session) -> None:
+    """Datetime columns return aware UTC values, even on SQLite (SQLModel UTCDateTime)."""
+    start = datetime(2030, 1, 1, 12, tzinfo=UTC)
+    slot = Slot(instructor_id="instructor-001", starts_at=start, ends_at=start + timedelta(hours=1))
+    db_session.add(slot)
+    db_session.flush()
+    db_session.expire_all()
+
+    loaded = db_session.get(Slot, slot.id)
+    assert loaded is not None
+    assert loaded.starts_at == start
+    assert loaded.starts_at.tzinfo is not None
+    assert loaded.created_at.tzinfo is not None
+
+
+def test_naive_datetimes_are_rejected(db_session: Session) -> None:
+    """Writing a naive datetime fails instead of silently guessing its timezone."""
+    naive = datetime(2030, 1, 1, 12)  # noqa: DTZ001 - naive on purpose
+    db_session.add(
+        Slot(instructor_id="instructor-001", starts_at=naive, ends_at=naive + timedelta(hours=1))
+    )
+
+    with pytest.raises(StatementError, match="timezone information"):
+        db_session.flush()

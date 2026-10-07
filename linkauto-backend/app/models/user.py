@@ -1,15 +1,13 @@
 """User account and student/instructor profile models with related enums."""
 
-from __future__ import annotations
-
 from decimal import Decimal
 from enum import StrEnum
 
-from sqlalchemy import JSON, Boolean, ForeignKey, Numeric, String
+from sqlalchemy import JSON, Double, String
 from sqlalchemy import Enum as SqlEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlmodel import Field, Relationship
 
-from app.models.base import AuditTimestampsMixin, AuditUUIDBase, Base
+from app.models.base import AuditTimestampsMixin, AuditUUIDBase
 
 
 class UserRole(StrEnum):
@@ -41,7 +39,7 @@ class DetranStatus(StrEnum):
     REJEITADO = "REJEITADO"
 
 
-class User(AuditUUIDBase):
+class User(AuditUUIDBase, table=True):
     """User account with unique email, password hash and list of roles (``users`` table).
 
     Owns at most one student profile and one instructor profile.
@@ -49,41 +47,41 @@ class User(AuditUUIDBase):
 
     __tablename__ = "users"
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    roles: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    email: str = Field(sa_type=String(255), unique=True, index=True)
+    password_hash: str = Field(sa_type=String(255))
+    roles: list[str] = Field(default_factory=list, sa_type=JSON)
+    is_active: bool = True
 
-    student_profile: Mapped[StudentProfile | None] = relationship(
-        "StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    student_profile: "StudentProfile" = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"uselist": False, "cascade": "all, delete-orphan"},
     )
-    instructor_profile: Mapped[InstructorProfile | None] = relationship(
-        "InstructorProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    instructor_profile: "InstructorProfile" = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"uselist": False, "cascade": "all, delete-orphan"},
     )
 
 
-class StudentProfile(Base, AuditTimestampsMixin):
+class StudentProfile(AuditTimestampsMixin, table=True):
     """Student profile keyed by its user ID, with an optional unique public slug."""
 
     __tablename__ = "student_profiles"
 
-    user_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    user_id: str = Field(
+        sa_type=String(36), foreign_key="users.id", ondelete="CASCADE", primary_key=True
     )
-    slug: Mapped[str | None] = mapped_column(String(150), unique=True, index=True, nullable=True)
-    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
-    city: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    state: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    license_type: Mapped[LicenseType] = mapped_column(
-        SqlEnum(LicenseType), nullable=False, default=LicenseType.NENHUMA
-    )
-    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    slug: str | None = Field(default=None, sa_type=String(150), unique=True, index=True)
+    full_name: str | None = Field(default=None, sa_type=String(255))
+    phone: str | None = Field(default=None, sa_type=String(30))
+    city: str | None = Field(default=None, sa_type=String(120))
+    state: str | None = Field(default=None, sa_type=String(120))
+    license_type: LicenseType = Field(default=LicenseType.NENHUMA, sa_type=SqlEnum(LicenseType))
+    avatar_url: str | None = Field(default=None, sa_type=String(500))
 
-    user: Mapped[User] = relationship("User", back_populates="student_profile")
+    user: User = Relationship(back_populates="student_profile")
 
 
-class InstructorProfile(Base, AuditTimestampsMixin):
+class InstructorProfile(AuditTimestampsMixin, table=True):
     """Instructor profile keyed by its user ID, with an optional unique public slug.
 
     Holds public listing data (bio, specialties, hourly price, service radius, location),
@@ -92,26 +90,26 @@ class InstructorProfile(Base, AuditTimestampsMixin):
 
     __tablename__ = "instructor_profiles"
 
-    user_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    user_id: str = Field(
+        sa_type=String(36), foreign_key="users.id", ondelete="CASCADE", primary_key=True
     )
-    slug: Mapped[str | None] = mapped_column(String(150), unique=True, index=True, nullable=True)
-    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
-    city: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    state: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    bio: Mapped[str | None] = mapped_column(String(2000), nullable=True)
-    specialties: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    price_per_hour: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
-    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    detran_status: Mapped[DetranStatus] = mapped_column(
-        SqlEnum(DetranStatus), nullable=False, default=DetranStatus.PENDENTE, index=True
+    slug: str | None = Field(default=None, sa_type=String(150), unique=True, index=True)
+    full_name: str | None = Field(default=None, sa_type=String(255))
+    phone: str | None = Field(default=None, sa_type=String(30))
+    city: str | None = Field(default=None, sa_type=String(120))
+    state: str | None = Field(default=None, sa_type=String(120))
+    bio: str | None = Field(default=None, sa_type=String(2000))
+    specialties: list[str] = Field(default_factory=list, sa_type=JSON)
+    price_per_hour: Decimal | None = Field(default=None, max_digits=10, decimal_places=2)
+    avatar_url: str | None = Field(default=None, sa_type=String(500))
+    detran_status: DetranStatus = Field(
+        default=DetranStatus.PENDENTE, sa_type=SqlEnum(DetranStatus), index=True
     )
-    action_radius_km: Mapped[int] = mapped_column(nullable=False, default=10)
-    latitude: Mapped[float | None] = mapped_column(nullable=True)
-    longitude: Mapped[float | None] = mapped_column(nullable=True)
-    rating_avg: Mapped[float] = mapped_column(nullable=False, default=0.0)
-    rating_count: Mapped[int] = mapped_column(nullable=False, default=0)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    action_radius_km: int = 10
+    latitude: float | None = Field(default=None, sa_type=Double)
+    longitude: float | None = Field(default=None, sa_type=Double)
+    rating_avg: float = Field(default=0.0, sa_type=Double)
+    rating_count: int = 0
+    is_active: bool = True
 
-    user: Mapped[User] = relationship("User", back_populates="instructor_profile")
+    user: User = Relationship(back_populates="instructor_profile")

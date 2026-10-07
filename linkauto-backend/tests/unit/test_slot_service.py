@@ -8,7 +8,7 @@ from app.models.user import DetranStatus, InstructorProfile, User, UserRole
 from app.services.slot_service import SlotOverlapError, SlotService
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _seed_instructor(db_session: Session, instructor_id: str = "inst-001") -> str:

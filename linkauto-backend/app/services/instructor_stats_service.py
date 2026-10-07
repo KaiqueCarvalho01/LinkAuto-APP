@@ -3,12 +3,13 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func
+from sqlmodel import col, select
 
 from app.models.booking import Booking, BookingSlot
 from app.schemas.instructor_stats import InstructorStatsResponse
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class InstructorStatsService:
@@ -24,46 +25,35 @@ class InstructorStatsService:
         Lessons and hours count only REALIZADA bookings (one hour per booked slot), unique
         students exclude CANCELADA bookings, and pending counts PENDENTE bookings.
         """
-        total_lessons = (
-            self._db.query(func.count(Booking.id))
-            .filter(
-                Booking.instructor_id == instructor_id,
-                Booking.status == "REALIZADA",
+        total_lessons = self._db.exec(
+            select(func.count(col(Booking.id))).where(
+                col(Booking.instructor_id) == instructor_id,
+                col(Booking.status) == "REALIZADA",
             )
-            .scalar()
-            or 0
-        )
+        ).one()
 
-        total_hours = (
-            self._db.query(func.count(BookingSlot.id))
-            .join(Booking, BookingSlot.booking_id == Booking.id)
-            .filter(
-                Booking.instructor_id == instructor_id,
-                Booking.status == "REALIZADA",
+        total_hours = self._db.exec(
+            select(func.count(col(BookingSlot.id)))
+            .join(Booking, col(BookingSlot.booking_id) == col(Booking.id))
+            .where(
+                col(Booking.instructor_id) == instructor_id,
+                col(Booking.status) == "REALIZADA",
             )
-            .scalar()
-            or 0
-        )
+        ).one()
 
-        unique_students = (
-            self._db.query(func.count(func.distinct(Booking.student_id)))
-            .filter(
-                Booking.instructor_id == instructor_id,
-                Booking.status != "CANCELADA",
+        unique_students = self._db.exec(
+            select(func.count(func.distinct(col(Booking.student_id)))).where(
+                col(Booking.instructor_id) == instructor_id,
+                col(Booking.status) != "CANCELADA",
             )
-            .scalar()
-            or 0
-        )
+        ).one()
 
-        pending_bookings = (
-            self._db.query(func.count(Booking.id))
-            .filter(
-                Booking.instructor_id == instructor_id,
-                Booking.status == "PENDENTE",
+        pending_bookings = self._db.exec(
+            select(func.count(col(Booking.id))).where(
+                col(Booking.instructor_id) == instructor_id,
+                col(Booking.status) == "PENDENTE",
             )
-            .scalar()
-            or 0
-        )
+        ).one()
 
         return InstructorStatsResponse(
             total_lessons=total_lessons,

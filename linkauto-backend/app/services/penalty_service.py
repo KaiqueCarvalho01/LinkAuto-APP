@@ -5,10 +5,12 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, select
+
 from app.models.booking import StudentPenalty
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 PENALTY_DAYS = 7
 
@@ -23,14 +25,12 @@ class PenaltyService:
     def is_penalized(self, student_id: str) -> bool:
         """Return whether the student has a penalty still in effect."""
         now = datetime.now(UTC)
-        active = (
-            self._db.query(StudentPenalty)
-            .filter(
-                StudentPenalty.student_id == student_id,
-                StudentPenalty.blocked_until > now,
+        active = self._db.exec(
+            select(StudentPenalty).where(
+                col(StudentPenalty.student_id) == student_id,
+                col(StudentPenalty.blocked_until) > now,
             )
-            .first()
-        )
+        ).first()
         return active is not None
 
     def apply_penalty(self, student_id: str, reason: str) -> StudentPenalty:

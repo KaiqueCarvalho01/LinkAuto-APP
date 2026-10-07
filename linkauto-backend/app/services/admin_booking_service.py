@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, select
+
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class AdminBookingService:
@@ -35,7 +37,7 @@ class AdminBookingService:
             msg = "Admin override target must be REALIZADA or CANCELADA"
             raise ValueError(msg)
 
-        booking = self._db.query(Booking).filter(Booking.id == booking_id).first()
+        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
         if not booking:
             msg = f"Booking {booking_id} not found"
             raise ValueError(msg)

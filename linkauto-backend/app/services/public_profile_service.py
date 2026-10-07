@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import func
+from sqlmodel import col, select
+
 from app.core.slug import generate_profile_slug
 from app.models.booking import Booking
 from app.models.review import Review
@@ -16,7 +19,7 @@ from app.schemas.public_profile import (
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 class PublicProfileService:
@@ -44,7 +47,9 @@ class PublicProfileService:
 
     def _get_reviewer_author(self, reviewer_id: str) -> PublicReviewAuthor:
         # Check student profile first
-        stud = self._db.query(StudentProfile).filter(StudentProfile.user_id == reviewer_id).first()
+        stud = self._db.exec(
+            select(StudentProfile).where(col(StudentProfile.user_id) == reviewer_id)
+        ).first()
         if stud and stud.full_name:
             slug = self._ensure_student_slug(stud)
             return PublicReviewAuthor(
@@ -55,11 +60,9 @@ class PublicProfileService:
             )
 
         # Check instructor profile
-        inst = (
-            self._db.query(InstructorProfile)
-            .filter(InstructorProfile.user_id == reviewer_id)
-            .first()
-        )
+        inst = self._db.exec(
+            select(InstructorProfile).where(col(InstructorProfile.user_id) == reviewer_id)
+        ).first()
         if inst and inst.full_name:
             slug = self._ensure_instructor_slug(inst)
             return PublicReviewAuthor(
@@ -70,7 +73,7 @@ class PublicProfileService:
             )
 
         # Fallback
-        user = self._db.query(User).filter(User.id == reviewer_id).first()
+        user = self._db.exec(select(User).where(col(User.id) == reviewer_id)).first()
         name = user.email.split("@")[0] if user and user.email else "Usuário LinkAuto"
         fallback_slug = f"usuario-{reviewer_id[:8]}"
         return PublicReviewAuthor(
@@ -84,32 +87,29 @@ class PublicProfileService:
         active, approved instructor matches.
         """
         # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
-        prof = (
-            self._db.query(InstructorProfile)
-            .filter(
-                InstructorProfile.slug == slug,
-                InstructorProfile.detran_status == DetranStatus.APROVADO.value,
-                InstructorProfile.is_active.is_(True),
+        prof = self._db.exec(
+            select(InstructorProfile).where(
+                col(InstructorProfile.slug) == slug,
+                col(InstructorProfile.detran_status) == DetranStatus.APROVADO.value,
+                col(InstructorProfile.is_active).is_(True),
             )
-            .first()
-        )
+        ).first()
         if not prof:
             msg = "Instructor not found or not approved"
             raise ValueError(msg)
 
-        user = (
-            self._db.query(User).filter(User.id == prof.user_id, User.is_active.is_(True)).first()
-        )
+        user = self._db.exec(
+            select(User).where(col(User.id) == prof.user_id, col(User.is_active).is_(True))
+        ).first()
         if not user:
             msg = "Instructor not found or not approved"
             raise ValueError(msg)
 
-        raw_reviews = (
-            self._db.query(Review)
-            .filter(Review.reviewed_id == prof.user_id)
-            .order_by(Review.created_at.desc())
-            .all()
-        )
+        raw_reviews = self._db.exec(
+            select(Review)
+            .where(col(Review.reviewed_id) == prof.user_id)
+            .order_by(col(Review.created_at).desc())
+        ).all()
 
         review_items: list[PublicReviewItem] = []
         for r in raw_reviews:
@@ -152,30 +152,29 @@ class PublicProfileService:
         (5.0 when there are none). Raises ``ValueError`` if no active student matches.
         """
         # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
-        prof = self._db.query(StudentProfile).filter(StudentProfile.slug == slug).first()
+        prof = self._db.exec(select(StudentProfile).where(col(StudentProfile.slug) == slug)).first()
         if not prof:
             msg = "Student not found"
             raise ValueError(msg)
 
-        user = (
-            self._db.query(User).filter(User.id == prof.user_id, User.is_active.is_(True)).first()
-        )
+        user = self._db.exec(
+            select(User).where(col(User.id) == prof.user_id, col(User.is_active).is_(True))
+        ).first()
         if not user:
             msg = "Student not found"
             raise ValueError(msg)
 
-        completed_lessons = (
-            self._db.query(Booking)
-            .filter(Booking.student_id == prof.user_id, Booking.status == "REALIZADA")
-            .count()
-        )
+        completed_lessons = self._db.exec(
+            select(func.count())
+            .select_from(Booking)
+            .where(col(Booking.student_id) == prof.user_id, col(Booking.status) == "REALIZADA")
+        ).one()
 
-        raw_reviews = (
-            self._db.query(Review)
-            .filter(Review.reviewed_id == prof.user_id)
-            .order_by(Review.created_at.desc())
-            .all()
-        )
+        raw_reviews = self._db.exec(
+            select(Review)
+            .where(col(Review.reviewed_id) == prof.user_id)
+            .order_by(col(Review.created_at).desc())
+        ).all()
 
         review_items: list[PublicReviewItem] = []
         total_rating = 0

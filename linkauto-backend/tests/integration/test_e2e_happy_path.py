@@ -1,6 +1,8 @@
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
+from sqlmodel import col, update
+
 from app.core.config import get_settings
 from app.core.security import create_access_token
 from app.domain.booking import BookingStatus
@@ -10,7 +12,7 @@ from app.models.user import UserRole
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
     from httpx2 import Response
-    from sqlalchemy.orm import Session
+    from sqlmodel import Session
 
 
 def _register(client: TestClient, email: str, role: UserRole, full_name: str, phone: str) -> str:
@@ -62,11 +64,13 @@ def _complete_booking(
     headers_admin: dict[str, str],
 ) -> None:
     """Backdate the slots (simulating time passing) and run the completion job."""
-    db_session.query(Slot).filter(Slot.id.in_(slot_ids)).update(
-        {
-            "starts_at": datetime.now(UTC) - timedelta(hours=5),
-            "ends_at": datetime.now(UTC) - timedelta(hours=3),
-        }
+    db_session.exec(
+        update(Slot)
+        .where(col(Slot.id).in_(slot_ids))
+        .values(
+            starts_at=datetime.now(UTC) - timedelta(hours=5),
+            ends_at=datetime.now(UTC) - timedelta(hours=3),
+        )
     )
     db_session.commit()
 
