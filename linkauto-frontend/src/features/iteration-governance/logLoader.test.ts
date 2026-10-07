@@ -15,12 +15,12 @@ describe("logLoader", () => {
 		].join("\n");
 
 		const record = createMarkdownLogRecord(
-			"specs/002-frontend-iterative-spec/iterations/iteration-001.md",
+			"docs/archive/iteration-001.md",
 			markdown,
 		);
 
 		expect(record.path).toBe(
-			"specs/002-frontend-iterative-spec/iterations/iteration-001.md",
+			"docs/archive/iteration-001.md",
 		);
 		expect(record.checklist.total).toBe(3);
 		expect(record.checklist.completed).toBe(2);

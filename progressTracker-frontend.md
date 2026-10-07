@@ -12,7 +12,7 @@
 - Rastreabilidade obrigatoria em markdown: registrar o que foi feito, onde foi feito (arquivos) e como foi validado (comandos e resultado).
 - Atualizacao obrigatoria ao final de cada iteracao neste arquivo (`progressTracker-frontend.md`).
 - Mock-first permitido e recomendado quando endpoint backend nao estiver contratado/disponivel.
-- Necessidade de novo endpoint: registrar justificativa antes de implementacao em `specs/002-frontend-iterative-spec/endpoint-requests.md`.
+- Necessidade de novo endpoint: registrar justificativa antes de implementacao em `docs/BACKEND_ENDPOINT_REQUESTS.md`.
 
 ## Iteracoes Realizadas
 
@@ -347,8 +347,35 @@
 - coverage_pct: >= 80% ✅
 - governance_validation: passed ✅
 
+### Iteracao 25 - Expurgo do Playwright, Alinhamento SSOT e Modernizacao da Documentacao (FE-SSOT-And-Playwright-Purge)
+
+#### What was delivered (Iteracao 25)
+- Removido completamente o pacote `@playwright/test`, scripts `e2e*` de `package.json`, `playwright.config.ts`, diretório `tests/e2e/` e extensão no workspace.
+- Adotado o **Chrome DevTools MCP** (`@browser-testing-with-devtools`) para validações de viewport, DOM e testes E2E sob demanda.
+- Corrigido aviso do ESLint React 19 (`react-hooks/set-state-in-effect`) em `InstructorPublicProfilePage.tsx` e `StudentPublicProfilePage.tsx`, eliminando chamadas síncronas de `setState` em efeitos e derivando estados de erro.
+- Criado o arquivo canônico [`linkauto-frontend/README.md`](linkauto-frontend/README.md) detalhando arquitetura, padrões Chakra v3, TypeScript strict e scripts.
+- Deletado script legado `validate-governance.mjs` e purgadas referências ao `specs/` e `speckit.*`.
+- Capturadas 4 telas estratégicas em alta resolução via Docker e Chrome DevTools para o novo showcase do `README.md`.
+
+#### Where it was delivered (Iteracao 25)
+- `linkauto-frontend/package.json`
+- `linkauto-frontend/package-lock.json`
+- `linkauto-frontend/.dockerignore`
+- `linkauto-frontend/README.md`
+- `linkauto-frontend/src/pages/InstructorPublicProfilePage.tsx`
+- `linkauto-frontend/src/pages/StudentPublicProfilePage.tsx`
+- `linkauto-frontend/src/features/iteration-governance/logLoader.test.ts`
+- `docs/images/showcase-*.png`
+
+#### How it was validated (Iteracao 25)
+- cycle_id: iteration-025
+- green_command: `npm run typecheck` (0 erros) e `npm run lint` (0 warnings) e `npm run test` (97/97 testes passando com 100% de sucesso) ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+
 ## Riscos e Observacoes Gerais
 
+- **Iteracao 25**: Limpeza definitiva de dependências do Playwright e validação de efeitos com React 19 / ESLint limpo. Frontend com documentação profissional e 97 testes do Vitest verdes.
 - **Iteracao 24**: Validação completa da estabilidade do frontend após a fusão e modernização da stack de backend (SQLModel, uv, ty e padronização de jobs de booking). Zero quebra de contratos e 97 testes do Vitest verdes.
 - **Iteracao 23**: Ocultação total de UUIDs internos em rotas públicas e respostas do frontend por meio de slugs seguros e amigáveis. Remoção da grade de slots do perfil público e redirecionamento seguro para agendamento.
 - **Iteracao 22**: Entrega de perfis públicos anônimos para instrutores e alunos com blindagem LGPD, agendamento desacoplado e roteamento universal em toda a aplicação. 97 testes verdes no Vitest e TypeScript strict validado.

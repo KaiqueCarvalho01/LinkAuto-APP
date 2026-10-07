@@ -55,7 +55,6 @@
 			"tamasfe.even-better-toml",
 			"dbaeumer.vscode-eslint",
 			"vitest.explorer",
-			"ms-playwright.playwright",
 			"ms-azuretools.vscode-containers"
 		],
 		"unwantedRecommendations": [

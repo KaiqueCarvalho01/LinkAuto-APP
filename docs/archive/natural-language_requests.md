@@ -1,6 +1,8 @@
-# Problemas identificados
+# Problemas Identificados (Histórico de Refinamento)
 
-, 
+> [!NOTE]
+> **Documento Arquivado (Histórico)**: Este levantamento inicial de solicitações em linguagem natural foi formalizado e integrado às regras de negócio em `docs/requirements.md` e `docs/BACKEND_ENDPOINT_REQUESTS.md`. As regras operacionais de agendamento, seeds e jobs foram consolidadas nas suítes de testes do backend e frontend.
+
 
 2. Foi identificado que ao agendar uma aula, o instutor não possui a opção de confirmá-la. Exemplo: "aluno" marcou aula com "Camila Rocha" (pré-seeded), mas a instrutora não possui a opção de confirmar a aula, apenas de recusar. Mesmo sem o cron job de notificação de aulas o instrutor deve ter a opção de confirmar a aula solicitada.
 

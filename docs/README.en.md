@@ -1,227 +1,217 @@
-# LinkAuto (US-EN)
-
 ![LinkAuto Logo](images/LinkAuto-logo-square.webp)
 
-Mobile-first platform that connects students and autonomous driving instructors.
+# LinkAuto 🚗💨
 
-Language:
+A modern, mobile-first platform connecting student drivers with independent, certified driving instructors.
 
-- PT-BR: [../README.md](../README.md)
-- US-EN: [README.en.md](README.en.md)
+Languages:
+- 🇧🇷 **PT-BR:** [README.md](../README.md)
+- 🇺🇸 **US-EN:** [docs/README.en.md](README.en.md)
 
-Quick navigation:
-
+Quick Navigation:
 - [Overview](#overview)
-- [Current status](#current-status)
-- [Run locally](#run-locally)
-- [Quality and tests](#quality-and-tests)
+- [Visual Showcase](#visual-showcase)
+- [Project Status](#project-status)
+- [Operational Endpoints](#operational-api-endpoints)
+- [Architecture & Stack](#architecture-and-stack)
+- [How to Run](#how-to-run-locally)
+- [Quality & Testing](#quality-and-testing)
+- [Security & Hardening](SECURITY_TECHNIQUES.md)
 
 ![LinkAuto Banner](images/LinkAuto-banner.webp)
 
-> [!IMPORTANT]
-> This document reflects the current runtime state of the repository.
-> The functional and contractual source-of-truth for V1 is under ../specs/001-user-booking-domains.
+---
 
 ## Overview
 
-LinkAuto organizes instructor discovery, authentication, admin validation, and (next phase) full booking flow with business rules centered on Booking.
+**LinkAuto** organizes geolocation-based driving instructor discovery, regulatory verification, privacy-shielded public profiles, multi-slot scheduling with business rules, and mutual post-lesson reputation reviews.
 
-Consolidated V1 functional scope:
+### Consolidated Scope
+- **Multi-Role User Domain:** Roles for `ALUNO` (Student), `INSTRUTOR` (Instructor), and `ADMIN`.
+- **Hardened Authentication:** Short-lived JWT access tokens with silent cookie-based refresh tokens (`HttpOnly`, `Secure`).
+- **Instructor Credential Validation (RN01):** Administrative verification workflow with Magic Bytes file inspection.
+- **Anonymous Public Profiles (LGPD / RNF03):** Profile access via **human-friendly, entropy-salted slugs** (e.g. `/instructors/camila-rocha-mogi-mirim-8f2a`), shielding 100% of internal UUIDs and PII.
+- **Scheduling Engine (RN02-RN04):** 1-hour slots, 2 consecutive hours minimum booking, state machine transitions, and automated 7-day penalty for cancellations under 24 hours.
+- **Mutual Reviews & Async Messages:** Booking-specific conversation channel and 1-to-5 star rating system with atomic reputation recalculation.
+- **Real-Time Dashboards:** Dedicated analytics and operational metrics for instructors and platform administrators.
 
-- Multi-role user model (ALUNO, INSTRUTOR, ADMIN)
-- Authentication with access token + cookie-based refresh token
-- Instructor admin validation workflow
-- Credential document upload with security validation
-- OpenAPI contract for slots, bookings, messages, and reviews
+### Canonical Documentation (Single Source of Truth)
+- 📜 **Requirements & Business Rules:** [`docs/requirements.md`](requirements.md)
+- 🎨 **Design System & UI Guidelines:** [`docs/DESIGN.md`](DESIGN.md)
+- 🔌 **API Endpoint Specifications:** [`docs/BACKEND_ENDPOINT_REQUESTS.md`](BACKEND_ENDPOINT_REQUESTS.md)
+- 🛡️ **Security Hardening Guides:** [`docs/SECURITY_TECHNIQUES.md`](SECURITY_TECHNIQUES.md) and [`docs/SECURITY_COMPARISON.md`](SECURITY_COMPARISON.md)
+- 📖 **Interactive Swagger Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs) (OpenAPI schema at `/openapi.json`)
 
-Primary references:
+---
 
-- [../specs/001-user-booking-domains/spec.md](../specs/001-user-booking-domains/spec.md)
-- [../specs/001-user-booking-domains/plan.md](../specs/001-user-booking-domains/plan.md)
-- [../specs/001-user-booking-domains/tasks.md](../specs/001-user-booking-domains/tasks.md)
-- [../specs/001-user-booking-domains/contracts/api-v1-openapi.yaml](../specs/001-user-booking-domains/contracts/api-v1-openapi.yaml)
+## Visual Showcase
 
-## Current status
+Key screens captured live during application runtime:
 
-### Phase progress
+| Landing Page (Hero & Live Map Preview) | Geolocation Search with Leaflet |
+| :---: | :---: |
+| ![Home](images/showcase-home.png) | ![Search](images/showcase-search.png) |
 
-| Phase | Status |
-| --- | --- |
-| Phase 1 - Setup | Completed |
-| Phase 2 - Foundational | Completed |
-| Phase 3 - US1 | Completed |
-| Phase 4 - US2 | Completed |
-| Phase 5 - US3 | Completed |
-| Phase 6 - Polish | Completed |
+| Public Instructor Profile (Slug & LGPD) | Management & Stats Dashboard |
+| :---: | :---: |
+| ![Instructor Profile](images/showcase-instructor-profile.png) | ![Dashboard](images/showcase-dashboard.png) |
 
-### What is already implemented
+---
 
-Backend:
+## Project Status
 
-- **Foundational Infrastructure (Phase 1-2):** Versioned routing under `/api/v1`, standard envelopes, SQLite support, robust JWT access/refresh, and high-security RBAC.
-- **US1 (Register, Login & Admin):** Complete signup/login workflow, credential upload with security validations, and admin approval/rejection dashboard.
-- **US2 (Booking & Slots):** Slot management (1h slots), request consecutive slots (minimum 2), state machine for booking transitions, and automatic 7-day penalty for cancellation under 24h of the lesson start time.
-- **US3 (Chat, Reviews & Notifications):** Cronologically ordered booking messages, mutual reviews for realized lessons with atomic instructor rating recaps (`rating_avg`/`rating_count`), UTC ISO 8601 serializations ("Z"), automated 24h lesson reminder cron, and a catalog of 8 e-mail event notifications.
-- **Phase 6 (Polish & Hardening):** SlowAPI rate-limiting on authentication endpoints (login, register, reset, refresh), HTTP security headers middleware, magic bytes binary signature validations, production fail-fast configuration, isolated and resilient gateway exception handling, and structured security auditing logs with Trace/Correlation IDs.
+### Progress by Phase
 
-Frontend:
+| Phase | State | Highlights & Coverage |
+| :--- | :---: | :--- |
+| **Phase 1 - Setup** | Completed | FastAPI routers, common envelopes, initial Docker Compose |
+| **Phase 2 - Foundational** | Completed | JWT access/refresh, dev SQLite, booking state machine baseline |
+| **Phase 3 - US1** | Completed | Registration, login, document uploads and Admin moderation |
+| **Phase 4 - US2** | Completed | 1h slots, consecutive booking (min 2h), RN04 cancellation penalties |
+| **Phase 5 - US3** | Completed | Async messages per booking, mutual reviews, 24h reminders, 8 SES emails |
+| **Phase 6 - Polish & Hardening** | Completed | SlowAPI rate limits, security headers, magic bytes, correlation IDs |
+| **Phase 7 - Frontend Integration** | Completed | 100% connected to live API, GPS/dropdown geolocation, 97 Vitest tests passing |
+| **Phase 8 - Tooling & Stack Integration** | Completed | Migration to `uv`, `SQLModel 0.0.48`, `ty` typechecker, Alembic baseline, and VS Code workspace |
 
-- React 19 + Vite with session and role-protected routing.
-- Integrated flows for Login, map-based (Leaflet) search and list of approved instructors, booking slot picker with consecutive slot guards, lesson dashboard with status timelines, and admin validation boards.
-- HTTP client with credentials support, bearer tokens, and standardized error handling.
+### Quality Gate Summary
+- 🟢 **Backend:** **161 passed tests** in Pytest, 0 errors in `ty check`, 0 linter violations in `ruff check` (`ALL` rules).
+- 🟢 **Frontend:** **97 passed tests** in Vitest, 0 TypeScript compiler errors (`npm run typecheck` in strict mode).
 
-## Runtime Endpoints
+---
 
-All endpoints described in the OpenAPI contract are 100% operational in the LinkAuto runtime:
+## Operational API Endpoints
 
-- **Foundation:** `/health`, `/api/v1/foundation/ping`
-- **Auth:** `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/password-reset`
-- **Users & Profiles:** `/api/v1/users/me`, `/api/v1/users/public-instructors`
-- **Slots:** `/api/v1/slots`, `/api/v1/slots/instructor/{id}`
-- **Bookings:** `/api/v1/bookings`, `/api/v1/bookings/{id}/cancel`
-- **Messages & Reviews:** `/api/v1/bookings/{id}/messages`, `/api/v1/bookings/{id}/reviews`
-- **Admin Validation:** `/api/v1/admin/instructors/pending`, `/api/v1/admin/instructors/{id}/approve`, `/api/v1/admin/instructors/{id}/reject`
-- **Jobs Cron:** `/api/v1/jobs/booking-reminder`, `/api/v1/jobs/booking-timeout`, `/api/v1/jobs/booking-completion`
+All endpoints are implemented with strict Pydantic schemas and typed responses:
 
-## Architecture and stack
+- **Foundation:**
+  - `GET /health` — API health check
+  - `GET /api/v1/foundation/ping` — Latency ping
+- **Authentication:**
+  - `POST /api/v1/auth/register` — Public registration (public ADMIN creation blocked)
+  - `POST /api/v1/auth/login` — Login with rate-limiting and token issue
+  - `POST /api/v1/auth/refresh` — Silent refresh token rotation
+  - `POST /api/v1/auth/password-reset` — Password reset request
+- **Users & Private Profiles:**
+  - `GET /api/v1/users/me` — Current authenticated user profile
+  - `PATCH /api/v1/users/me` — Profile update with Mass Assignment protection
+- **Public Profiles (LGPD Shielding via Slugs):**
+  - `GET /api/v1/instructors/{slug}/public` — Anonymous instructor profile with bio, rating, and DETRAN badge (404 if inactive)
+  - `GET /api/v1/students/{slug}/public` — Anonymous student profile with completed lessons count and mutual ratings
+- **Advanced Geolocation Search:**
+  - `GET /api/v1/instructors/search` — Haversine search supporting specialty filters and multi-criteria sorting
+- **Slots & Availability:**
+  - `GET /api/v1/slots` — List available slots
+  - `POST /api/v1/slots` — Create instructor 1-hour slots
+  - `DELETE /api/v1/slots/{id}` — Delete unbooked slot
+- **Bookings:**
+  - `GET /api/v1/bookings` — User bookings (student or instructor)
+  - `POST /api/v1/bookings` — Atomic booking request (requires >= 2 consecutive slots)
+  - `PATCH /api/v1/bookings/{id}/cancel` — Cancellation with 24h rule and automated 7-day suspension
+- **Messages & Reviews:**
+  - `GET /api/v1/bookings/{id}/messages` — Booking conversation thread
+  - `POST /api/v1/bookings/{id}/messages` — Send message with email notification
+  - `POST /api/v1/bookings/{id}/reviews` — Mutual review allowed only for `REALIZADA` lessons
+- **Administrative Governance & Stats:**
+  - `GET /api/v1/admin/stats` — Global metrics (instructors, students, bookings)
+  - `GET /api/v1/instructor/stats` — Individual instructor metrics (hours, lessons, unique students)
+  - `GET /api/v1/admin/instructors/pending` — Pending verification queue
+  - `POST /api/v1/admin/instructors/{id}/approve` — Approve instructor credentials
+  - `POST /api/v1/admin/instructors/{id}/reject` — Reject with audit notes
+- **Automation Jobs:**
+  - `POST /api/v1/jobs/booking-reminder` — 24h pre-lesson reminder dispatch
+  - `POST /api/v1/jobs/booking-timeout` — Auto-cancel PENDENTE bookings older than 24h
+  - `POST /api/v1/jobs/booking-completion` — Auto-mark bookings REALIZADA 2h post-lesson
 
-- Frontend: React 19, Vite, Tailwind CSS 4, React Router
-- Backend: Python 3.11, FastAPI, SQLAlchemy, Alembic, Pydantic
-- Database: SQLite (dev) and PostgreSQL + PostGIS (production target)
-- Integrations: AWS S3 (documents) and AWS SES (notifications)
+---
 
-Available diagrams:
-
-- [diagrams/architecture-overview.svg](diagrams/architecture-overview.svg)
-- [diagrams/use-cases-v1.svg](diagrams/use-cases-v1.svg)
-- [diagrams/uml-class-diagram-v1.svg](diagrams/uml-class-diagram-v1.svg)
-- [diagrams/booking-sequence.svg](diagrams/booking-sequence.svg)
-
-## Repository structure
+## Architecture and Stack
 
 ```text
 .
-├── docs/
-├── infra/
-├── linkauto-backend/
-├── linkauto-frontend/
-├── specs/
-│   └── 001-user-booking-domains/
-└── README.md
+├── LinkAuto-APP.code-workspace  # Multi-root VS Code workspace with dedicated per-app tooling
+├── docs/                        # Canonical documentation (Requirements, Design, Endpoints, Security)
+│   ├── archive/                 # Historical records and superseded drafting notes
+│   └── images/                  # Brand identity and visual showcase screenshots
+├── infra/                       # Multi-stage Dockerfiles and Docker Compose orchestrator
+├── linkauto-backend/            # FastAPI service (SQLModel 0.0.48, uv, ty, Alembic, SQLite/PostgreSQL)
+└── linkauto-frontend/           # React 19 SPA (Vite, Chakra UI v3, Tailwind CSS 4, Vitest)
 ```
 
-## Run locally
+- **Frontend:** React 19.2, Vite, Tailwind CSS 4, Chakra UI v3, React Router DOM 7, Leaflet, Vitest.
+- **Backend:** Python 3.14 (managed by `uv`), FastAPI, SQLModel 0.0.48, Alembic, Pydantic v2, Ruff, ty.
+- **Databases:** SQLite with deterministic auto-seed for development; PostgreSQL + PostGIS in production.
+- **Cloud Integrations:** AWS S3 (ephemeral credential storage) and AWS SES (transactional emails).
 
-### Option A (recommended): Docker Compose
+---
+
+## How to Run Locally
+
+### Option A: Docker Compose (Recommended) 🐳
+
+Launch the full stack (Backend, Frontend, and Database) in the background with a single command:
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-In development mode, backend startup now rebuilds the local SQLite database on each boot (`RESET_SQLITE_ON_STARTUP=true`), recreating `app.db` and base schema automatically.
+> [!TIP]
+> For a complete guide on container commands, troubleshooting, and containerized test execution, see the **[Infrastructure & Docker Guide (infra/README.md)](../infra/README.md)**.
 
-Services:
+Available services:
+- 🌐 **Frontend (Web App):** [http://localhost:5173](http://localhost:5173)
+- 🔌 **Backend API (Swagger Docs):** [http://localhost:8000/docs](http://localhost:8000/docs)
+- 🩺 **API Healthcheck:** [http://localhost:8000/health](http://localhost:8000/health)
 
-- Frontend: [http://localhost:5173](http://localhost:5173)
-- Backend API: [http://localhost:8000](http://localhost:8000)
-- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+Pre-seeded development credentials:
+- **Student:** `aluno@linkauto.com.br` / `password123` (Slug: `gabriel-silva-mogi-mirim-1a2b`)
+- **Instructor:** `camila@linkauto.com.br` / `password123` (Slug: `camila-rocha-mogi-mirim-8f2a`)
+- **Admin:** `admin@linkauto.com.br` / `password123`
 
-### Option B: Separate backend and frontend
+---
 
-Backend:
+### Option B: Native Environment
+
+#### 1. Backend (`linkauto-backend`)
+Requires [uv](https://docs.astral.sh/uv/):
 
 ```bash
-cd ../linkauto-backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-uvicorn app.main:app --reload --port 8000
+cd linkauto-backend
+uv sync                                            # Creates .venv and installs lockfile dependencies
+uv run uvicorn app.main:app --reload --port 8000   # Starts development server with hot-reload
 ```
 
-Frontend:
+#### 2. Frontend (`linkauto-frontend`)
+Requires Node.js 20+:
 
 ```bash
-cd ../linkauto-frontend
+cd linkauto-frontend
 npm install
 npm run dev
 ```
 
-> [!TIP]
-> For auth flow validation with refresh cookie, keep both frontend and backend running with credentials enabled (already set in the HTTP client).
+#### 3. Development in VS Code
+Open the [`LinkAuto-APP.code-workspace`](../LinkAuto-APP.code-workspace) file directly. VS Code will automatically use the `uv` virtual environment, Ruff linter, and `ty` language server for the backend, alongside ESLint and Node tooling for the frontend.
 
-## E2E testing (manual + automated)
+---
 
-Initial setup (one time):
+## Quality and Testing
 
+### Backend (`linkauto-backend`)
 ```bash
-cd ../linkauto-frontend
-npm install
-npm run e2e:install
+cd linkauto-backend
+uv run ty check              # Strict static type checking
+uv run ruff check .          # Linting with ALL rules enabled
+uv run ruff format --check . # Code formatting check
+uv run pytest                # Runs all 161 unit, contract, and integration tests
 ```
 
-System dependencies (Linux, when required):
-
+### Frontend (`linkauto-frontend`)
 ```bash
-cd ../linkauto-frontend
-sudo npx playwright install-deps
+cd linkauto-frontend
+npm run typecheck            # Strict TypeScript compilation (exactOptionalPropertyTypes)
+npm run lint                 # Static code analysis with ESLint
+npm run test                 # Runs all 97 automated tests with Vitest
 ```
 
-For Arch Linux (including custom WSL2 setups), prefer installing via `yay`/AUR:
-
-```bash
-sudo pacman -Syy
-yay -S --needed atk at-spi2-core libxcomposite libxdamage libxfixes libxrandr mesa libxkbcommon alsa-lib
-```
-
-Run automated smoke flow (login + search + booking request):
-
-```bash
-cd ../linkauto-frontend
-npm run e2e
-```
-
-Suggested manual flow (with backend and frontend running):
-
-1. Open `/login`.
-2. Register an `ALUNO` account through `/api/v1/auth/register` (or use an existing account).
-3. Authenticate and confirm redirect to `/buscar`.
-4. Open an instructor from `Agendar`, select 2 consecutive slots, and confirm redirect to `/agendamentos`.
-
-Optional e2e environment variables:
-
-- `E2E_BASE_URL` (default: `http://127.0.0.1:5173`)
-- `E2E_API_BASE_URL` (default: `http://127.0.0.1:8000/api/v1`)
-
-## Quality and tests
-
-Backend (contract + integration):
-
-```bash
-cd ../linkauto-backend
-. .venv/bin/activate
-ruff check .
-pytest
-```
-
-Frontend (baseline quality checks):
-
-```bash
-cd ../linkauto-frontend
-npm run lint
-npm run build
-```
-
-Frontend (e2e smoke):
-
-```bash
-cd ../linkauto-frontend
-npm run e2e
-```
-
-Current notable coverage includes:
-
-- Foundation envelope/auth/conflict contracts
-- Auth + users/me contract and flow
-- Booking domain state machine
-- Upload validation (MIME/10MB)
-- Approved instructor visibility behavior
+### E2E Testing and Visual Validation
+End-to-End browser workflows and visual rendering checks are performed natively through the **Chrome DevTools MCP** (`@browser-testing-with-devtools`), enabling headless DOM inspection, viewport testing, and screenshot verification.

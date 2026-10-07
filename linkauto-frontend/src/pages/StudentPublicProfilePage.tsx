@@ -46,25 +46,22 @@ export default function StudentPublicProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState<string | null>(null);
   const [student, setStudent] = useState<ApiPublicStudentProfile | null>(null);
 
+  const resolvedError = !id ? "Aluno não especificado." : error;
+
   useEffect(() => {
-    if (!id) {
-      setError("Aluno não especificado.");
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
 
     let isMounted = true;
-    setLoading(true);
-    setError(null);
 
     profileService.fetchPublicStudentProfile(id)
       .then((prof) => {
         if (isMounted) {
           setStudent(prof);
+          setError(null);
         }
       })
       .catch((err) => {
@@ -95,7 +92,7 @@ export default function StudentPublicProfilePage() {
     );
   }
 
-  if (error || !student) {
+  if (resolvedError || !student) {
     return (
       <Container maxW="3xl" py={16} textAlign="center">
         <VStack gap={4} bg="surface.panel" p={8} borderRadius="2xl" border="1px solid" borderColor="border.default">
@@ -106,7 +103,7 @@ export default function StudentPublicProfilePage() {
             Perfil Indisponível
           </Heading>
           <Text color="text.secondary">
-            {error || "Não foi possível encontrar as informações deste aluno."}
+            {resolvedError || "Não foi possível encontrar as informações deste aluno."}
           </Text>
           <Button
             mt={4}

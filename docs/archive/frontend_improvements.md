@@ -1,3 +1,8 @@
+# Melhorias de Frontend (Histórico Iteração 20)
+
+> [!NOTE]
+> **Documento Arquivado (Histórico)**: As 10 propostas listadas neste documento foram integralmente implementadas e validadas na Iteração 20 do frontend (typewriter na home, rota `/my-lessons`, dashboards, tags de especialidade, recuperação de senha e cancelamento resiliente). Para referências ativas, consulte `docs/DESIGN.md` e `progressTracker-frontend.md`.
+
 Todas as propostas mencionadas estarão localizadas em linkauto-frontend/
 
 /home/gabrieldnsilva/projects/LinkAuto-APP/docs/DESIGN.md é referência de DESIGN.
