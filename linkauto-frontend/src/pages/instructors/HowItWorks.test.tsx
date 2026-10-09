@@ -13,4 +13,21 @@ describe("HowItWorks Instructor Page", () => {
 		expect(screen.getByText(/2. Configure sua Agenda/i)).toBeInTheDocument();
 		expect(screen.getByText(/Perguntas Frequentes/i)).toBeInTheDocument();
 	});
+
+	it("does not claim the platform processes payments (RN06)", () => {
+		renderWithProviders(<HowItWorks />);
+
+		expect(
+			screen.getByText(/combinhe o pagamento/i),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(/diretamente entre você e o aluno/i),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByText(/pagamentos são processados pela plataforma/i),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/conta LinkAuto/i),
+		).not.toBeInTheDocument();
+	});
 });

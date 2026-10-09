@@ -32,6 +32,8 @@ import About from "../pages/About";
 import Contact from "../pages/Contact";
 import Notifications from "../pages/Notifications";
 import Help from "../pages/Help";
+import Terms from "../pages/Terms";
+import Privacy from "../pages/Privacy";
 import PasswordReset from "../pages/PasswordReset";
 import AuditLog from "../pages/admin/AuditLog";
 import FirstLicense from "../pages/students/FirstLicense";
@@ -586,6 +588,8 @@ export default function AppRouter() {
 					<Route path="/about" element={<About />} />
 					<Route path="/contact" element={<Contact />} />
 					<Route path="/help" element={<Help />} />
+					<Route path="/terms" element={<Terms />} />
+					<Route path="/privacy" element={<Privacy />} />
 
 					{/* Students routes */}
 					<Route

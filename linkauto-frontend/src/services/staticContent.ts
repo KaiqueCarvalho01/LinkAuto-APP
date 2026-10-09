@@ -26,7 +26,7 @@ export const studentTestimonials: Testimonial[] = [
     id: 3,
     name: "Ana Oliveira",
     role: "Aluna de Primeira Habilitação",
-    text: "Sistema de pagamento seguro e suporte muito rápido. Recomendo para todos!",
+    text: "Agendamento simples e suporte muito rápido. Recomendo para todos!",
     rating: 5,
   },
 ];
@@ -43,7 +43,7 @@ export const instructorTestimonials: Testimonial[] = [
     id: 2,
     name: "Carla Ferreira",
     role: "Instrutora de Habilitados",
-    text: "Plataforma moderna que valoriza o bom profissional. O repasse dos pagamentos é pontual.",
+    text: "Plataforma moderna que valoriza o bom profissional. A gestão da agenda pelo celular é impecável.",
     rating: 4.9,
   },
   {

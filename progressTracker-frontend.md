@@ -373,7 +373,57 @@
 - coverage_pct: >= 80% ✅
 - governance_validation: passed ✅
 
+### Iteracao 26 - Remocao de Mencoes a Pagamento na Interface (RN06 - Consideracoes MVP)
+
+#### What was delivered (Iteracao 26)
+- Reescrita de todos os textos de UI que feriam a RN06 (pagamentos processados/retidos pela plataforma): FAQ da Home, HowItWorks (instrutor e aluno), Benefits (incluindo suavizacao do card "R$ 6.000 mensais" por beneficio sem valor financeiro verificavel), FirstLicense e depoimentos em staticContent.
+- Novos testes de regressao RN06 (`does not claim the platform processes payments`) em FAQ, HowItWorks (aluno/instrutor), Benefits, FirstLicense e staticContent.
+
+#### Where it was delivered (Iteracao 26)
+- `src/components/landing/FAQ.tsx` + `FAQ.test.tsx`
+- `src/pages/instructors/HowItWorks.tsx` + `HowItWorks.test.tsx`
+- `src/pages/instructors/Benefits.tsx` + `Benefits.test.tsx`
+- `src/pages/students/HowItWorks.tsx` + `HowItWorks.test.tsx`
+- `src/pages/students/FirstLicense.tsx` + `FirstLicense.test.tsx`
+- `src/services/staticContent.ts` + `staticContent.test.ts` (novo)
+
+#### How it was validated (Iteracao 26)
+- red_command: novos testes RN06 falhando antes da reescrita ✅
+- green_command: `npm run typecheck` (0 erros) e `npm run lint` (0 warnings) e `npm run test -- --testTimeout=30000` (108/108 testes passando) ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+- Observacao: a maquina de desenvolvimento estava com lentidao extrema (collect de ~10-14min na suíte completa); testes passam com `--testTimeout=30000`. Nenhuma falha de assercao.
+
+### Iteracao 27 - Paginas Institucionais e Fim de Links Mortos (Consideracoes MVP - Iteracao B)
+
+#### What was delivered (Iteracao 27)
+- Conteudo real em PT-BR para as paginas institucionais a partir de `TCC_ADS (3).pdf`:
+  - `About.tsx`: o que e o LinkAuto, Resolucao CONTRAN no 1.020/2025, missao/matchmaking por reputacao e contexto academico (Fatec de Mogi Mirim - ADS - 2026).
+  - `Contact.tsx`: canais de contato plausiveis para o projeto.
+  - `Help.tsx`: Central de Ajuda com perguntas frequentes.
+- Criadas as paginas `Terms.tsx` (Termos de Uso) e `Privacy.tsx` (Politica de Privacidade, com referencia a LGPD) e registradas as rotas `/terms` e `/privacy` em `router.tsx`.
+- `Footer.tsx`: links "Termos de Uso" -> `/terms` e "Privacidade" -> `/privacy`; removido o link morto "Cookies".
+- Testes atualizados em `ScaffoldPages.test.tsx` (About/Contact/Help/Terms/Privacy) e `Footer.test.tsx`.
+
+#### Where it was delivered (Iteracao 27)
+- `src/pages/About.tsx`
+- `src/pages/Contact.tsx`
+- `src/pages/Help.tsx`
+- `src/pages/Terms.tsx`
+- `src/pages/Privacy.tsx`
+- `src/app/router.tsx`
+- `src/components/Footer.tsx` + `Footer.test.tsx`
+- `src/pages/ScaffoldPages.test.tsx`
+
+#### How it was validated (Iteracao 27)
+- green_command: `npm run typecheck` (0 erros) e `npm run lint` (0 warnings) e `npm run test -- src/pages/ScaffoldPages.test.tsx src/components/Footer.test.tsx --testTimeout=30000` (25/25 testes passando) ✅
+- coverage_pct: >= 80% ✅
+- governance_validation: passed ✅
+
 ## Riscos e Observacoes Gerais
+
+- **Iteracao 27**: Paginas institucionais agora possuem conteudo real e os links do Footer nao apontam mais para 404. Nota de rodape de todas as paginas institucionais usa Chakra UI v3 com tokens semanticos (sem cores hardcoded).
+- **Iteracao 26**: RN06 aplicada na UI (nenhum texto de plataforma de pagamento na interface). Atencao: testes do Vitest na maquina local podem estourar timeout de 5s sob alta carga — usar `--testTimeout=30000` na validacao local.
 
 - **Iteracao 25**: Limpeza definitiva de dependências do Playwright e validação de efeitos com React 19 / ESLint limpo. Frontend com documentação profissional e 97 testes do Vitest verdes.
 - **Iteracao 24**: Validação completa da estabilidade do frontend após a fusão e modernização da stack de backend (SQLModel, uv, ty e padronização de jobs de booking). Zero quebra de contratos e 97 testes do Vitest verdes.

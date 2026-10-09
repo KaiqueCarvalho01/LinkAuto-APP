@@ -172,8 +172,8 @@ export default function FirstLicense() {
 								/>
 								<SecurityItem
 									icon={Banknote}
-									title="Pagamento Seguro"
-									desc="O valor da aula só é liberado para o instrutor após a sua confirmação de conclusão."
+									title="Pagamento Direto"
+									desc="Você combina o valor e a forma de pagamento diretamente com o instrutor, sem intermediários."
 								/>
 							</Stack>
 						</Stack>

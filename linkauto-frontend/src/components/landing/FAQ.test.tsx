@@ -22,6 +22,22 @@ describe("FAQ", () => {
 		await user.click(question);
 
 		// Check if answer is visible (simplified check for Chakra v3 Accordion)
-		expect(screen.getByText(/Cartão de crédito ou PIX/i)).toBeInTheDocument();
+		expect(
+			screen.getByText(/diretamente entre você e o instrutor/i),
+		).toBeInTheDocument();
+	});
+
+	it("does not claim the platform processes payments (RN06)", () => {
+		renderWithProviders(<FAQ />);
+
+		expect(
+			screen.queryByText(/cartão de crédito ou PIX/i),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/valor fica retido/i),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/taxa de conveniência/i),
+		).not.toBeInTheDocument();
 	});
 });

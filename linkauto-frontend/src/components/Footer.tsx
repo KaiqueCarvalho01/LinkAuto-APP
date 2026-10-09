@@ -168,12 +168,11 @@ export function Footer() {
 							<RouterLink to="/contact">Contato</RouterLink>
 						</Link>
 						<Link
+							asChild
 							variant="plain"
 							color="inherit"
-							_hover={{ color: "brand.500", fontWeight: "600" }}
-							href="#"
-							title="Em breve">
-							Termos de Uso
+							_hover={{ color: "brand.500", fontWeight: "600" }}>
+							<RouterLink to="/terms">Termos de Uso</RouterLink>
 						</Link>
 					</Stack>
 				</SimpleGrid>
@@ -190,20 +189,11 @@ export function Footer() {
 					</Text>
 					<HStack gap={6}>
 						<Link
+							asChild
 							variant="plain"
 							fontSize="xs"
-							_hover={{ color: "brand.500" }}
-							href="#"
-							title="Em breve">
-							Privacidade
-						</Link>
-						<Link
-							variant="plain"
-							fontSize="xs"
-							_hover={{ color: "brand.500" }}
-							href="#"
-							title="Em breve">
-							Cookies
+							_hover={{ color: "brand.500" }}>
+							<RouterLink to="/privacy">Privacidade</RouterLink>
 						</Link>
 					</HStack>
 				</Stack>

@@ -27,7 +27,7 @@ export default function HowItWorks() {
 		{
 			title: "2. Agende",
 			description:
-				"Escolha um horário livre na agenda do instrutor e pague com segurança via PIX ou Cartão.",
+				"Escolha um horário livre na agenda do instrutor e combine os detalhes da aula pelo chat.",
 			icon: CalendarDays,
 		},
 		{
@@ -47,12 +47,12 @@ export default function HowItWorks() {
 		{
 			value: "payment",
 			title: "Como funciona o pagamento?",
-			text: "Você paga por aula ou pacotes diretamente na plataforma. O dinheiro fica protegido e só é repassado ao instrutor após a aula ser realizada.",
+			text: "O pagamento é combinado e feito diretamente entre você e o instrutor, fora da plataforma. Acertem a forma e o momento do pagamento (PIX, dinheiro ou outro) antes da aula.",
 		},
 		{
 			value: "cancel",
 			title: "Posso cancelar uma aula agendada?",
-			text: "Sim. Cancelamentos com mais de 24h de antecedência possuem reembolso total. Regras específicas podem variar por instrutor.",
+			text: "Sim. Cancelamentos feitos com pelo menos 24 horas de antecedência não têm penalidade. Cancelamentos de última hora podem resultar em bloqueio temporário de novas reservas por 7 dias.",
 		},
 	];
 
@@ -136,7 +136,7 @@ export default function HowItWorks() {
 								<PricingFactor
 									icon={FileCheck}
 									title="Sem Taxas Ocultas"
-									desc="Você vê o valor total antes de pagar"
+									desc="O valor é combinado diretamente com o instrutor"
 								/>
 							</SimpleGrid>
 						</Stack>

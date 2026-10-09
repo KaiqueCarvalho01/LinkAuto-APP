@@ -16,12 +16,12 @@ export function FAQ() {
 		{
 			value: "payment",
 			title: "Como pago as aulas?",
-			text: "Você pode pagar suas aulas diretamente pela plataforma usando cartão de crédito ou PIX. O valor fica retido com segurança e só é liberado para o instrutor após a conclusão da aula.",
+			text: "O pagamento é combinado e feito diretamente entre você e o instrutor, fora da plataforma. Vocês podem acertar a forma de pagamento (PIX, dinheiro ou outro) antes da aula — a LinkAuto não intermedia valores.",
 		},
 		{
 			value: "cancellation",
 			title: "Posso cancelar um agendamento?",
-			text: "Sim, cancelamentos realizados com até 24h de antecedência garantem reembolso integral. Após esse período, uma taxa de conveniência pode ser aplicada.",
+			text: "Sim. Cancelamentos feitos com pelo menos 24 horas de antecedência não têm penalidade. Cancelamentos de última hora podem resultar em bloqueio temporário de novas reservas por 7 dias.",
 		},
 		{
 			value: "security",
