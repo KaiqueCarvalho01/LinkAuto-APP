@@ -32,8 +32,8 @@ export default function HowItWorks() {
 			icon: BellRing,
 		},
 		{
-			title: "4. Pagamento Direto",
-			description: "O valor da aula cai na sua conta LinkAuto assim que a aula é concluída.",
+			title: "4. Combinhe o Pagamento",
+			description: "Você define o preço da sua hora-aula e combina o recebimento direto com o aluno, fora da plataforma.",
 			icon: BadgeDollarSign,
 		},
 	];
@@ -51,8 +51,8 @@ export default function HowItWorks() {
 		},
 		{
 			value: "repasse",
-			title: "Como funciona o repasse?",
-			text: "Os pagamentos são processados pela plataforma e o repasse para sua conta bancária ocorre semanalmente, de forma automática.",
+			title: "Como funciona o pagamento?",
+			text: "O pagamento é combinado diretamente entre você e o aluno, fora da plataforma. Vocês podem acertar a forma e o momento do pagamento (PIX, dinheiro ou outro) antes da aula.",
 		},
 		{
 			value: "detran",

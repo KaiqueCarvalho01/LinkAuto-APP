@@ -42,8 +42,8 @@ export default function Benefits() {
 			color: "laBlue.500",
 		},
 		{
-			title: "Pagamentos Seguros",
-			description: "Receba seus ganhos semanalmente via PIX de forma automática e transparente.",
+			title: "Pagamento Direto",
+			description: "Você define o valor da sua hora-aula e combina o recebimento direto com o aluno, sem intermediários.",
 			icon: Wallet,
 			color: "brand.500",
 		},
@@ -132,8 +132,8 @@ export default function Benefits() {
 								<Stack gap={2}>
 									<Heading fontSize="2xl" fontWeight="800">Faça o seu preço</Heading>
 									<Text color="text.muted">
-										No LinkAuto você decide quanto vale a sua hora. Instrutores top-rated 
-										estão faturando mais de R$ 6.000 mensais.
+										No LinkAuto você decide quanto vale a sua hora. Instrutores bem
+										avaliados ganham mais visibilidade e recebem mais pedidos de aula.
 									</Text>
 								</Stack>
 								<Separator />
@@ -159,7 +159,7 @@ export default function Benefits() {
 						<SimpleGrid columns={{ base: 1, md: 3 }} gap={8} w="full">
 							<SecurityFeature icon={ShieldCheck} title="Alunos Verificados" desc="Todos os alunos passam por verificação de identidade antes do primeiro agendamento." />
 							<SecurityFeature icon={CalendarClock} title="Check-in GPS" desc="Monitoramos o início e fim de cada aula via GPS para sua proteção." />
-							<SecurityFeature icon={Wallet} title="Garantia de Pagamento" desc="Receba mesmo em caso de cancelamentos de última hora (conforme sua política)." />
+							<SecurityFeature icon={Wallet} title="Pagamento Combinado" desc="Você acerta o valor e a forma de pagamento com o aluno antes da aula, direto entre as partes." />
 						</SimpleGrid>
 					</Stack>
 				</Container>

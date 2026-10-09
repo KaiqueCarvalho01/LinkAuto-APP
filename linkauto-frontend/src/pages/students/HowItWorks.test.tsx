@@ -14,4 +14,18 @@ describe("HowItWorks Student Page", () => {
 		expect(screen.getByText(/3. Dirija/i)).toBeInTheDocument();
 		expect(screen.getByText(/Custos e Transparência/i)).toBeInTheDocument();
 	});
+
+	it("does not claim the platform processes payments (RN06)", () => {
+		renderWithProviders(<HowItWorks />);
+
+		expect(
+			screen.queryByText(/pague com segurança via PIX/i),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/dinheiro fica protegido/i),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/reembolso total/i),
+		).not.toBeInTheDocument();
+	});
 });

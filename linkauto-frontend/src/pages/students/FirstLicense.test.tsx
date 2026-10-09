@@ -14,4 +14,15 @@ describe("FirstLicense Page", () => {
 		expect(screen.getByText(/Segurança em Primeiro Lugar/i)).toBeInTheDocument();
 		expect(screen.getByRole("link", { name: /Começar Agora/i })).toBeInTheDocument();
 	});
+
+	it("does not claim escrow payments (RN06)", () => {
+		renderWithProviders(<FirstLicense />);
+
+		expect(
+			screen.queryByText(/Pagamento Seguro/i),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/só é liberado para o instrutor/i),
+		).not.toBeInTheDocument();
+	});
 });

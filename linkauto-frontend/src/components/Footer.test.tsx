@@ -60,6 +60,16 @@ describe("Footer", () => {
 		expect(screen.getAllByRole("link", { name: /Contato/i })[0]).toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /Termos de Uso/i }),
-		).toHaveAttribute("href", "#");
+		).toHaveAttribute("href", "/terms");
+	});
+
+	it("should link Privacidade to the LGPD page and have no dead 'Em breve' links", () => {
+		renderWithProviders(<Footer />);
+		expect(
+			screen.getByRole("link", { name: /Privacidade/i }),
+		).toHaveAttribute("href", "/privacy");
+		expect(
+			screen.queryByRole("link", { name: /Cookies/i }),
+		).not.toBeInTheDocument();
 	});
 });

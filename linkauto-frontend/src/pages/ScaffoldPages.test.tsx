@@ -18,6 +18,8 @@ import HowItWorksStudent from "./students/HowItWorks";
 import HowItWorksInstructor from "./instructors/HowItWorks";
 import Benefits from "./instructors/Benefits";
 import Simulator from "./instructors/Simulator";
+import Terms from "./Terms";
+import Privacy from "./Privacy";
 
 describe("Scaffold Pages", () => {
 	it("renders Register page", () => {
@@ -27,17 +29,39 @@ describe("Scaffold Pages", () => {
 
 	it("renders About page", () => {
 		renderWithProviders(<About />);
-		expect(screen.getByText(/About/i)).toBeInTheDocument();
+		expect(screen.getByText(/Sobre o LinkAuto/i)).toBeInTheDocument();
+		expect(screen.getByText(/Fatec de Mogi Mirim/i)).toBeInTheDocument();
+		expect(
+			screen.queryByText(/Page under construction/i),
+		).not.toBeInTheDocument();
 	});
 
 	it("renders Contact page", () => {
 		renderWithProviders(<Contact />);
-		expect(screen.getByText(/Contact/i)).toBeInTheDocument();
+		expect(screen.getByText(/Fale com a LinkAuto/i)).toBeInTheDocument();
+		expect(
+			screen.queryByText(/Page under construction/i),
+		).not.toBeInTheDocument();
 	});
 
 	it("renders Help page", () => {
 		renderWithProviders(<Help />);
-		expect(screen.getByText(/Help/i)).toBeInTheDocument();
+		expect(screen.getByText(/Central de Ajuda/i)).toBeInTheDocument();
+		expect(
+			screen.queryByText(/Page under construction/i),
+		).not.toBeInTheDocument();
+	});
+
+	it("renders Terms page", () => {
+		renderWithProviders(<Terms />);
+		expect(
+			screen.getByRole("heading", { name: /Termos de Uso/i }),
+		).toBeInTheDocument();
+	});
+
+	it("renders Privacy page", () => {
+		renderWithProviders(<Privacy />);
+		expect(screen.getByText(/Privacidade e LGPD/i)).toBeInTheDocument();
 	});
 
 	it("renders Home page", () => {
