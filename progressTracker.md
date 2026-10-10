@@ -356,3 +356,15 @@ Entregue como um stack de PRs (`gh stack`), uma issue por camada, cada uma com t
 - **Backend:** 236 testes pytest verdes, `ty check` e `ruff check`/`ruff format` sem erros, migrações verificadas em SQLite e PostGIS.
 - **Frontend:** 102 testes Vitest verdes, `typecheck`, `lint` e `build` limpos.
 
+### Iteração 21 (Diagramas de Classe dos Schemas de Banco de Dados via Mermaid Studio)
+
+- **Criação de Diagramas de Classe UML Modulares (Mermaid Studio):**
+  - Elaborados 4 diagramas de classe em formato `.mmd` e renderizados em `.svg` de alta resolução com a paleta corporativa oficial do LinkAuto (`#1A6DB5`, `#3EAA5B`, linhas suaves em Slate `#94a3b8`):
+    - `docs/diagrams/database-overview-class.mmd` / `.svg`: Visão geral consolidada das 11 tabelas, mixins de auditoria (`AuditTimestampsMixin`, `AuditUUIDBase`) e relacionamentos de integridade referencial.
+    - `docs/diagrams/identity-domain-class.mmd` / `.svg`: Domínio de contas, autenticação, rotação de refresh tokens JWT, perfis com slugs públicos e credenciamento DETRAN (RN01, RN02).
+    - `docs/diagrams/booking-domain-class.mmd` / `.svg`: Domínio de agendamentos e agenda de slots (1h slots, mínimo de 2h contíguas - RN03, trava atômica de slots, bloqueio disciplinar de 7 dias - RN04).
+    - `docs/diagrams/governance-domain-class.mmd` / `.svg`: Domínio de comunicação assíncrona por reserva (RN09), avaliações bilaterais mútuas com unicidade (RN06/RN07) e auditoria de overrides administrativos.
+- **Documentação Canônica:**
+  - Criado `docs/DATABASE_CLASS_DIAGRAMS.md` detalhando os modelos de dados, regras de persistência, dicionário de entidades e guia de recompilação com Mermaid Studio.
+  - Atualizadas referências canônicas no `README.md`, `docs/README.en.md` e `docs/DESIGN.md`.
+

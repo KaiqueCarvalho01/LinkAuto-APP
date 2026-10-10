@@ -37,6 +37,7 @@ Quick Navigation:
 
 ### Canonical Documentation (Single Source of Truth)
 - 📜 **Requirements & Business Rules:** [`docs/requirements.md`](requirements.md)
+- 🏛️ **Database Class Diagrams & Schemas:** [`docs/DATABASE_CLASS_DIAGRAMS.md`](DATABASE_CLASS_DIAGRAMS.md)
 - 🎨 **Design System & UI Guidelines:** [`docs/DESIGN.md`](DESIGN.md)
 - 🔌 **API Endpoint Specifications:** [`docs/BACKEND_ENDPOINT_REQUESTS.md`](BACKEND_ENDPOINT_REQUESTS.md)
 - 🛡️ **Security Hardening Guides:** [`docs/SECURITY_TECHNIQUES.md`](SECURITY_TECHNIQUES.md) and [`docs/SECURITY_COMPARISON.md`](SECURITY_COMPARISON.md)

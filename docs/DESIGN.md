@@ -457,6 +457,7 @@ Consulte o documento completo [FRONTEND_RECOMMENDATIONS.md](file:///home/gabriel
 
 - Logo e banner: `docs/images/LinkAuto-banner.webp`
 - Requisitos e Regras de Negócio (SSOT): `docs/requirements.md`
+- Diagramas de Classe dos Schemas de Banco de Dados: `docs/DATABASE_CLASS_DIAGRAMS.md`
 - Especificações Técnicas de API: `docs/BACKEND_ENDPOINT_REQUESTS.md`
 - Técnicas e Hardening de Segurança: `docs/SECURITY_TECHNIQUES.md`
 - Contratos de API: Swagger UI (`/docs`) e OpenAPI (`/openapi.json`)

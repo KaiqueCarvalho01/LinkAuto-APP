@@ -1,0 +1,105 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1A6DB5', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#124E87', 'lineColor': '#94a3b8', 'secondaryColor': '#3EAA5B', 'tertiaryColor': '#F59E0B', 'background': '#ffffff', 'mainBkg': '#f8fafc', 'nodeBorder': '#cbd5e1', 'clusterBkg': '#f1f5f9', 'clusterBorder': '#e2e8f0', 'titleColor': '#111827', 'edgeLabelBackground': '#ffffff', 'textColor': '#1e293b'}}}%%
+classDiagram
+    direction TB
+
+    class SlotStatus {
+        <<enumeration>>
+        DISPONIVEL
+        RESERVADO
+        BLOQUEADO
+    }
+
+    class CancelledBy {
+        <<enumeration>>
+        ALUNO
+        INSTRUTOR
+        SISTEMA
+        ADMIN
+    }
+
+    class StudentProfile {
+        <<table: student_profiles>>
+        +str user_id [PK]
+        +str slug [UNIQUE]
+        +str full_name
+        +str phone
+    }
+
+    class InstructorProfile {
+        <<table: instructor_profiles>>
+        +str user_id [PK]
+        +str slug [UNIQUE]
+        +str full_name
+        +Decimal price_per_hour
+    }
+
+    class Slot {
+        <<table: slots>>
+        +str id [PK - UUIDv7]
+        +str instructor_id [FK: instructor_profiles.user_id]
+        +datetime starts_at
+        +datetime ends_at
+        +str status
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class Booking {
+        <<table: bookings>>
+        +str id [PK - UUIDv7]
+        +str student_id [FK: student_profiles.user_id]
+        +str instructor_id [FK: instructor_profiles.user_id]
+        +str status
+        +str location_description
+        +Decimal latitude
+        +Decimal longitude
+        +datetime confirmed_at
+        +datetime cancelled_at
+        +str cancelled_by
+        +str cancellation_reason
+        +bool reminder_sent
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class BookingSlot {
+        <<table: booking_slots>>
+        +str id [PK - UUIDv7]
+        +str booking_id [FK: bookings.id]
+        +str slot_id [UNIQUE, FK: slots.id]
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class StudentPenalty {
+        <<table: student_penalties>>
+        +str id [PK - UUIDv7]
+        +str student_id [FK: student_profiles.user_id]
+        +datetime blocked_until
+        +str reason
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class BookingStatusOverride {
+        <<table: booking_status_overrides>>
+        +str id [PK - UUIDv7]
+        +str booking_id [FK: bookings.id]
+        +str admin_id
+        +str from_status
+        +str to_status
+        +str reason
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    InstructorProfile "1" o-- "*" Slot : agenda [1h slots]
+    StudentProfile "1" o-- "*" Booking : requests [min 2h - RN03]
+    InstructorProfile "1" o-- "*" Booking : confirms / teaches
+    Booking "1" *-- "1..*" BookingSlot : locks [CASCADE]
+    Slot "1" -- "0..1" BookingSlot : reserved_in [UNIQUE]
+    StudentProfile "1" o-- "*" StudentPenalty : disciplined [7-day block - RN04]
+    Booking "1" o-- "*" BookingStatusOverride : overrides [CASCADE]
+
+    Slot ..> SlotStatus : status
+    Booking ..> CancelledBy : cancelled_by
