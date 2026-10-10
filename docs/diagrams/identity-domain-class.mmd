@@ -1,0 +1,134 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1A6DB5', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#124E87', 'lineColor': '#94a3b8', 'secondaryColor': '#3EAA5B', 'tertiaryColor': '#F59E0B', 'background': '#ffffff', 'mainBkg': '#f8fafc', 'nodeBorder': '#cbd5e1', 'clusterBkg': '#f1f5f9', 'clusterBorder': '#e2e8f0', 'titleColor': '#111827', 'edgeLabelBackground': '#ffffff', 'textColor': '#1e293b'}}}%%
+classDiagram
+    direction TB
+
+    class AuditTimestampsMixin {
+        <<mixin>>
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class AuditUUIDBase {
+        <<base>>
+        +str id [PK - UUIDv7]
+    }
+
+    class UserRole {
+        <<enumeration>>
+        ALUNO
+        INSTRUTOR
+        ADMIN
+    }
+
+    class LicenseType {
+        <<enumeration>>
+        NENHUMA
+        A
+        B
+        AB
+        C
+        D
+        E
+        EM_PROCESSO
+    }
+
+    class DetranStatus {
+        <<enumeration>>
+        PENDENTE
+        APROVADO
+        REJEITADO
+    }
+
+    class User {
+        <<table: users>>
+        +str id [PK]
+        +str email [UNIQUE]
+        +str password_hash
+        +list~str~ roles [JSON]
+        +bool is_active
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class StudentProfile {
+        <<table: student_profiles>>
+        +str user_id [PK, FK: users.id]
+        +str slug [UNIQUE]
+        +str full_name
+        +str phone
+        +str city
+        +str state
+        +LicenseType license_type
+        +str avatar_url
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class InstructorProfile {
+        <<table: instructor_profiles>>
+        +str user_id [PK, FK: users.id]
+        +str slug [UNIQUE]
+        +str full_name
+        +str phone
+        +str city
+        +str state
+        +str bio
+        +list~str~ specialties [JSON]
+        +Decimal price_per_hour
+        +str avatar_url
+        +DetranStatus detran_status
+        +int action_radius_km
+        +float latitude
+        +float longitude
+        +float rating_avg
+        +int rating_count
+        +bool is_active
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class RefreshToken {
+        <<table: refresh_tokens>>
+        +str id [PK]
+        +str jti [UNIQUE]
+        +str user_id [FK: users.id]
+        +str family_id
+        +datetime expires_at
+        +datetime used_at
+        +datetime revoked_at
+        +str replaced_by_jti
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class InstructorDocument {
+        <<table: instructor_documents>>
+        +str id [PK]
+        +str instructor_id [FK: instructor_profiles.user_id]
+        +str reviewed_by [FK: users.id]
+        +str detran_credential_url
+        +str criminal_record_url
+        +datetime uploaded_at
+        +datetime reviewed_at
+        +str review_status
+        +str review_reason
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    AuditTimestampsMixin <|-- AuditUUIDBase
+    AuditUUIDBase <|-- User
+    AuditTimestampsMixin <|-- StudentProfile
+    AuditTimestampsMixin <|-- InstructorProfile
+    AuditUUIDBase <|-- RefreshToken
+    AuditUUIDBase <|-- InstructorDocument
+
+    User "1" *-- "0..1" StudentProfile : owns [CASCADE]
+    User "1" *-- "0..1" InstructorProfile : owns [CASCADE]
+    User "1" o-- "*" RefreshToken : sessions [CASCADE]
+    InstructorProfile "1" o-- "*" InstructorDocument : verification [CASCADE]
+    User "0..1" <-- "*" InstructorDocument : reviewed_by [SET NULL]
+
+    User ..> UserRole : roles
+    StudentProfile ..> LicenseType : license_type
+    InstructorProfile ..> DetranStatus : detran_status

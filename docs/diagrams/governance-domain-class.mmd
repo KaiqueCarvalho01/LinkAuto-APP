@@ -1,0 +1,63 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1A6DB5', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#124E87', 'lineColor': '#94a3b8', 'secondaryColor': '#3EAA5B', 'tertiaryColor': '#F59E0B', 'background': '#ffffff', 'mainBkg': '#f8fafc', 'nodeBorder': '#cbd5e1', 'clusterBkg': '#f1f5f9', 'clusterBorder': '#e2e8f0', 'titleColor': '#111827', 'edgeLabelBackground': '#ffffff', 'textColor': '#1e293b'}}}%%
+classDiagram
+    direction TB
+
+    class User {
+        <<table: users>>
+        +str id [PK - UUIDv7]
+        +str email [UNIQUE]
+        +list~str~ roles [JSON]
+        +bool is_active
+    }
+
+    class Booking {
+        <<table: bookings>>
+        +str id [PK - UUIDv7]
+        +str student_id [FK]
+        +str instructor_id [FK]
+        +str status
+        +datetime confirmed_at
+    }
+
+    class Review {
+        <<table: reviews>>
+        +str id [PK - UUIDv7]
+        +str booking_id [FK: bookings.id]
+        +str reviewer_id [FK: users.id]
+        +str reviewed_id [FK: users.id]
+        +int rating [1..5]
+        +str comment
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class BookingMessage {
+        <<table: booking_messages>>
+        +str id [PK - UUIDv7]
+        +str booking_id [FK: bookings.id]
+        +str sender_id [FK: users.id]
+        +str content
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class BookingStatusOverride {
+        <<table: booking_status_overrides>>
+        +str id [PK - UUIDv7]
+        +str booking_id [FK: bookings.id]
+        +str admin_id
+        +str from_status
+        +str to_status
+        +str reason
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    Booking "1" o-- "0..2" Review : evaluated_by [RN06/RN07]
+    User "1" o-- "*" Review : authors [reviewer_id]
+    User "1" o-- "*" Review : receives [reviewed_id]
+
+    Booking "1" o-- "*" BookingMessage : conversation [RN09]
+    User "1" o-- "*" BookingMessage : sends [sender_id]
+
+    Booking "1" o-- "*" BookingStatusOverride : audited_overrides [CASCADE]

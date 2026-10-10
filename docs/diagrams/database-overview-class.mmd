@@ -1,0 +1,176 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1A6DB5', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#124E87', 'lineColor': '#94a3b8', 'secondaryColor': '#3EAA5B', 'tertiaryColor': '#F59E0B', 'background': '#ffffff', 'mainBkg': '#f8fafc', 'nodeBorder': '#cbd5e1', 'clusterBkg': '#f1f5f9', 'clusterBorder': '#e2e8f0', 'titleColor': '#111827', 'edgeLabelBackground': '#ffffff', 'textColor': '#1e293b'}}}%%
+classDiagram
+    direction TB
+
+    class AuditTimestampsMixin {
+        <<mixin>>
+        +datetime created_at
+        +datetime updated_at
+    }
+
+    class AuditUUIDBase {
+        <<base>>
+        +str id [PK - UUIDv7]
+    }
+
+    class User {
+        <<table: users>>
+        +str id [PK]
+        +str email [UNIQUE]
+        +str password_hash
+        +list~str~ roles [JSON]
+        +bool is_active
+    }
+
+    class StudentProfile {
+        <<table: student_profiles>>
+        +str user_id [PK, FK]
+        +str slug [UNIQUE]
+        +str full_name
+        +str phone
+        +str city
+        +str state
+        +str license_type
+        +str avatar_url
+    }
+
+    class InstructorProfile {
+        <<table: instructor_profiles>>
+        +str user_id [PK, FK]
+        +str slug [UNIQUE]
+        +str full_name
+        +str phone
+        +str city
+        +str state
+        +str bio
+        +list~str~ specialties [JSON]
+        +Decimal price_per_hour
+        +str detran_status
+        +int action_radius_km
+        +float latitude
+        +float longitude
+        +float rating_avg
+        +int rating_count
+        +bool is_active
+    }
+
+    class RefreshToken {
+        <<table: refresh_tokens>>
+        +str id [PK]
+        +str jti [UNIQUE]
+        +str user_id [FK]
+        +str family_id
+        +datetime expires_at
+        +datetime used_at
+        +datetime revoked_at
+        +str replaced_by_jti
+    }
+
+    class InstructorDocument {
+        <<table: instructor_documents>>
+        +str id [PK]
+        +str instructor_id [FK]
+        +str reviewed_by [FK]
+        +str detran_credential_url
+        +str criminal_record_url
+        +datetime uploaded_at
+        +datetime reviewed_at
+        +str review_status
+        +str review_reason
+    }
+
+    class Slot {
+        <<table: slots>>
+        +str id [PK]
+        +str instructor_id [FK]
+        +datetime starts_at
+        +datetime ends_at
+        +str status
+    }
+
+    class Booking {
+        <<table: bookings>>
+        +str id [PK]
+        +str student_id [FK]
+        +str instructor_id [FK]
+        +str status
+        +str location_description
+        +Decimal latitude
+        +Decimal longitude
+        +datetime confirmed_at
+        +datetime cancelled_at
+        +str cancelled_by
+        +str cancellation_reason
+        +bool reminder_sent
+    }
+
+    class BookingSlot {
+        <<table: booking_slots>>
+        +str id [PK]
+        +str booking_id [FK]
+        +str slot_id [UNIQUE, FK]
+    }
+
+    class StudentPenalty {
+        <<table: student_penalties>>
+        +str id [PK]
+        +str student_id [FK]
+        +datetime blocked_until
+        +str reason
+    }
+
+    class BookingStatusOverride {
+        <<table: booking_status_overrides>>
+        +str id [PK]
+        +str booking_id [FK]
+        +str admin_id
+        +str from_status
+        +str to_status
+        +str reason
+    }
+
+    class Review {
+        <<table: reviews>>
+        +str id [PK]
+        +str booking_id [FK]
+        +str reviewer_id [FK]
+        +str reviewed_id [FK]
+        +int rating
+        +str comment
+    }
+
+    class BookingMessage {
+        <<table: booking_messages>>
+        +str id [PK]
+        +str booking_id [FK]
+        +str sender_id [FK]
+        +str content
+    }
+
+    AuditTimestampsMixin <|-- AuditUUIDBase
+    AuditUUIDBase <|-- User
+    AuditTimestampsMixin <|-- StudentProfile
+    AuditTimestampsMixin <|-- InstructorProfile
+    AuditUUIDBase <|-- RefreshToken
+    AuditUUIDBase <|-- InstructorDocument
+    AuditUUIDBase <|-- Slot
+    AuditUUIDBase <|-- Booking
+    AuditUUIDBase <|-- BookingSlot
+    AuditUUIDBase <|-- StudentPenalty
+    AuditUUIDBase <|-- BookingStatusOverride
+    AuditUUIDBase <|-- Review
+    AuditUUIDBase <|-- BookingMessage
+
+    User "1" *-- "0..1" StudentProfile : owns
+    User "1" *-- "0..1" InstructorProfile : owns
+    User "1" o-- "*" RefreshToken : sessions
+    InstructorProfile "1" o-- "*" InstructorDocument : verification
+    InstructorProfile "1" o-- "*" Slot : agenda
+    StudentProfile "1" o-- "*" Booking : books
+    InstructorProfile "1" o-- "*" Booking : provides
+    Booking "1" *-- "1..*" BookingSlot : reserves
+    Slot "1" -- "0..1" BookingSlot : locked_in
+    StudentProfile "1" o-- "*" StudentPenalty : penalties
+    Booking "1" o-- "*" BookingStatusOverride : overrides
+    Booking "1" o-- "0..2" Review : evaluations
+    Booking "1" o-- "*" BookingMessage : messages
