@@ -2,6 +2,12 @@
 
 The jobs are safe to run more than once, also concurrently: each booking is claimed with a
 conditional update, so a booking handled by one run is skipped by the other.
+
+E-mails are dispatched as each booking is handled, before the caller commits the run (as the
+API routes also do). If that commit fails, the changes are rolled back but the e-mails are
+already out, and the next run handles (and notifies about) those bookings again. This
+at-least-once delivery is accepted: a failed commit is rare, and a missed timeout or reminder
+would be worse than a duplicate e-mail.
 """
 
 from __future__ import annotations
