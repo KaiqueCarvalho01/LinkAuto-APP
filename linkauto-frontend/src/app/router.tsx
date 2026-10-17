@@ -512,7 +512,11 @@ function InstructorDashboardRoute() {
 	}, [loadInstructorStats, loadRequests]);
 
 	const refresh = async () => {
-		setRequests(await loadRequests());
+		try {
+			setRequests(await loadRequests());
+		} catch (err) {
+			console.error("Failed to reload booking requests:", err);
+		}
 		const stats = await loadInstructorStats();
 		if (stats) setInstructorStats(stats);
 	};
