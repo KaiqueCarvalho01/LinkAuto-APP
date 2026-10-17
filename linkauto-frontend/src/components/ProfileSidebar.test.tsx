@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -116,16 +116,23 @@ describe("ProfileSidebar", () => {
 		expect(instrutorTab).toBeInTheDocument();
 
 		// Default tab is ALUNO
+		expect(alunoTab).toHaveAttribute("aria-selected", "true");
 		expect(
-			screen.getByRole("link", { name: /Buscar Instrutor/i }),
+			await screen.findByRole("link", { name: /Buscar Instrutor/i }),
 		).toBeInTheDocument();
 
-		// Click INSTRUTOR tab
+		// Click INSTRUTOR tab. Chakra switches panels after the click, so wait for the
+		// switch instead of asserting synchronously (flaky under a loaded full-suite run)
 		await user.click(instrutorTab);
 
-		// Still should have Minhas Aulas etc
+		await waitFor(() => {
+			expect(instrutorTab).toHaveAttribute("aria-selected", "true");
+		});
+		const instrutorPanel = await screen.findByRole("tabpanel", {
+			name: /INSTRUTOR/i,
+		});
 		expect(
-			screen.getByRole("link", { name: /Minhas Aulas/i }),
+			await within(instrutorPanel).findByRole("link", { name: /Minhas Aulas/i }),
 		).toBeInTheDocument();
 	});
 
@@ -216,11 +223,12 @@ describe("ProfileSidebar", () => {
 
 		// Click close button using class selector since it has no name
 		const closeButton = document.querySelector(".chakra-drawer__closeTrigger");
-		if (closeButton) {
-			await user.click(closeButton);
-		}
+		expect(closeButton).not.toBeNull();
+		await user.click(closeButton as Element);
 
-		expect(onOpenChangeMock).toHaveBeenCalledWith(false);
+		await waitFor(() => {
+			expect(onOpenChangeMock).toHaveBeenCalledWith(false);
+		});
 	});
 
 	it("returns null if user is not present", () => {

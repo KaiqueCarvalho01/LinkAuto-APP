@@ -5,23 +5,24 @@ from __future__ import annotations
 import itertools
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlmodel import col, select
+from sqlmodel import col, or_, select, update
 
 from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
-from app.models.user import InstructorProfile, User
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
+from app.models.user import InstructorProfile
+from app.services.booking_notifier import BookingNotifier
 from app.services.penalty_service import PenaltyService
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from sqlmodel import Session
+
+    from app.services.notification_service import NotificationService
 
 CANCELLATION_NOTICE_HOURS = 24
 
@@ -33,6 +34,13 @@ class BookingLocation:
     description: str | None = None
     latitude: float | None = None
     longitude: float | None = None
+
+
+class BookingSide(StrEnum):
+    """Which side of a booking a user is on: the student who booked or the instructor."""
+
+    STUDENT = "student"
+    INSTRUCTOR = "instructor"
 
 
 class SlotValidationError(ValueError):
@@ -62,7 +70,7 @@ class BookingService:
         """Store the database session, a penalty service and optional notification service."""
         self._db = db
         self._penalty = PenaltyService(db)
-        self._notification_service = notification_service
+        self._notifier = BookingNotifier(db, notification_service)
 
     def create_booking(
         self,
@@ -93,6 +101,10 @@ class BookingService:
             select(InstructorProfile).where(col(InstructorProfile.slug) == instructor_id)
         ).first()
         effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
+        # A user with both roles must not book (and later review) their own lessons
+        if effective_instructor_id == student_id:
+            msg = "You cannot book your own slots"
+            raise SlotValidationError(msg)
 
         slots = self._get_bookable_slots(slot_ids, effective_instructor_id)
 
@@ -119,19 +131,8 @@ class BookingService:
             self._db.add(link)
         self._db.flush()
 
-        # FR-021: trigger email notification to instructor
-        instructor_user = self._db.exec(
-            select(User).where(col(User.id) == effective_instructor_id)
-        ).first()
-        if instructor_user and self._notification_service:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.NEW_PENDING_BOOKING,
-                    subject="Nova reserva pendente",
-                    body=f"Você tem um novo agendamento pendente criado pelo aluno {student_id}.",
-                    recipients=[instructor_user.email],
-                )
-            )
+        # FR-021: e-mail the instructor
+        self._notifier.booking_requested(booking)
 
         return booking
 
@@ -189,20 +190,8 @@ class BookingService:
         booking.confirmed_at = datetime.now(UTC)
         self._db.flush()
 
-        # FR-021: trigger email notification to student
-        student_user = self._db.exec(select(User).where(col(User.id) == booking.student_id)).first()
-        if student_user and self._notification_service:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.BOOKING_CONFIRMED,
-                    subject="Sua aula foi confirmada",
-                    body=(
-                        f"Sua solicitação de agendamento {booking_id} foi confirmada pelo "
-                        f"instrutor {instructor_id}."
-                    ),
-                    recipients=[student_user.email],
-                )
-            )
+        # FR-021: e-mail the student
+        self._notifier.booking_confirmed(booking)
 
         return booking
 
@@ -210,29 +199,64 @@ class BookingService:
         self,
         booking_id: str,
         user_id: str,
-        cancelled_by: str,
         reason: str | None = None,
     ) -> Booking:
-        """Cancel a booking, release its reserved slots and notify the affected parties.
+        """Cancel a booking on behalf of one of its participants.
 
-        When the student cancels less than 24 hours before the first slot, a 7-day penalty is
-        applied (RN04).
+        The cancellation is attributed from the booking, not the caller's roles: to ALUNO when
+        ``user_id`` is the booking's student, to INSTRUTOR when it is its instructor. So a user
+        with both roles cancels each booking as the side they are on. When the student cancels
+        less than 24 hours before the first slot, a 7-day penalty is applied (RN04).
 
         Raises:
             BookingNotFoundError: If the booking does not exist.
-            BookingAccessError: If a student or instructor is not this booking's participant.
+            BookingAccessError: If the user is not the booking's student or instructor.
             BookingTransitionError: If the booking is already in a terminal status.
 
         """
         booking = self._get_booking_or_raise(booking_id)
-        participant_id = {
-            CancelledBy.ALUNO.value: booking.student_id,
-            CancelledBy.INSTRUTOR.value: booking.instructor_id,
-        }.get(cancelled_by)
-        if participant_id is not None and participant_id != user_id:
+        if user_id == booking.student_id:
+            cancelled_by = CancelledBy.ALUNO.value
+        elif user_id == booking.instructor_id:
+            cancelled_by = CancelledBy.INSTRUTOR.value
+        else:
             msg = "Only a participant can cancel this booking"
             raise BookingAccessError(msg)
+        return self._cancel(booking, cancelled_by, reason)
 
+    def cancel_by_system(self, booking_id: str, reason: str) -> Booking | None:
+        """Cancel a still-PENDENTE booking as SISTEMA (the 24h timeout).
+
+        Releases its slots and notifies both participants. The booking is claimed with a
+        conditional UPDATE (``status = PENDENTE``), so when two job runs overlap only one of
+        them cancels it; the other gets ``None``, as it does for a booking that was confirmed
+        or cancelled in the meantime or does not exist.
+        """
+        now = datetime.now(UTC)
+        claimed = self._db.exec(
+            update(Booking)
+            .where(
+                col(Booking.id) == booking_id,
+                col(Booking.status) == BookingStatus.PENDENTE.value,
+            )
+            .values(
+                status=BookingStatus.CANCELADA.value,
+                cancelled_at=now,
+                cancelled_by=CancelledBy.SISTEMA.value,
+                cancellation_reason=reason,
+            )
+        )
+        if claimed.rowcount != 1:
+            return None
+        booking = self._get_booking_or_raise(booking_id)
+        self._db.refresh(booking)
+        self._release_reserved_slots(booking)
+        self._db.flush()
+        self._notifier.booking_cancelled(booking)
+        return booking
+
+    def _cancel(self, booking: Booking, cancelled_by: str, reason: str | None) -> Booking:
+        """Cancel the booking, release its reserved slots and notify the affected parties."""
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CANCELADA)
         now = datetime.now(UTC)
 
@@ -246,20 +270,8 @@ class BookingService:
             self._apply_late_cancellation_penalty(booking, now)
         self._db.flush()
 
-        # FR-021: trigger email notification to student and/or instructor
-        recipients = self._cancellation_recipients(booking, cancelled_by)
-        if recipients and self._notification_service:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.BOOKING_CANCELLED,
-                    subject="Sua aula foi cancelada",
-                    body=(
-                        f"O agendamento {booking_id} foi cancelado por {cancelled_by}. Motivo: "
-                        f"{reason or ''}"
-                    ),
-                    recipients=recipients,
-                )
-            )
+        # FR-021: e-mail the other party (both for system cancellations)
+        self._notifier.booking_cancelled(booking)
 
         return booking
 
@@ -289,21 +301,6 @@ class BookingService:
                 reason=f"Cancelamento tardio (< 24h) do booking {booking.id} conforme RN04",
             )
 
-    def _cancellation_recipients(self, booking: Booking, cancelled_by: str) -> list[str]:
-        # Notify the other party; system cancellations (timeouts) notify both
-        if cancelled_by == CancelledBy.ALUNO.value:
-            user_ids = [booking.instructor_id]
-        elif cancelled_by == CancelledBy.INSTRUTOR.value:
-            user_ids = [booking.student_id]
-        else:
-            user_ids = [booking.student_id, booking.instructor_id]
-        recipients = []
-        for user_id in user_ids:
-            user = self._db.exec(select(User).where(col(User.id) == user_id)).first()
-            if user:
-                recipients.append(user.email)
-        return recipients
-
     def get_booking(self, booking_id: str) -> Booking | None:
         """Return the booking with the given ID, or ``None`` if it does not exist."""
         return self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
@@ -311,14 +308,22 @@ class BookingService:
     def list_bookings(
         self,
         user_id: str,
-        role: str,
+        sides: Collection[BookingSide],
         status_filter: str | None = None,
     ) -> list[Booking]:
-        """Return the user's bookings as student (``ALUNO``) or instructor, newest first."""
-        if role == "ALUNO":
-            stmt = select(Booking).where(col(Booking.student_id) == user_id)
-        else:
-            stmt = select(Booking).where(col(Booking.instructor_id) == user_id)
+        """Return the user's bookings on the given sides, newest first.
+
+        ``BookingSide.STUDENT`` covers bookings the user made, ``BookingSide.INSTRUCTOR`` the
+        bookings made with them; passing both returns the union.
+        """
+        conditions = []
+        if BookingSide.STUDENT in sides:
+            conditions.append(col(Booking.student_id) == user_id)
+        if BookingSide.INSTRUCTOR in sides:
+            conditions.append(col(Booking.instructor_id) == user_id)
+        if not conditions:
+            return []
+        stmt = select(Booking).where(or_(*conditions))
 
         if status_filter:
             stmt = stmt.where(col(Booking.status) == status_filter)

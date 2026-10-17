@@ -5,37 +5,47 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, override
 
 from sqlalchemy import func
-from sqlmodel import col, select
+from sqlmodel import col, select, update
 
-from app.domain.booking import BookingStatus, transition_booking
+from app.domain.booking import BookingStatus
 from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot
-from app.models.user import User
 from app.services.booking_scheduler import BookingAutomationPort
+from app.services.booking_service import BookingService
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from sqlmodel import Session
 
+    from app.services.notification_service import NotificationService
+
 
 class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
-    """SQLAlchemy implementation of the booking scheduler's persistence port."""
+    """SQLAlchemy implementation of the booking scheduler's persistence port.
 
-    def __init__(self, db: Session) -> None:
-        """Store the database session."""
+    Each booking is handled in its own SAVEPOINT, so a failure rolls back only that booking.
+    Methods flush; the caller commits the run.
+    """
+
+    def __init__(
+        self, db: Session, notification_service: NotificationService | None = None
+    ) -> None:
+        """Store the database session and the service that notifies timeout cancellations."""
         self._db = db
+        self._bookings = BookingService(db, notification_service=notification_service)
 
     @override
     def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
         """Return IDs of PENDENTE bookings created at or before ``cutoff_utc``."""
-        bookings = self._db.exec(
-            select(Booking).where(
-                col(Booking.status) == BookingStatus.PENDENTE.value,
-                col(Booking.created_at) <= cutoff_utc,
-            )
-        ).all()
-        return [b.id for b in bookings]
+        return list(
+            self._db.exec(
+                select(Booking.id).where(
+                    col(Booking.status) == BookingStatus.PENDENTE.value,
+                    col(Booking.created_at) <= cutoff_utc,
+                )
+            ).all()
+        )
 
     @override
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
@@ -49,22 +59,6 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
             .having(func.max(col(Slot.ends_at)) <= cutoff_utc)
         ).all()
         return list(results)
-
-    @override
-    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
-        """Transition a booking to ``status``, ignoring unknown booking IDs.
-
-        Cancellations are attributed to ``SISTEMA`` with ``reason`` as the cancellation reason.
-        """
-        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
-        if not booking:
-            return
-        new_status = transition_booking(BookingStatus(booking.status), status, admin_override=False)
-        booking.status = new_status.value
-        if status == BookingStatus.CANCELADA:
-            booking.cancelled_by = "SISTEMA"
-            booking.cancellation_reason = reason
-        self._db.flush()
 
     @override
     def list_unreminded_upcoming(self, start_cutoff: datetime, end_cutoff: datetime) -> list[str]:
@@ -84,25 +78,36 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         return list(results)
 
     @override
-    def mark_reminder_sent(self, booking_id: str) -> None:
-        """Flag the booking's lesson reminder as sent, if the booking exists."""
-        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
-        if booking:
-            booking.reminder_sent = True
-            self._db.flush()
+    def cancel_expired(self, booking_id: str, reason: str) -> bool:
+        """Cancel the booking as SISTEMA if it is still PENDENTE (see ``cancel_by_system``)."""
+        with self._db.begin_nested():
+            return self._bookings.cancel_by_system(booking_id, reason) is not None
 
     @override
-    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
-        """Return the student and instructor emails of a booking, ``None`` when unknown."""
-        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
-        if not booking:
-            return None, None
+    def complete(self, booking_id: str) -> bool:
+        """Move the booking to REALIZADA if it is still CONFIRMADA (conditional UPDATE)."""
+        with self._db.begin_nested():
+            result = self._db.exec(
+                update(Booking)
+                .where(
+                    col(Booking.id) == booking_id,
+                    col(Booking.status) == BookingStatus.CONFIRMADA.value,
+                )
+                .values(status=BookingStatus.REALIZADA.value)
+            )
+            return result.rowcount == 1
 
-        student = self._db.exec(select(User).where(col(User.id) == booking.student_id)).first()
-        instructor = self._db.exec(
-            select(User).where(col(User.id) == booking.instructor_id)
-        ).first()
-
-        student_email = student.email if student else None
-        instructor_email = instructor.email if instructor else None
-        return student_email, instructor_email
+    @override
+    def claim_reminder(self, booking_id: str) -> bool:
+        """Flag the reminder as sent if it is still unsent (conditional UPDATE)."""
+        with self._db.begin_nested():
+            result = self._db.exec(
+                update(Booking)
+                .where(
+                    col(Booking.id) == booking_id,
+                    col(Booking.status) == BookingStatus.CONFIRMADA.value,
+                    col(Booking.reminder_sent).is_(False),
+                )
+                .values(reminder_sent=True)
+            )
+            return result.rowcount == 1

@@ -30,7 +30,9 @@ export default function PasswordReset() {
 		try {
 			// Envia a requisição de reset para o backend
 			await httpClient.post("/auth/password-reset", { email: email.trim() });
-			setSuccessMsg("Se o email estiver cadastrado, você receberá instruções de recuperação.");
+			setSuccessMsg(
+				"Se o email estiver cadastrado, você receberá instruções de recuperação. Se o e-mail não chegar em alguns minutos, fale com o suporte para receber um link de redefinição.",
+			);
 			setEmail("");
 		} catch (err: unknown) {
 			console.error("Error requesting password reset:", err);
@@ -107,6 +109,21 @@ export default function PasswordReset() {
 								{successMsg}
 							</Text>
 						</HStack>
+					)}
+
+					{successMsg && (
+						<Box mb={6}>
+							<RouterLink to="/contact">
+								<Text
+									as="span"
+									color="brand.solid"
+									fontSize="sm"
+									fontWeight="bold"
+									textDecoration="underline">
+									Falar com o suporte
+								</Text>
+							</RouterLink>
+						</Box>
 					)}
 
 					{errorMsg && (

@@ -9,14 +9,12 @@ from sqlmodel import col, select
 
 from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
+from app.services.booking_notifier import BookingNotifier
 
 if TYPE_CHECKING:
     from sqlmodel import Session
+
+    from app.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -35,19 +33,17 @@ class BookingMessageService:
     ) -> None:
         """Store the DB session and the optional service used to notify the recipient."""
         self._db = db
-        self._notification_service = notification_service
+        self._notifier = BookingNotifier(db, notification_service)
 
     def send_message(
         self,
         booking_id: str,
         sender_id: str,
         content: str,
-        recipient_email: str | None = None,
     ) -> BookingMessage:
-        """Persist a message on the booking and notify the other party by e-mail.
+        """Persist a message on the booking and notify the other participant by e-mail.
 
-        The notification is sent only when a notification service and ``recipient_email``
-        are available. Raises ``ValueError`` if the booking does not exist and
+        Raises ``ValueError`` if the booking does not exist and
         ``BookingMessageAccessError`` if the sender is not a participant.
         """
         # Fetch booking to check existence and authorization
@@ -75,21 +71,8 @@ class BookingMessageService:
         self._db.add(message)
         self._db.flush()
 
-        # Send notification to the opposite party
-        if self._notification_service and recipient_email:
-            opposing_role = "ALUNO" if sender_id == booking.instructor_id else "INSTRUTOR"
-
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.NEW_BOOKING_MESSAGE,
-                    subject="Nova mensagem recebida",
-                    body=(
-                        f"Você recebeu uma nova mensagem de {sender_id} ({opposing_role}): '"
-                        f"{content}'"
-                    ),
-                    recipients=[recipient_email],
-                )
-            )
+        # E-mail the other participant
+        self._notifier.message_received(booking, sender_id=sender_id, content=content)
 
         return message
 

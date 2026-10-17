@@ -2,6 +2,9 @@ import { httpClient } from "./httpClient";
 import type { ApiBookingResource } from "../types/api.types";
 import type { BookingPreview, BookingStatus } from "../types/booking";
 import type { InstructorSummary } from "../types/instructor";
+import type { DashboardRequest } from "../types/session";
+
+export type BookingSide = "student" | "instructor";
 
 export const formatDateLabel = (dateStr: string): string => {
   try {
@@ -98,6 +101,19 @@ export const mapApiBookingToPreview = (api: ApiBookingResource): BookingPreview 
   };
 };
 
+// A booking request as shown to the instructor on their dashboard
+export const mapApiBookingToRequest = (api: ApiBookingResource): DashboardRequest => {
+  const firstBookingSlot = api.slots?.[0];
+  const dateStr = firstBookingSlot ? firstBookingSlot.slot.starts_at : api.created_at;
+  return {
+    id: api.id,
+    name: api.student?.full_name || "Aluno",
+    city: api.location_description || "Local a combinar",
+    date: formatDateLabel(dateStr),
+    time: formatTimeLabel(api.slots),
+  };
+};
+
 export const bookingService = {
   createBooking: async (
     data: {
@@ -115,12 +131,30 @@ export const bookingService = {
     return mapApiBookingToPreview(response.data);
   },
 
-  getMyBookings: async (token: string, status?: string): Promise<BookingPreview[]> => {
-    const path = status ? `/bookings?status=${status}` : "/bookings";
+  // `as` picks the side for users with both roles: bookings they made (student) or
+  // bookings made with them (instructor). Without it the API returns every side the user has.
+  getMyBookings: async (
+    token: string,
+    options: { status?: string; as?: BookingSide } = {},
+  ): Promise<BookingPreview[]> => {
+    const params = new URLSearchParams();
+    if (options.status) params.set("status", options.status);
+    if (options.as) params.set("as", options.as);
+    const query = params.toString();
+    const path = query ? `/bookings?${query}` : "/bookings";
     const response = await httpClient.get<ApiBookingResource[]>(path, { token });
     
     const list = response.data || [];
     return list.map((item) => mapApiBookingToPreview(item));
+  },
+
+  // Bookings waiting for the instructor's answer (confirm or decline)
+  getPendingRequests: async (token: string): Promise<DashboardRequest[]> => {
+    const response = await httpClient.get<ApiBookingResource[]>(
+      "/bookings?status=PENDENTE&as=instructor",
+      { token },
+    );
+    return (response.data || []).map(mapApiBookingToRequest);
   },
 
   getBookingDetail: async (bookingId: string, token: string): Promise<ApiBookingResource> => {

@@ -15,11 +15,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models import UserRole, generate_uuid7
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
+from app.services.notification_templates import EmailTemplateName, render_email
 from app.services.refresh_token_repository import ConsumeResult
 
 logger = logging.getLogger("app.services.auth_service")
@@ -28,6 +24,7 @@ if TYPE_CHECKING:
     from app.core import Settings
     from app.models import User
     from app.services.identity_repository import IdentityRepository
+    from app.services.notification_service import NotificationService
     from app.services.refresh_token_repository import RefreshTokenRepository
 
 
@@ -60,7 +57,8 @@ class AuthService:
     def register(self, *, email: str, password: str, roles: list[str]) -> User:
         """Register a user with a hashed password.
 
-        Registering an instructor sends a "waiting for validation" notification. Raises
+        Registering an instructor sends a "waiting for validation" notification to
+        ``ADMIN_NOTIFICATION_EMAIL`` (skipped when unset). Raises
         ``ValueError`` if the ADMIN role is requested or the repository rejects the user.
         """
         if "ADMIN" in [role.upper() for role in roles]:
@@ -70,18 +68,28 @@ class AuthService:
             email=email, password_hash=hash_password(password), roles=roles
         )
 
-        if self._notification_service and UserRole.INSTRUTOR.value in user.roles:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.INSTRUCTOR_REGISTERED,
-                    subject="Novo instrutor aguardando validação",
-                    body=(
-                        f"Instrutor {user.email} registrado e aguardando validação administrativa."
-                    ),
-                    recipients=[self._settings.ses_from_email or user.email],
-                )
-            )
+        if UserRole.INSTRUTOR.value in user.roles:
+            self._notify_admins_of_new_instructor(user)
         return user
+
+    def _notify_admins_of_new_instructor(self, user: User) -> None:
+        admin_email = self._settings.admin_notification_email
+        if self._notification_service is None:
+            return
+        if not admin_email:
+            logger.info(
+                "New instructor not announced: ADMIN_NOTIFICATION_EMAIL is not set",
+                extra={"event": "notification.admin.skipped"},
+            )
+            return
+        self._notification_service.dispatch(
+            render_email(
+                EmailTemplateName.INSTRUCTOR_REGISTERED,
+                [admin_email],
+                instructor_email=user.email,
+                link=self._settings.frontend_link("/admin/instructors"),
+            )
+        )
 
     def login(self, *, email: str, password: str) -> AuthTokens:
         """Return new tokens for valid credentials of an active account.
@@ -154,10 +162,3 @@ class AuthService:
             jti=jti, user_id=user.id, expires_at=expires_at, family_id=family_id
         )
         return AuthTokens(access_token=access_token, refresh_token=refresh_token)
-
-    def trigger_password_reset(self, *, email: str) -> None:
-        """Start a password reset for the email; currently a no-op placeholder."""
-        user = self._repository.get_user_by_email(email)
-        if user is None:
-            return
-        return

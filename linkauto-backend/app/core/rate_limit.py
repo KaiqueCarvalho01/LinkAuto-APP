@@ -60,6 +60,9 @@ limiter = build_limiter(get_settings())
 # Attempts allowed per account (normalized e-mail), whatever the client IP
 LOGIN_ACCOUNT_LIMIT = "10/15 minutes"
 _login_account_limit = parse(LOGIN_ACCOUNT_LIMIT)
+# Password reset e-mails per account, so a victim's inbox can't be flooded by rotating IPs
+PASSWORD_RESET_ACCOUNT_LIMIT = "3/hour"  # noqa: S105 - a rate limit, not a password
+_password_reset_account_limit = parse(PASSWORD_RESET_ACCOUNT_LIMIT)
 
 
 def check_login_account_limit(email: str) -> None:
@@ -83,3 +86,16 @@ def check_login_account_limit(email: str) -> None:
                 override_defaults=False,
             )
         )
+
+
+def allow_password_reset_for(email: str) -> bool:
+    """Count a password reset request for the account; ``False`` once over the limit.
+
+    Callers skip over-limit requests silently (still answering 202), so the response never
+    reveals whether the account exists or was rate limited.
+    """
+    if not limiter.enabled:
+        return True
+    return limiter.limiter.hit(
+        _password_reset_account_limit, "password-reset", login_account_key(email)
+    )

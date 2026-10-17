@@ -29,6 +29,7 @@ class NotificationEvent(StrEnum):
     BOOKING_CANCELLED = "booking_cancelled_for_student_instructor"
     NEW_BOOKING_MESSAGE = "new_booking_message"
     NEW_REVIEW_RECEIVED = "new_review_received"
+    PASSWORD_RESET_REQUESTED = "password_reset_requested"  # noqa: S105 - event name
 
 
 @dataclass(slots=True)
@@ -203,6 +204,11 @@ class NotificationService:
     def __init__(self, email_gateway: EmailGateway) -> None:
         """Store the email gateway used to deliver notifications."""
         self.email_gateway = email_gateway
+
+    @property
+    def email_enabled(self) -> bool:
+        """Whether e-mails can reach anyone (``False`` without an e-mail provider)."""
+        return not isinstance(self.email_gateway, DisabledEmailGateway)
 
     def dispatch(self, payload: NotificationPayload) -> NotificationDispatchResult:
         """Send the payload and report whether it was delivered.

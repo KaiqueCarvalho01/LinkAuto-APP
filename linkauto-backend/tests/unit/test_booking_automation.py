@@ -12,6 +12,7 @@ from app.models.user import (
     UserRole,
 )
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
+from app.services.booking_notifier import BookingNotifier
 from app.services.booking_scheduler import BookingAutomationPort, BookingScheduler
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
@@ -118,7 +119,9 @@ class TestBookingAutomationPort:
         )
 
         port = SqlAlchemyBookingAutomationPort(db_session)
-        scheduler = BookingScheduler(port, notification_service=notification_svc)
+        scheduler = BookingScheduler(
+            port, reminder_sender=BookingNotifier(db_session, notification_svc)
+        )
 
         result = scheduler.run_lesson_reminders()
 
@@ -126,25 +129,18 @@ class TestBookingAutomationPort:
         assert booking.reminder_sent is True
         assert result.processed == 1
 
-        # Verify emails sent to both student and instructor
-        assert len(gateway.sent_messages) == 1
-        email = gateway.sent_messages[0]
-        # Should contain both recipients
-        assert "autostu@t.com" in email["recipients"]
-        assert "autoinst@t.com" in email["recipients"]
-        assert "Lembrete" in email["subject"]
+        # One reminder each for the student and the instructor
+        assert [m["recipients"] for m in gateway.sent_messages] == [
+            ["autostu@t.com"],
+            ["autoinst@t.com"],
+        ]
+        assert all("Lembrete" in m["subject"] for m in gateway.sent_messages)
 
 
 class FailingBookingAutomationPort(BookingAutomationPort):
     @override
     def list_pending_expired(self, cutoff_utc: datetime) -> list[str]:
-        return ["book-failed", "book-success"]
-
-    @override
-    def transition_to(self, booking_id: str, status: BookingStatus, reason: str) -> None:
-        if booking_id == "book-failed":
-            msg = "Database connection timed out for this item"
-            raise RuntimeError(msg)
+        return ["book-failed", "book-success", "book-gone"]
 
     @override
     def list_confirmed_ready(self, cutoff_utc: datetime) -> list[str]:
@@ -155,12 +151,20 @@ class FailingBookingAutomationPort(BookingAutomationPort):
         return []
 
     @override
-    def mark_reminder_sent(self, booking_id: str) -> None:
-        pass
+    def cancel_expired(self, booking_id: str, reason: str) -> bool:
+        if booking_id == "book-failed":
+            msg = "Database connection timed out for this item"
+            raise RuntimeError(msg)
+        # "book-gone" was handled by another run in the meantime
+        return booking_id == "book-success"
 
     @override
-    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
-        return None, None
+    def complete(self, booking_id: str) -> bool:
+        return True
+
+    @override
+    def claim_reminder(self, booking_id: str) -> bool:
+        return True
 
 
 def test_scheduler_pending_timeout_resilience_per_item() -> None:
@@ -168,14 +172,77 @@ def test_scheduler_pending_timeout_resilience_per_item() -> None:
 
     Garante que se uma transição de booking falhar, o lote continue sendo processado
     para os próximos itens, retornando contadores adequados de processados e falhos.
+    Bookings já tratados por outra execução são ignorados, sem contar como falha.
     """
     port = FailingBookingAutomationPort()
     scheduler = BookingScheduler(port)
 
     result = scheduler.run_pending_timeout()
 
-    # Deve reportar 1 processado com sucesso, 1 falhado
     assert result.processed == 1
     assert result.failed == 1
     assert result.booking_ids == ["book-success"]
     assert result.failed_booking_ids == ["book-failed"]
+
+
+class TestJobsAreSafeToRunTwice:
+    """#53: a second (or overlapping) run must not act on the same booking again."""
+
+    def _scheduler(self, db_session: Session, gateway: InMemoryEmailGateway) -> BookingScheduler:
+        notifications = NotificationService(gateway)
+        return BookingScheduler(
+            SqlAlchemyBookingAutomationPort(db_session, notifications),
+            reminder_sender=BookingNotifier(db_session, notifications),
+        )
+
+    def test_timeout_releases_slots_and_notifies_both_once(self, db_session: Session) -> None:
+        gateway = InMemoryEmailGateway()
+        booking = _seed_full_booking(
+            db_session, BookingStatus.PENDENTE.value, starts_offset_hours=48
+        )
+        scheduler = self._scheduler(db_session, gateway)
+
+        first = scheduler.run_pending_timeout()
+        # The listing a concurrent run took before the first one committed
+        second = scheduler._run(  # noqa: SLF001
+            "pending_timeout",
+            [booking.id],
+            lambda booking_id: scheduler._automation_port.cancel_expired(booking_id, "x"),  # noqa: SLF001
+        )
+
+        assert (first.processed, second.processed, second.failed) == (1, 0, 0)
+        db_session.refresh(booking)
+        assert booking.status == BookingStatus.CANCELADA.value
+        assert booking.cancelled_by == "SISTEMA"
+        assert booking.cancellation_reason == "AUTO_TIMEOUT_24H"
+        for link in booking.slots:
+            db_session.refresh(link.slot)
+            assert link.slot.status == SlotStatus.DISPONIVEL.value
+        assert [m["recipients"] for m in gateway.sent_messages] == [
+            ["autostu@t.com"],
+            ["autoinst@t.com"],
+        ]
+
+    def test_completion_runs_once(self, db_session: Session) -> None:
+        booking = _seed_full_booking(
+            db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=-6
+        )
+        port = SqlAlchemyBookingAutomationPort(db_session)
+
+        assert port.complete(booking.id) is True
+        assert port.complete(booking.id) is False
+
+    def test_reminder_is_sent_once(self, db_session: Session) -> None:
+        gateway = InMemoryEmailGateway()
+        booking = _seed_full_booking(
+            db_session, BookingStatus.CONFIRMADA.value, starts_offset_hours=24
+        )
+        scheduler = self._scheduler(db_session, gateway)
+
+        first = scheduler.run_lesson_reminders()
+        port = SqlAlchemyBookingAutomationPort(db_session)
+
+        assert first.processed == 1
+        assert port.claim_reminder(booking.id) is False
+        assert scheduler.run_lesson_reminders().processed == 0
+        assert len(gateway.sent_messages) == 2  # student + instructor, once

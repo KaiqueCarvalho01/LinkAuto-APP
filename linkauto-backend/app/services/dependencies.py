@@ -6,9 +6,10 @@ from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends
+from sqlmodel import Session
 
-from app.api.deps.types import DbSession  # noqa: TC001 - FastAPI resolves it at runtime
 from app.core import Settings, get_settings
+from app.core.database import get_db
 from app.services.admin_validation_service import AdminValidationService
 from app.services.auth_service import AuthService
 from app.services.document_cleanup_service import DocumentCleanupService
@@ -16,8 +17,13 @@ from app.services.document_storage import DocumentStorage, build_document_storag
 from app.services.identity_repository import IdentityRepository
 from app.services.instructor_document_service import InstructorDocumentService
 from app.services.notification_service import NotificationService, build_email_gateway
+from app.services.password_reset_service import PasswordResetService
 from app.services.profile_service import ProfileService
 from app.services.refresh_token_repository import RefreshTokenRepository
+
+# Same dependency as app.api.deps.types.DbSession; importing that would load every router
+# (which import this module) and create an import cycle
+DbSession = Annotated[Session, Depends(get_db)]
 
 
 @lru_cache(maxsize=1)
@@ -28,6 +34,10 @@ def get_notification_service() -> NotificationService:
     development/tests, and no e-mail at all otherwise.
     """
     return NotificationService(email_gateway=build_email_gateway(get_settings()))
+
+
+# Routes take the service through this alias, so tests can override it per app
+Notifications = Annotated[NotificationService, Depends(get_notification_service)]
 
 
 @lru_cache(maxsize=1)
@@ -48,14 +58,33 @@ Repository = Annotated[IdentityRepository, Depends(get_identity_repository)]
 
 
 def get_auth_service(
-    settings: Annotated[Settings, Depends(get_settings)], repository: Repository, db: DbSession
+    settings: Annotated[Settings, Depends(get_settings)],
+    repository: Repository,
+    db: DbSession,
+    notifications: Notifications,
 ) -> AuthService:
     """Build an ``AuthService`` wired to the request's repositories and notifications."""
     return AuthService(
         settings=settings,
         repository=repository,
         refresh_tokens=RefreshTokenRepository(db),
-        notification_service=get_notification_service(),
+        notification_service=notifications,
+    )
+
+
+def get_password_reset_service(
+    settings: Annotated[Settings, Depends(get_settings)],
+    repository: Repository,
+    db: DbSession,
+    notifications: Notifications,
+) -> PasswordResetService:
+    """Build a ``PasswordResetService`` wired to the request's session and notifications."""
+    return PasswordResetService(
+        db=db,
+        settings=settings,
+        repository=repository,
+        refresh_tokens=RefreshTokenRepository(db),
+        notification_service=notifications,
     )
 
 
@@ -70,14 +99,14 @@ def get_cleanup_service(repository: Repository, storage: Storage) -> DocumentCle
 
 
 def get_admin_validation_service(
-    repository: Repository, storage: Storage
+    repository: Repository, storage: Storage, notifications: Notifications
 ) -> AdminValidationService:
     """Build an ``AdminValidationService`` with its profile, cleanup and notification services."""
     return AdminValidationService(
         repository=repository,
         profile_service=ProfileService(repository),
         cleanup_service=DocumentCleanupService(repository, storage),
-        notification_service=get_notification_service(),
+        notification_service=notifications,
     )
 
 

@@ -17,9 +17,11 @@ from app.services.booking_service import (
     BookingLocation,
     BookingNotFoundError,
     BookingService,
+    BookingSide,
     PenalizedStudentError,
     SlotValidationError,
 )
+from app.services.dependencies import Notifications
 
 router = APIRouter(tags=["Bookings"])
 
@@ -29,16 +31,18 @@ def create_booking(
     body: BookingCreateRequest,
     current_user: CurrentAluno,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Create a PENDENTE booking for the calling student and reserve its slots.
 
     Requires the ALUNO role. `instructor_id` may be the instructor's public slug.
     Per RN02 the booking needs at least 2 consecutive one-hour slots, all available
-    and belonging to that instructor; otherwise 422 is returned. Returns 403 when the
+    and belonging to that instructor; otherwise 422 is returned (also when a user
+    with both roles tries to book their own slots). Returns 403 when the
     student is under an active cancellation penalty (RN04). The instructor is
     notified of the new booking.
     """
-    service = BookingService(db)
+    service = BookingService(db, notification_service=notifications)
     try:
         booking = service.create_booking(
             student_id=current_user.user_id,
@@ -66,23 +70,36 @@ def create_booking(
         ) from e
 
 
+def _default_sides(roles: list[str]) -> list[BookingSide]:
+    sides = []
+    if "ALUNO" in roles:
+        sides.append(BookingSide.STUDENT)
+    if "INSTRUTOR" in roles:
+        sides.append(BookingSide.INSTRUCTOR)
+    return sides or [BookingSide.STUDENT]
+
+
 @router.get("/bookings")
 def list_bookings(
     current_user: CurrentUser,
     db: DbSession,
     status: Annotated[str | None, Query()] = None,
+    as_: Annotated[BookingSide | None, Query(alias="as")] = None,
 ) -> Response:
     """List the caller's bookings, newest first, optionally filtered by status.
 
-    Requires authentication. Users with the INSTRUTOR role see bookings where they
-    are the instructor; everyone else sees bookings where they are the student.
+    Requires authentication. ``as=student`` returns the bookings the caller made,
+    ``as=instructor`` the bookings made with them. Without ``as``, the sides follow
+    the caller's roles: ALUNO, INSTRUTOR, or both for users with both roles. Compare
+    ``student_id``/``instructor_id`` with your own ID to tell the sides apart.
+    ``meta.as`` lists the sides returned.
     """
     service = BookingService(db)
-    role = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
-    bookings = service.list_bookings(current_user.user_id, role, status_filter=status)
+    sides = [as_] if as_ else _default_sides(current_user.roles)
+    bookings = service.list_bookings(current_user.user_id, sides, status_filter=status)
     return success_response(
         [BookingResource.model_validate(b).model_dump(mode="json") for b in bookings],
-        meta={"total": len(bookings)},
+        meta={"total": len(bookings), "as": [side.value for side in sides]},
     )
 
 
@@ -119,6 +136,7 @@ def confirm_booking(
     booking_id: str,
     current_user: CurrentInstrutor,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Confirm a PENDENTE booking and notify the student.
 
@@ -126,7 +144,7 @@ def confirm_booking(
     Returns 404 when the booking does not exist, 403 when the caller is not the
     booking's instructor, and 422 when the booking cannot move to CONFIRMADA.
     """
-    service = BookingService(db)
+    service = BookingService(db, notification_service=notifications)
     try:
         booking = service.confirm_booking(booking_id, current_user.user_id)
         db.commit()
@@ -150,21 +168,21 @@ def cancel_booking(
     body: BookingCancelRequest,
     current_user: CurrentUser,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Cancel a PENDENTE or CONFIRMADA booking and release its slots.
 
-    Requires authentication. The cancellation is attributed to INSTRUTOR when the
-    caller has that role, otherwise to ALUNO. Per RN04, a student who cancels less
-    than 24 hours before the first slot receives a 7-day booking penalty. The other
-    party is notified. Returns 404 when the booking does not exist and 422 when it is
-    already in a terminal status.
+    Requires authentication. The cancellation is attributed from the booking: to
+    ALUNO when the caller is its student, to INSTRUTOR when they are its instructor
+    (users with both roles cancel as the side they are on). Per RN04, a student who
+    cancels less than 24 hours before the first slot receives a 7-day booking
+    penalty. The other party is notified. Returns 404 when the booking does not
+    exist, 403 when the caller is not a participant and 422 when it is already in a
+    terminal status.
     """
-    service = BookingService(db)
-    cancelled_by = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
+    service = BookingService(db, notification_service=notifications)
     try:
-        booking = service.cancel_booking(
-            booking_id, current_user.user_id, cancelled_by, body.reason
-        )
+        booking = service.cancel_booking(booking_id, current_user.user_id, body.reason)
         db.commit()
         return success_response(
             BookingResource.model_validate(booking).model_dump(mode="json"),

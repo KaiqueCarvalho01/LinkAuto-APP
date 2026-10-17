@@ -9,7 +9,7 @@ from app.schemas.booking import BookingAdminOverrideRequest, BookingResource
 from app.schemas.common import success_response
 from app.services.admin_booking_service import AdminBookingService
 from app.services.booking_service import BookingNotFoundError
-from app.services.dependencies import get_notification_service
+from app.services.dependencies import Notifications
 
 router = APIRouter(tags=["Admin Bookings"])
 
@@ -20,6 +20,7 @@ def admin_override_booking(
     body: BookingAdminOverrideRequest,
     current_user: CurrentAdmin,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Force a booking into a terminal status (REALIZADA or CANCELADA).
 
@@ -32,7 +33,7 @@ def admin_override_booking(
     Returns 404 when the booking does not exist and 422 when the transition is not
     allowed or the body is invalid.
     """
-    service = AdminBookingService(db, notification_service=get_notification_service())
+    service = AdminBookingService(db, notification_service=notifications)
     try:
         booking = service.override_status(
             booking_id, body.status, body.reason, admin_id=current_user.user_id

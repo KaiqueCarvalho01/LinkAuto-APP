@@ -148,6 +148,30 @@ docker run --rm --env-file prod.env linkauto-backend:<tag> scripts/migrate.sh
 - **Não** rode as migrações no startup de cada réplica: várias réplicas subindo ao mesmo tempo disputam o mesmo schema.
 - Escreva migrações compatíveis com a versão anterior (*expand/contract*), já que a versão antiga continua servindo enquanto a nova sobe.
 
+### ⏰ Jobs Agendados (Agendamentos)
+
+Estes jobs mantêm os agendamentos e os tokens em dia e precisam rodar periodicamente:
+
+| Job | O que faz |
+| :--- | :--- |
+| `timeout` | Cancela (como `SISTEMA`) solicitações `PENDENTE` criadas há mais de 24h, libera os horários e avisa aluno e instrutor. |
+| `completion` | Marca como `REALIZADA` as aulas `CONFIRMADA` que terminaram há 2h ou mais (necessário para as avaliações). |
+| `reminder` | Envia o lembrete de 24h (quando o e-mail está configurado) e marca o agendamento como lembrado. |
+| `token-cleanup` | Apaga refresh tokens e links de redefinição de senha vencidos há mais de 1 dia (a folga mantém a detecção de reuso de tokens recém-vencidos). |
+
+Eles rodam com a mesma imagem e as mesmas variáveis de ambiente da aplicação, sem HTTP nem token de admin:
+
+```bash
+python -m app.jobs run all                 # ou: run timeout completion reminder token-cleanup
+docker run --rm --env-file prod.env linkauto-backend:<tag> python -m app.jobs run all
+```
+
+- Imprime um resumo JSON por job e termina com código `1` se algum agendamento falhar.
+- **Agende uma única vez por ambiente**, a cada **15 minutos**: um `CronJob` do Kubernetes (`schedule: "*/15 * * * *"`, `concurrencyPolicy: Forbid`), o agendador da plataforma ou um cron. **Não** rode em cada réplica da API.
+- Rodar duas vezes (inclusive ao mesmo tempo) é seguro: cada agendamento é reservado com um `UPDATE` condicional, então só uma execução cancela, conclui ou envia o lembrete.
+- Localmente, o serviço `scheduler` do compose (e `scheduler-postgres`, no perfil `postgres`) roda `run all` a cada `JOBS_INTERVAL_SECONDS` (padrão 900).
+- Os endpoints `POST /api/v1/jobs/booking-{timeout,completion,reminder}` continuam disponíveis para execuções manuais por admins.
+
 > [!NOTE]
 > Em desenvolvimento o backend SQLite continua usando `create_all` + seed a cada startup. Trocar o fluxo de dev para migrações + seed é uma mudança de workflow que ainda precisa ser acordada com o time (ver issue #28).
 

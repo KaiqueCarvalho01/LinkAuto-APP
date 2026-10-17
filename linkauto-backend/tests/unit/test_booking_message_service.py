@@ -43,7 +43,6 @@ def test_send_message_creates_record_and_dispatches_email(
         booking_id="booking-123",
         sender_id="student-456",
         content="Olá, professor!",
-        recipient_email="instrutor@test.com",
     )
 
     assert msg.id is not None
@@ -54,9 +53,11 @@ def test_send_message_creates_record_and_dispatches_email(
     # Verify email notification was dispatched
     assert len(gateway.sent_messages) == 1
     email = gateway.sent_messages[0]
-    assert email["recipients"] == ["instrutor@test.com"]
-    assert "professor" in email["body"]
-    assert "student-456" in email["body"]
+    assert email["recipients"] == ["instructor-789@seed.test"]
+    assert "Olá, professor!" in email["body"]
+    # Addressed by name (fallbacks here: the profiles have none), never by internal ID
+    assert "Aluno enviou uma mensagem" in email["body"]
+    assert "student-456" not in email["body"]
 
 
 def test_send_message_rejects_unauthorized_sender(db_session: Session) -> None:
@@ -78,7 +79,6 @@ def test_send_message_rejects_unauthorized_sender(db_session: Session) -> None:
             booking_id="booking-123",
             sender_id="intruder-999",
             content="Hackeando",
-            recipient_email="instrutor@test.com",
         )
 
 

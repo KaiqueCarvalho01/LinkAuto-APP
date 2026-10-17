@@ -5,17 +5,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from app.core import get_settings
 from app.models import DetranStatus
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
+from app.services.booking_notifier import INSTRUCTOR_FALLBACK_NAME
+from app.services.notification_templates import NO_REASON, EmailTemplateName, render_email
 from app.services.profile_service import serialize_user
 
 if TYPE_CHECKING:
     from app.services.document_cleanup_service import DocumentCleanupResult, DocumentCleanupService
     from app.services.identity_repository import IdentityRepository
+    from app.services.notification_service import NotificationService
     from app.services.profile_service import ProfileService
 
 
@@ -69,9 +68,7 @@ class AdminValidationService:
         )
         cleanup = self._cleanup_service.purge_after_validation(instructor_id)
         instructor_payload = self._profile_service.get_me(instructor_id)
-        self._dispatch_validation_notification(
-            instructor_payload["email"], approved=True, reason=None
-        )
+        self._dispatch_validation_notification(instructor_payload, approved=True, reason=None)
         return AdminValidationResult(instructor=instructor_payload, cleanup=cleanup)
 
     def reject(
@@ -89,27 +86,22 @@ class AdminValidationService:
         )
         cleanup = self._cleanup_service.purge_after_validation(instructor_id)
         instructor_payload = self._profile_service.get_me(instructor_id)
-        self._dispatch_validation_notification(
-            instructor_payload["email"], approved=False, reason=reason
-        )
+        self._dispatch_validation_notification(instructor_payload, approved=False, reason=reason)
         return AdminValidationResult(instructor=instructor_payload, cleanup=cleanup)
 
     def _dispatch_validation_notification(
-        self, recipient_email: str, *, approved: bool, reason: str | None
+        self, instructor: dict[str, Any], *, approved: bool, reason: str | None
     ) -> None:
         if self._notification_service is None:
             return
-        status_label = "aprovado" if approved else "rejeitado"
-        body = (
-            f"Seu credenciamento foi {status_label}."
-            if approved
-            else f"Seu credenciamento foi rejeitado. Motivo: {reason or 'não informado'}."
-        )
-        self._notification_service.dispatch(
-            NotificationPayload(
-                event=NotificationEvent.INSTRUCTOR_VALIDATION_DECISION,
-                subject="Resultado da validação de credenciamento",
-                body=body,
-                recipients=[recipient_email],
-            )
-        )
+        profile = instructor.get("instructor_profile") or {}
+        values = {
+            "recipient_name": profile.get("full_name") or INSTRUCTOR_FALLBACK_NAME,
+            "link": get_settings().frontend_link("/profile"),
+        }
+        if approved:
+            template = EmailTemplateName.INSTRUCTOR_APPROVED
+        else:
+            template = EmailTemplateName.INSTRUCTOR_REJECTED
+            values["reason"] = reason or NO_REASON
+        self._notification_service.dispatch(render_email(template, [instructor["email"]], **values))

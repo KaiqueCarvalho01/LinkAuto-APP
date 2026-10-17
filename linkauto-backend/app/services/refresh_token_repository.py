@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlmodel import col, select, update
+from sqlmodel import col, delete, select, update
 
 from app.models import RefreshToken, generate_uuid7
 from app.models.base import utc_now
@@ -100,13 +100,21 @@ class RefreshTokenRepository:
         )
         self._db.flush()
 
+    def revoke_all_for_user(self, user_id: str) -> None:
+        """Revoke every not-yet-revoked token of the user (all sessions, e.g. on password reset)."""
+        self._db.exec(
+            update(RefreshToken)
+            .where(
+                col(RefreshToken.user_id) == user_id,
+                col(RefreshToken.revoked_at).is_(None),
+            )
+            .values(revoked_at=utc_now())
+        )
+        self._db.flush()
+
     def delete_expired(self, *, before: datetime | None = None) -> int:
         """Delete tokens that expired before ``before`` (now by default); return the count."""
         cutoff = before or utc_now()
-        stale = self._db.exec(
-            select(RefreshToken).where(col(RefreshToken.expires_at) < cutoff)
-        ).all()
-        for token in stale:
-            self._db.delete(token)
+        result = self._db.exec(delete(RefreshToken).where(col(RefreshToken.expires_at) < cutoff))
         self._db.flush()
-        return len(stale)
+        return result.rowcount

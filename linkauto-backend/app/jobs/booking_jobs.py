@@ -1,16 +1,23 @@
 """Admin-only endpoints that trigger the booking automation jobs on demand.
 
+The jobs normally run on a schedule with ``python -m app.jobs run all``; these endpoints are
+for manual runs. Both are safe to run at the same time.
+
 Every job responds with the same run summary: ``processed`` and ``booking_ids`` for the
 bookings handled successfully, ``failed`` and ``failed_booking_ids`` for those that failed.
 """
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Response
 
 from app.api.deps.types import CurrentAdmin, DbSession
+from app.jobs.runner import Job, run_booking_job
 from app.schemas.common import success_response
-from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
-from app.services.booking_scheduler import BookingScheduler, BookingSchedulerResult
-from app.services.dependencies import get_notification_service
+from app.services.dependencies import Notifications
+
+if TYPE_CHECKING:
+    from app.services.booking_scheduler import BookingSchedulerResult
 
 router = APIRouter(tags=["Jobs"])
 
@@ -32,11 +39,13 @@ def _summary_response(result: BookingSchedulerResult) -> Response:
 def run_booking_timeout(
     _: CurrentAdmin,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
-    """Cancel PENDENTE bookings created more than 24 hours ago. Admin only."""
-    port = SqlAlchemyBookingAutomationPort(db)
-    scheduler = BookingScheduler(port)
-    result = scheduler.run_pending_timeout()
+    """Cancel PENDENTE bookings created more than 24 hours ago. Admin only.
+
+    Their slots are released and both participants are notified.
+    """
+    result = run_booking_job(Job.TIMEOUT, db, notifications)
     db.commit()
     return _summary_response(result)
 
@@ -45,11 +54,10 @@ def run_booking_timeout(
 def run_booking_completion(
     _: CurrentAdmin,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Mark CONFIRMADA bookings as REALIZADA once their last slot ended 2+ hours ago. Admin only."""
-    port = SqlAlchemyBookingAutomationPort(db)
-    scheduler = BookingScheduler(port)
-    result = scheduler.run_confirmed_completion()
+    result = run_booking_job(Job.COMPLETION, db, notifications)
     db.commit()
     return _summary_response(result)
 
@@ -58,13 +66,12 @@ def run_booking_completion(
 def run_booking_reminder(
     _: CurrentAdmin,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """E-mail a reminder for bookings whose lesson starts in about 24 hours. Admin only.
 
     Covers bookings starting 23 to 25 hours from now that have not been reminded yet.
     """
-    port = SqlAlchemyBookingAutomationPort(db)
-    scheduler = BookingScheduler(port, notification_service=get_notification_service())
-    result = scheduler.run_lesson_reminders()
+    result = run_booking_job(Job.REMINDER, db, notifications)
     db.commit()
     return _summary_response(result)

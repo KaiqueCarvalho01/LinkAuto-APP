@@ -97,6 +97,15 @@ class PublicInstructorSummary(BaseModel):
     action_radius_km: int = 10
 
 
+class BookingStudentSummary(BaseModel):
+    """Name of a booking's student, shown to the booking's participants."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    full_name: str | None = None
+    avatar_url: str | None = None
+
+
 class BookingInstructorSummary(BaseModel):
     """Public identity of a booking's instructor, shown to the booking's participants."""
 

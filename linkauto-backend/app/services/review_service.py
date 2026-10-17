@@ -11,14 +11,12 @@ from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.review import Review
 from app.models.user import InstructorProfile
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
+from app.services.booking_notifier import BookingNotifier
 
 if TYPE_CHECKING:
     from sqlmodel import Session
+
+    from app.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,7 @@ class ReviewService:
     ) -> None:
         """Store the database session and optional notification service."""
         self._db = db
-        self._notification_service = notification_service
+        self._notifier = BookingNotifier(db, notification_service)
 
     def create_review(
         self,
@@ -53,12 +51,11 @@ class ReviewService:
         reviewer_id: str,
         rating: int,
         comment: str | None = None,
-        recipient_email: str | None = None,
     ) -> Review:
         """Create a review of the other participant of a REALIZADA booking.
 
         Reviews of the instructor update their profile's rating average and count. The reviewed
-        user is emailed when ``recipient_email`` is given.
+        user is notified by e-mail.
 
         Raises:
             ValueError: If the booking does not exist.
@@ -140,19 +137,10 @@ class ReviewService:
                 profile.rating_avg = new_avg
                 self._db.flush()
 
-        # Dispatch e-mail notification
-        if self._notification_service and recipient_email:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.NEW_REVIEW_RECEIVED,
-                    subject="Nova avaliação recebida",
-                    body=(
-                        f"Você recebeu uma nova avaliação de {reviewer_id}: {rating} estrelas. "
-                        f"Comentário: '{comment or ''}'"
-                    ),
-                    recipients=[recipient_email],
-                )
-            )
+        # E-mail the reviewed participant
+        self._notifier.review_received(
+            booking, reviewer_id=reviewer_id, rating=rating, comment=comment
+        )
 
         return review
 

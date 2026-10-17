@@ -71,7 +71,6 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
         booking_id="booking-123",
         sender_id="student-1",
         content="Olá professor, chego em 5 minutos!",
-        recipient_email="instructor@test.com",
     )
     db_session.flush()
 
@@ -96,7 +95,6 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
         reviewer_id="student-1",
         rating=5,
         comment="Instrutor fantástico, recomendo!",
-        recipient_email="instructor@test.com",
     )
     db_session.flush()
 
@@ -125,7 +123,6 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
         reviewer_id="instructor-1",
         rating=4,
         comment="Aluno pontual e focado.",
-        recipient_email="student@test.com",
     )
     db_session.flush()
 
@@ -136,4 +133,4 @@ def test_integration_messages_and_reviews_lifecycle(db_session: Session) -> None
     assert len(sent_emails) == 1
     assert sent_emails[0]["recipients"] == ["student@test.com"]
     assert "pontual" in sent_emails[0]["body"]
-    assert "4 estrelas" in sent_emails[0]["body"]
+    assert "4 de 5 estrelas" in sent_emails[0]["body"]

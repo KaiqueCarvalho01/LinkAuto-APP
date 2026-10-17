@@ -78,4 +78,13 @@ describe("MyLessons - Cancelamento", () => {
 		expect(screen.getByRole("button", { name: /sim, cancelar/i })).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: /sim, cancelar/i })).not.toBeDisabled();
 	});
+
+	it("lista apenas as aulas do lado aluno (usuarios com dois papeis)", async () => {
+		const getSpy = vi.spyOn(bookingService, "getMyBookings").mockResolvedValue([]);
+
+		renderWithProviders(<MyLessons token="mock-token" onNewBooking={vi.fn()} />);
+
+		await screen.findByText(/nenhum agendamento encontrado/i);
+		expect(getSpy).toHaveBeenCalledWith("mock-token", { as: "student" });
+	});
 });

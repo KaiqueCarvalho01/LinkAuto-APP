@@ -1,10 +1,12 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
 from app.core.config import Settings, get_settings
 from app.core.rate_limit import limiter
+from app.services.dependencies import get_notification_service
 from app.services.identity_repository import IdentityRepository
+from app.services.notification_service import InMemoryEmailGateway, NotificationService
 from tests.conftest_db import *  # noqa: F403
 
 # Ensure unit tests are deterministic and isolated from developer-specific local .env
@@ -12,6 +14,8 @@ Settings.model_config["env_file"] = None
 get_settings.cache_clear()
 
 if TYPE_CHECKING:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
     from sqlmodel import Session
 
 
@@ -23,3 +27,12 @@ def reset_limiter_global() -> None:
 @pytest.fixture
 def identity_repository(db_session: Session) -> IdentityRepository:
     return IdentityRepository(db_session)
+
+
+@pytest.fixture
+def email_outbox(client: TestClient) -> InMemoryEmailGateway:
+    """Capture the e-mails the API sends through ``client``."""
+    gateway = InMemoryEmailGateway()
+    app = cast("FastAPI", client.app)
+    app.dependency_overrides[get_notification_service] = lambda: NotificationService(gateway)
+    return gateway
