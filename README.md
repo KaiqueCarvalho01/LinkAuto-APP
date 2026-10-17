@@ -40,6 +40,7 @@ O **LinkAuto** é uma plataforma inovadora que organiza o fluxo de descoberta ge
 - 🏛️ **Diagramas de Classe do Banco de Dados:** [`docs/DATABASE_CLASS_DIAGRAMS.md`](docs/DATABASE_CLASS_DIAGRAMS.md)
 - 🎨 **Design System e Padrões de Interface:** [`docs/DESIGN.md`](docs/DESIGN.md)
 - 🔌 **Especificações de Endpoints da API:** [`docs/BACKEND_ENDPOINT_REQUESTS.md`](docs/BACKEND_ENDPOINT_REQUESTS.md)
+- 🚀 **Decisões e Checklist de Rollout:** [`docs/ROLLOUT.md`](docs/ROLLOUT.md)
 - 🛡️ **Técnicas de Segurança e Hardening:** [`docs/SECURITY_TECHNIQUES.md`](docs/SECURITY_TECHNIQUES.md) e [`docs/SECURITY_COMPARISON.md`](docs/SECURITY_COMPARISON.md)
 - 📖 **Documentação Interativa Swagger:** [http://localhost:8000/docs](http://localhost:8000/docs) (OpenAPI em `/openapi.json`)
 
