@@ -9,9 +9,8 @@ from sqlmodel import col, select
 
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingStatusOverride, CancelledBy
-from app.models.slot import Slot, SlotStatus
 from app.services.booking_notifier import BookingNotifier
-from app.services.booking_service import BookingNotFoundError
+from app.services.booking_service import BookingNotFoundError, release_booking_slots
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -93,9 +92,4 @@ class AdminBookingService:
         return booking
 
     def _release_future_reserved_slots(self, booking: Booking, now: datetime) -> None:
-        slot_ids = [link.slot_id for link in booking.slots]
-        if not slot_ids:
-            return
-        for slot in self._db.exec(select(Slot).where(col(Slot.id).in_(slot_ids))).all():
-            if slot.status == SlotStatus.RESERVADO.value and slot.starts_at > now:
-                slot.status = SlotStatus.DISPONIVEL.value
+        release_booking_slots(self._db, booking, starting_after=now)

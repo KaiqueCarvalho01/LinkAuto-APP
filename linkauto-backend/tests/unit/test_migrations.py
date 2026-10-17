@@ -67,9 +67,14 @@ def test_review_unique_constraint_on_reviewer(alembic_config: Config, engine: En
     assert {"booking_id", "reviewer_id"} in [set(uq["column_names"]) for uq in constraints]
 
 
-def test_booking_slot_belongs_to_one_booking(alembic_config: Config, engine: Engine) -> None:
-    """booking_slots.slot_id is unique: a slot belongs to at most one booking."""
+def test_booking_slot_is_held_by_one_booking_at_a_time(
+    alembic_config: Config, engine: Engine
+) -> None:
+    """slot_id is unique among unreleased links: cancelled bookings don't block a slot (#69)."""
     command.upgrade(alembic_config, "head")
 
-    constraints = inspect(engine).get_unique_constraints("booking_slots")
-    assert ["slot_id"] in [uq["column_names"] for uq in constraints]
+    indexes = {ix["name"]: ix for ix in inspect(engine).get_indexes("booking_slots")}
+    active = indexes["uq_booking_slots_active_slot"]
+    assert active["unique"]
+    assert active["column_names"] == ["slot_id"]
+    assert inspect(engine).get_unique_constraints("booking_slots") == []
