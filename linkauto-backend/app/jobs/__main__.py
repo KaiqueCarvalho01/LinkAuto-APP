@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 from app.core.database import SessionLocal
 from app.core.logging import setup_logging
 from app.jobs.runner import Job, run_job
+from app.services.booking_scheduler import BookingSchedulerResult
 from app.services.dependencies import get_notification_service
 
 if TYPE_CHECKING:
@@ -55,7 +56,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 logger.exception("Job %s failed", job.value, extra={"event": "jobs.run.error"})
                 failed = True
                 continue
-        failed = failed or result.failed > 0
+        # Booking jobs report per-booking failures; the token cleanup fails as a whole or not
+        failed = failed or (isinstance(result, BookingSchedulerResult) and result.failed > 0)
         print(json.dumps({"job": job.value, **asdict(result)}))  # noqa: T201 - CLI output
     return 1 if failed else 0
 

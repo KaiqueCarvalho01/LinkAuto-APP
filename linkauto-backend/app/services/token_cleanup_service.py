@@ -28,7 +28,6 @@ class TokenCleanupResult:
 
     refresh_tokens_deleted: int
     password_reset_tokens_deleted: int
-    failed: int = 0
 
 
 class TokenCleanupService:

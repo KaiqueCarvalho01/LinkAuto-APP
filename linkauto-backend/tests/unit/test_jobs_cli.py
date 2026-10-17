@@ -45,7 +45,6 @@ def test_run_all_runs_every_job(run_cli: RunCli) -> None:
         "job": "token-cleanup",
         "refresh_tokens_deleted": 0,
         "password_reset_tokens_deleted": 0,
-        "failed": 0,
     }
 
 
