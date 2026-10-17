@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlmodel import col, or_, select
+from sqlmodel import col, or_, select, update
 
 from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
@@ -224,16 +224,36 @@ class BookingService:
             raise BookingAccessError(msg)
         return self._cancel(booking, cancelled_by, reason)
 
-    def cancel_by_system(self, booking_id: str, reason: str) -> Booking:
-        """Cancel a booking as SISTEMA (e.g. the pending timeout), notifying both participants.
+    def cancel_by_system(self, booking_id: str, reason: str) -> Booking | None:
+        """Cancel a still-PENDENTE booking as SISTEMA (the 24h timeout).
 
-        Raises:
-            BookingNotFoundError: If the booking does not exist.
-            BookingTransitionError: If the booking is already in a terminal status.
-
+        Releases its slots and notifies both participants. The booking is claimed with a
+        conditional UPDATE (``status = PENDENTE``), so when two job runs overlap only one of
+        them cancels it; the other gets ``None``, as it does for a booking that was confirmed
+        or cancelled in the meantime or does not exist.
         """
+        now = datetime.now(UTC)
+        claimed = self._db.exec(
+            update(Booking)
+            .where(
+                col(Booking.id) == booking_id,
+                col(Booking.status) == BookingStatus.PENDENTE.value,
+            )
+            .values(
+                status=BookingStatus.CANCELADA.value,
+                cancelled_at=now,
+                cancelled_by=CancelledBy.SISTEMA.value,
+                cancellation_reason=reason,
+            )
+        )
+        if claimed.rowcount != 1:
+            return None
         booking = self._get_booking_or_raise(booking_id)
-        return self._cancel(booking, CancelledBy.SISTEMA.value, reason)
+        self._db.refresh(booking)
+        self._release_reserved_slots(booking)
+        self._db.flush()
+        self._notifier.booking_cancelled(booking)
+        return booking
 
     def _cancel(self, booking: Booking, cancelled_by: str, reason: str | None) -> Booking:
         """Cancel the booking, release its reserved slots and notify the affected parties."""

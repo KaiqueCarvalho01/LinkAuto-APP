@@ -283,6 +283,7 @@ class TestBookingServiceNotifications:
 
         cancelled = service.cancel_by_system(booking.id, "AUTO_TIMEOUT_24H")
 
+        assert cancelled is not None
         assert cancelled.cancelled_by == "SISTEMA"
         assert [m["recipients"] for m in gateway.sent_messages] == [
             ["stu@test.com"],
