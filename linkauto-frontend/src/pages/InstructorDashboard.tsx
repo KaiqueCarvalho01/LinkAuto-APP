@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Award, Calendar, Check, Clock, Star, Users, X } from "lucide-react";
 import { Box, Button, HStack, Stack, Text, Badge } from "@chakra-ui/react";
 
@@ -22,6 +22,8 @@ interface InstructorDashboardProps {
 	readonly approvedInstructors?: number;
 	readonly adminStats?: AdminStats | undefined;
 	readonly instructorStats?: InstructorStats | undefined;
+	// Extra section shown below the requests (the instructor's agenda)
+	readonly agenda?: ReactNode;
 }
 
 export default function InstructorDashboard({
@@ -37,6 +39,7 @@ export default function InstructorDashboard({
 	approvedInstructors = 0,
 	adminStats,
 	instructorStats,
+	agenda,
 }: InstructorDashboardProps) {
 	const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -479,6 +482,8 @@ export default function InstructorDashboard({
 					</Box>
 				)}
 			</Stack>
+
+			{agenda}
 
 			<HStack
 				gap={3}
