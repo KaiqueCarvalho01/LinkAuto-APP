@@ -3,6 +3,8 @@ import type { ApiBookingResource } from "../types/api.types";
 import type { BookingPreview, BookingStatus } from "../types/booking";
 import type { InstructorSummary } from "../types/instructor";
 
+export type BookingSide = "student" | "instructor";
+
 export const formatDateLabel = (dateStr: string): string => {
   try {
     const date = new Date(dateStr);
@@ -115,8 +117,17 @@ export const bookingService = {
     return mapApiBookingToPreview(response.data);
   },
 
-  getMyBookings: async (token: string, status?: string): Promise<BookingPreview[]> => {
-    const path = status ? `/bookings?status=${status}` : "/bookings";
+  // `as` picks the side for users with both roles: bookings they made (student) or
+  // bookings made with them (instructor). Without it the API returns every side the user has.
+  getMyBookings: async (
+    token: string,
+    options: { status?: string; as?: BookingSide } = {},
+  ): Promise<BookingPreview[]> => {
+    const params = new URLSearchParams();
+    if (options.status) params.set("status", options.status);
+    if (options.as) params.set("as", options.as);
+    const query = params.toString();
+    const path = query ? `/bookings?${query}` : "/bookings";
     const response = await httpClient.get<ApiBookingResource[]>(path, { token });
     
     const list = response.data || [];

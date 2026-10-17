@@ -35,7 +35,7 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const data = await bookingService.getMyBookings(token);
+      const data = await bookingService.getMyBookings(token, { as: "student" });
       setBookings(data);
     } catch (err) {
       console.error("Error loading bookings:", err);
@@ -50,7 +50,7 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
     if (!token) return;
     setLoading(true);
     setErrorMessage(null);
-    bookingService.getMyBookings(token)
+    bookingService.getMyBookings(token, { as: "student" })
       .then((data) => {
         if (isMounted) setBookings(data);
       })

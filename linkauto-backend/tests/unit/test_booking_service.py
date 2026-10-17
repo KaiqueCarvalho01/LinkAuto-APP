@@ -164,7 +164,7 @@ class TestBookingServiceCancel:
         booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
         service.confirm_booking(booking.id, "inst-001")
 
-        cancelled = service.cancel_booking(booking.id, "stu-001", "ALUNO")
+        cancelled = service.cancel_booking(booking.id, "stu-001")
 
         assert cancelled.status == BookingStatus.CANCELADA.value
 
@@ -177,7 +177,7 @@ class TestBookingServiceCancel:
         booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
         service.confirm_booking(booking.id, "inst-001")
 
-        cancelled = service.cancel_booking(booking.id, "stu-001", "ALUNO")
+        cancelled = service.cancel_booking(booking.id, "stu-001")
 
         assert cancelled.status == BookingStatus.CANCELADA.value
 
@@ -235,7 +235,7 @@ class TestBookingServiceNotifications:
         service.confirm_booking(booking.id, "inst-001")
         gateway.sent_messages.clear()
 
-        service.cancel_booking(booking.id, "stu-001", "ALUNO", reason="Preciso cancelar")
+        service.cancel_booking(booking.id, "stu-001", reason="Preciso cancelar")
 
         # Verify cancel notification sent to instructor
         assert len(gateway.sent_messages) == 1
@@ -245,18 +245,17 @@ class TestBookingServiceNotifications:
         assert "Preciso cancelar" in email["body"]
 
     @pytest.mark.parametrize(
-        ("cancelled_by", "user_id", "expected_recipients"),
+        ("user_id", "expected_cancelled_by", "expected_recipients"),
         [
-            ("ALUNO", "stu-001", ["inst@test.com"]),
-            ("INSTRUTOR", "inst-001", ["stu@test.com"]),
-            ("SISTEMA", "system", ["stu@test.com", "inst@test.com"]),
+            ("stu-001", "ALUNO", ["inst@test.com"]),
+            ("inst-001", "INSTRUTOR", ["stu@test.com"]),
         ],
     )
     def test_cancel_booking_notifies_the_other_party(
         self,
         db_session: Session,
-        cancelled_by: str,
         user_id: str,
+        expected_cancelled_by: str,
         expected_recipients: list[str],
     ) -> None:
         gateway = InMemoryEmailGateway()
@@ -266,9 +265,28 @@ class TestBookingServiceNotifications:
         booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
         gateway.sent_messages.clear()
 
-        service.cancel_booking(booking.id, user_id, cancelled_by)
+        cancelled = service.cancel_booking(booking.id, user_id)
 
+        assert cancelled.cancelled_by == expected_cancelled_by
         assert [m["recipients"] for m in gateway.sent_messages] == [expected_recipients]
+
+    def test_system_cancellation_notifies_both_parties(self, db_session: Session) -> None:
+        gateway = InMemoryEmailGateway()
+        _seed_users(db_session)
+        slots = _create_consecutive_slots(db_session, "inst-001", base_offset_hours=48)
+        service = BookingService(db_session, notification_service=NotificationService(gateway))
+        booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
+        gateway.sent_messages.clear()
+
+        cancelled = service.cancel_by_system(booking.id, "AUTO_TIMEOUT_24H")
+
+        assert cancelled.cancelled_by == "SISTEMA"
+        assert [m["recipients"] for m in gateway.sent_messages] == [
+            ["stu@test.com", "inst@test.com"]
+        ]
+        for slot in slots:
+            db_session.refresh(slot)
+            assert slot.status == SlotStatus.DISPONIVEL.value
 
 
 class TestBookingServiceCancelAuthorization:
@@ -279,7 +297,7 @@ class TestBookingServiceCancelAuthorization:
         booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
 
         with pytest.raises(BookingAccessError):
-            service.cancel_booking(booking.id, "intruder", "ALUNO")
+            service.cancel_booking(booking.id, "intruder")
 
         assert booking.status == BookingStatus.PENDENTE.value
 
@@ -292,7 +310,7 @@ class TestBookingServiceCancelAuthorization:
         booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
 
         with pytest.raises(BookingAccessError):
-            service.cancel_booking(booking.id, "other-inst", "INSTRUTOR")
+            service.cancel_booking(booking.id, "other-inst")
 
         assert booking.status == BookingStatus.PENDENTE.value
 
@@ -302,6 +320,6 @@ class TestBookingServiceCancelAuthorization:
         service = BookingService(db_session)
         booking = service.create_booking("stu-001", "inst-001", [s.id for s in slots])
 
-        cancelled = service.cancel_booking(booking.id, "inst-001", "INSTRUTOR")
+        cancelled = service.cancel_booking(booking.id, "inst-001")
 
         assert cancelled.status == BookingStatus.CANCELADA.value

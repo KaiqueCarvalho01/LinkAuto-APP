@@ -5,9 +5,10 @@ from __future__ import annotations
 import itertools
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlmodel import col, select
+from sqlmodel import col, or_, select
 
 from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
@@ -21,6 +22,8 @@ from app.services.notification_service import (
 from app.services.penalty_service import PenaltyService
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from sqlmodel import Session
 
 CANCELLATION_NOTICE_HOURS = 24
@@ -33,6 +36,13 @@ class BookingLocation:
     description: str | None = None
     latitude: float | None = None
     longitude: float | None = None
+
+
+class BookingSide(StrEnum):
+    """Which side of a booking a user is on: the student who booked or the instructor."""
+
+    STUDENT = "student"
+    INSTRUCTOR = "instructor"
 
 
 class SlotValidationError(ValueError):
@@ -93,6 +103,10 @@ class BookingService:
             select(InstructorProfile).where(col(InstructorProfile.slug) == instructor_id)
         ).first()
         effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
+        # A user with both roles must not book (and later review) their own lessons
+        if effective_instructor_id == student_id:
+            msg = "You cannot book your own slots"
+            raise SlotValidationError(msg)
 
         slots = self._get_bookable_slots(slot_ids, effective_instructor_id)
 
@@ -210,29 +224,45 @@ class BookingService:
         self,
         booking_id: str,
         user_id: str,
-        cancelled_by: str,
         reason: str | None = None,
     ) -> Booking:
-        """Cancel a booking, release its reserved slots and notify the affected parties.
+        """Cancel a booking on behalf of one of its participants.
 
-        When the student cancels less than 24 hours before the first slot, a 7-day penalty is
-        applied (RN04).
+        The cancellation is attributed from the booking, not the caller's roles: to ALUNO when
+        ``user_id`` is the booking's student, to INSTRUTOR when it is its instructor. So a user
+        with both roles cancels each booking as the side they are on. When the student cancels
+        less than 24 hours before the first slot, a 7-day penalty is applied (RN04).
 
         Raises:
             BookingNotFoundError: If the booking does not exist.
-            BookingAccessError: If a student or instructor is not this booking's participant.
+            BookingAccessError: If the user is not the booking's student or instructor.
             BookingTransitionError: If the booking is already in a terminal status.
 
         """
         booking = self._get_booking_or_raise(booking_id)
-        participant_id = {
-            CancelledBy.ALUNO.value: booking.student_id,
-            CancelledBy.INSTRUTOR.value: booking.instructor_id,
-        }.get(cancelled_by)
-        if participant_id is not None and participant_id != user_id:
+        if user_id == booking.student_id:
+            cancelled_by = CancelledBy.ALUNO.value
+        elif user_id == booking.instructor_id:
+            cancelled_by = CancelledBy.INSTRUTOR.value
+        else:
             msg = "Only a participant can cancel this booking"
             raise BookingAccessError(msg)
+        return self._cancel(booking, cancelled_by, reason)
 
+    def cancel_by_system(self, booking_id: str, reason: str) -> Booking:
+        """Cancel a booking as SISTEMA (e.g. the pending timeout), notifying both participants.
+
+        Raises:
+            BookingNotFoundError: If the booking does not exist.
+            BookingTransitionError: If the booking is already in a terminal status.
+
+        """
+        booking = self._get_booking_or_raise(booking_id)
+        return self._cancel(booking, CancelledBy.SISTEMA.value, reason)
+
+    def _cancel(self, booking: Booking, cancelled_by: str, reason: str | None) -> Booking:
+        """Cancel the booking, release its reserved slots and notify the affected parties."""
+        booking_id = booking.id
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CANCELADA)
         now = datetime.now(UTC)
 
@@ -311,14 +341,22 @@ class BookingService:
     def list_bookings(
         self,
         user_id: str,
-        role: str,
+        sides: Collection[BookingSide],
         status_filter: str | None = None,
     ) -> list[Booking]:
-        """Return the user's bookings as student (``ALUNO``) or instructor, newest first."""
-        if role == "ALUNO":
-            stmt = select(Booking).where(col(Booking.student_id) == user_id)
-        else:
-            stmt = select(Booking).where(col(Booking.instructor_id) == user_id)
+        """Return the user's bookings on the given sides, newest first.
+
+        ``BookingSide.STUDENT`` covers bookings the user made, ``BookingSide.INSTRUCTOR`` the
+        bookings made with them; passing both returns the union.
+        """
+        conditions = []
+        if BookingSide.STUDENT in sides:
+            conditions.append(col(Booking.student_id) == user_id)
+        if BookingSide.INSTRUCTOR in sides:
+            conditions.append(col(Booking.instructor_id) == user_id)
+        if not conditions:
+            return []
+        stmt = select(Booking).where(or_(*conditions))
 
         if status_filter:
             stmt = stmt.where(col(Booking.status) == status_filter)

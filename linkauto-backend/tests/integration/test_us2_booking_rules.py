@@ -119,7 +119,7 @@ class TestRN04CancellationPenalty:
 
         booking = service.create_booking("rn-stu", "rn-inst", [s.id for s in slots])
         service.confirm_booking(booking.id, "rn-inst")
-        service.cancel_booking(booking.id, "rn-stu", "ALUNO")
+        service.cancel_booking(booking.id, "rn-stu")
 
         assert PenaltyService(db_session).is_penalized("rn-stu") is False
 
@@ -130,7 +130,7 @@ class TestRN04CancellationPenalty:
 
         booking = service.create_booking("rn-stu", "rn-inst", [s.id for s in slots])
         service.confirm_booking(booking.id, "rn-inst")
-        service.cancel_booking(booking.id, "rn-stu", "ALUNO")
+        service.cancel_booking(booking.id, "rn-stu")
 
         assert PenaltyService(db_session).is_penalized("rn-stu") is True
 
