@@ -44,6 +44,7 @@ import Benefits from "../pages/instructors/Benefits";
 import Simulator from "../pages/instructors/Simulator";
 import InstructorPublicProfilePage from "../pages/InstructorPublicProfilePage";
 import StudentPublicProfilePage from "../pages/StudentPublicProfilePage";
+import { bookingService } from "../services/bookingService";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
 import type { InstructorSummary } from "../types/instructor";
@@ -450,6 +451,12 @@ function InstructorDashboardRoute() {
 	const { session } = useSessionStore();
 	const token = session?.accessToken;
 	const [instructorStats, setInstructorStats] = useState<InstructorStats | undefined>();
+	const [requests, setRequests] = useState<DashboardRequest[]>([]);
+
+	const loadRequests = useCallback(async (): Promise<DashboardRequest[]> => {
+		if (!token) return [];
+		return bookingService.getPendingRequests(token);
+	}, [token]);
 
 	const instructorData = useMemo(
 		() => ({
@@ -491,15 +498,53 @@ function InstructorDashboardRoute() {
 			}
 		});
 
+		void loadRequests()
+			.then((nextRequests) => {
+				if (active) setRequests(nextRequests);
+			})
+			.catch((err) => {
+				console.error("Failed to load booking requests:", err);
+			});
+
 		return () => {
 			active = false;
 		};
-	}, [loadInstructorStats]);
+	}, [loadInstructorStats, loadRequests]);
+
+	const refresh = async () => {
+		setRequests(await loadRequests());
+		const stats = await loadInstructorStats();
+		if (stats) setInstructorStats(stats);
+	};
+
+	// On failure (e.g. the request expired meanwhile), reload so the list shows the truth
+	const answer = async (answerRequest: () => Promise<unknown>) => {
+		try {
+			await answerRequest();
+		} catch (err) {
+			console.error("Failed to answer booking request:", err);
+		}
+		await refresh();
+	};
+
+	const confirm = async (bookingId: string) => {
+		if (!token) return;
+		await answer(() => bookingService.confirmBooking(bookingId, token));
+	};
+
+	const decline = async (bookingId: string) => {
+		if (!token) return;
+		await answer(() =>
+			bookingService.cancelBooking(bookingId, token, "Recusado pelo instrutor"),
+		);
+	};
 
 	return (
 		<InstructorDashboard
 			instructorData={instructorData}
-			requests={[]}
+			requests={requests}
+			onAccept={confirm}
+			onReject={decline}
 			dashboardTitle="Instructor Panel"
 			pendingLabel="Minhas Reservas"
 			instructorStats={instructorStats}

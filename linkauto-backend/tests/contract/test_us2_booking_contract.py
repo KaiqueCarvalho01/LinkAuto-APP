@@ -66,6 +66,8 @@ class TestBookingContract:
         assert resp.status_code == 201
         data = resp.json()["data"]
         assert data["status"] == "PENDENTE"
+        # The instructor sees who requested the lesson, by name only
+        assert data["student"] == {"full_name": None, "avatar_url": None}
 
     def test_create_booking_persists_meeting_location(
         self, client: TestClient, db_session: Session

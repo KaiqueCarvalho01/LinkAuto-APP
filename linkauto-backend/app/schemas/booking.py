@@ -9,7 +9,7 @@ from pydantic import BaseModel, field_validator, model_validator
 from app.core.slug import generate_profile_slug
 from app.domain.booking import MIN_SLOTS_PER_BOOKING
 from app.schemas.datetime import UtcDateTime
-from app.schemas.public_profile import BookingInstructorSummary
+from app.schemas.public_profile import BookingInstructorSummary, BookingStudentSummary
 from app.schemas.slot import SlotResource
 
 MIN_OVERRIDE_REASON_LENGTH = 3
@@ -100,13 +100,14 @@ class BookingResource(BaseModel):
     cancellation_reason: str | None = None
     slots: list[BookingSlotResource] = []
     instructor: BookingInstructorSummary | None = None
+    student: BookingStudentSummary | None = None
 
     model_config = {"from_attributes": True}
 
     @model_validator(mode="before")
     @classmethod
-    def _instructor_from_profile(cls, data: Any) -> Any:  # noqa: ANN401 - pydantic hook
-        """Fill ``instructor`` from a ``Booking`` ORM object's instructor profile."""
+    def _participants_from_profiles(cls, data: Any) -> Any:  # noqa: ANN401 - pydantic hook
+        """Fill ``instructor`` and ``student`` from a ``Booking`` ORM object's profiles."""
         profile = getattr(data, "instructor_profile", None)
         if profile is None or isinstance(data, dict):
             return data
@@ -115,7 +116,11 @@ class BookingResource(BaseModel):
         slug = profile.slug or generate_profile_slug(
             profile.full_name, profile.city, default_prefix="instrutor"
         )
-        values = {name: getattr(data, name) for name in cls.model_fields if name != "instructor"}
+        values = {
+            name: getattr(data, name)
+            for name in cls.model_fields
+            if name not in {"instructor", "student"}
+        }
         values["instructor"] = BookingInstructorSummary(
             slug=slug,
             full_name=profile.full_name,
@@ -123,4 +128,9 @@ class BookingResource(BaseModel):
             city=profile.city,
             state=profile.state,
         )
+        student = getattr(data, "student_profile", None)
+        if student is not None:
+            values["student"] = BookingStudentSummary(
+                full_name=student.full_name, avatar_url=student.avatar_url
+            )
         return values

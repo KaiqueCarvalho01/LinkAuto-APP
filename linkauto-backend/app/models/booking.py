@@ -9,7 +9,7 @@ from sqlmodel import Field, Relationship
 
 from app.models.base import AuditUUIDBase
 from app.models.slot import Slot
-from app.models.user import InstructorProfile
+from app.models.user import InstructorProfile, StudentProfile
 
 
 class CancelledBy(StrEnum):
@@ -53,6 +53,10 @@ class Booking(AuditUUIDBase, table=True):
     )
     # Read-only: used to show the instructor's public identity alongside the booking
     instructor_profile: InstructorProfile = Relationship(
+        sa_relationship_kwargs={"viewonly": True, "lazy": "joined"}
+    )
+    # Read-only: lets the instructor see who requested the booking
+    student_profile: StudentProfile = Relationship(
         sa_relationship_kwargs={"viewonly": True, "lazy": "joined"}
     )
 

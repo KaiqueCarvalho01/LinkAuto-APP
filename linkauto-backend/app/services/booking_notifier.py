@@ -79,26 +79,29 @@ class BookingNotifier:
     def booking_requested(self, booking: Booking) -> None:
         """Tell the instructor a student asked for a lesson."""
         student, instructor = self._parties(booking)
+        lesson_time = self._lesson_time(booking)
         self._send(
             EmailTemplateName.BOOKING_REQUESTED,
             instructor,
-            booking,
+            lesson_time,
             student_name=student.name,
         )
 
     def booking_confirmed(self, booking: Booking) -> None:
         """Tell the student the instructor confirmed the lesson."""
         student, instructor = self._parties(booking)
+        lesson_time = self._lesson_time(booking)
         self._send(
             EmailTemplateName.BOOKING_CONFIRMED,
             student,
-            booking,
+            lesson_time,
             instructor_name=instructor.name,
         )
 
     def booking_cancelled(self, booking: Booking) -> None:
         """Tell the other party (both, for system or admin cancellations) of a cancellation."""
         student, instructor = self._parties(booking)
+        lesson_time = self._lesson_time(booking)
         cancelled_by = booking.cancelled_by or CancelledBy.SISTEMA.value
         label = CANCELLED_BY_LABELS.get(cancelled_by, "").format(
             student_name=student.name, instructor_name=instructor.name
@@ -113,7 +116,7 @@ class BookingNotifier:
             self._send(
                 EmailTemplateName.BOOKING_CANCELLED,
                 recipient,
-                booking,
+                lesson_time,
                 other_name=other.name,
                 cancelled_by=label,
                 reason=booking.cancellation_reason or NO_REASON,
@@ -122,8 +125,11 @@ class BookingNotifier:
     def lesson_reminder(self, booking: Booking) -> None:
         """Remind the student and the instructor of the lesson."""
         student, instructor = self._parties(booking)
+        lesson_time = self._lesson_time(booking)
         for recipient, other in ((student, instructor), (instructor, student)):
-            self._send(EmailTemplateName.LESSON_REMINDER, recipient, booking, other_name=other.name)
+            self._send(
+                EmailTemplateName.LESSON_REMINDER, recipient, lesson_time, other_name=other.name
+            )
 
     def send_lesson_reminder(self, booking_id: str) -> None:
         """Remind the participants of the booking with this ID (``LessonReminderSender``)."""
@@ -134,13 +140,14 @@ class BookingNotifier:
     def message_received(self, booking: Booking, *, sender_id: str, content: str) -> None:
         """Forward a booking chat message to the participant who did not send it."""
         student, instructor = self._parties(booking)
+        lesson_time = self._lesson_time(booking)
         sender, recipient = (
             (student, instructor) if sender_id == booking.student_id else (instructor, student)
         )
         self._send(
             EmailTemplateName.BOOKING_MESSAGE,
             recipient,
-            booking,
+            lesson_time,
             sender_name=sender.name,
             content=content,
         )
@@ -150,20 +157,21 @@ class BookingNotifier:
     ) -> None:
         """Tell the reviewed participant about their new review."""
         student, instructor = self._parties(booking)
+        lesson_time = self._lesson_time(booking)
         reviewer, recipient = (
             (student, instructor) if reviewer_id == booking.student_id else (instructor, student)
         )
         self._send(
             EmailTemplateName.REVIEW_RECEIVED,
             recipient,
-            booking,
+            lesson_time,
             reviewer_name=reviewer.name,
             rating=str(rating),
             comment=comment or NO_COMMENT,
         )
 
     def _send(
-        self, template: EmailTemplateName, recipient: _Party, booking: Booking, **values: str
+        self, template: EmailTemplateName, recipient: _Party, lesson_time: str, **values: str
     ) -> None:
         if self._notification_service is None or not recipient.email:
             return
@@ -173,7 +181,7 @@ class BookingNotifier:
                 [recipient.email],
                 recipient_name=recipient.name,
                 link=recipient.link,
-                lesson_time=self._lesson_time(booking),
+                lesson_time=lesson_time,
                 **values,
             )
         )

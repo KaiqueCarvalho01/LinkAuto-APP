@@ -2,6 +2,7 @@ import { httpClient } from "./httpClient";
 import type { ApiBookingResource } from "../types/api.types";
 import type { BookingPreview, BookingStatus } from "../types/booking";
 import type { InstructorSummary } from "../types/instructor";
+import type { DashboardRequest } from "../types/session";
 
 export type BookingSide = "student" | "instructor";
 
@@ -100,6 +101,19 @@ export const mapApiBookingToPreview = (api: ApiBookingResource): BookingPreview 
   };
 };
 
+// A booking request as shown to the instructor on their dashboard
+export const mapApiBookingToRequest = (api: ApiBookingResource): DashboardRequest => {
+  const firstBookingSlot = api.slots?.[0];
+  const dateStr = firstBookingSlot ? firstBookingSlot.slot.starts_at : api.created_at;
+  return {
+    id: api.id,
+    name: api.student?.full_name || "Aluno",
+    city: api.location_description || "Local a combinar",
+    date: formatDateLabel(dateStr),
+    time: formatTimeLabel(api.slots),
+  };
+};
+
 export const bookingService = {
   createBooking: async (
     data: {
@@ -132,6 +146,15 @@ export const bookingService = {
     
     const list = response.data || [];
     return list.map((item) => mapApiBookingToPreview(item));
+  },
+
+  // Bookings waiting for the instructor's answer (confirm or decline)
+  getPendingRequests: async (token: string): Promise<DashboardRequest[]> => {
+    const response = await httpClient.get<ApiBookingResource[]>(
+      "/bookings?status=PENDENTE&as=instructor",
+      { token },
+    );
+    return (response.data || []).map(mapApiBookingToRequest);
   },
 
   getBookingDetail: async (bookingId: string, token: string): Promise<ApiBookingResource> => {

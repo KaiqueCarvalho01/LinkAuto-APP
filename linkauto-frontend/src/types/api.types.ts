@@ -108,6 +108,12 @@ export interface ApiBookingResource {
   cancellation_reason: string | null;
   slots: ApiBookingSlotResource[];
   instructor?: ApiBookingInstructorSummary | null | undefined;
+  student?: ApiBookingStudentSummary | null | undefined;
+}
+
+export interface ApiBookingStudentSummary {
+  full_name: string | null;
+  avatar_url: string | null;
 }
 
 export interface ApiMessageResource {
