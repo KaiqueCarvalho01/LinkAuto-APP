@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 from sqlmodel import col, select, update
 
 from app.core.security import hash_password
-from app.models import PasswordResetToken
+from app.models import PasswordResetToken, UserRole
 from app.models.base import utc_now
 from app.services.notification_templates import EmailTemplateName, render_email
 
@@ -37,6 +37,10 @@ _TOKEN_BYTES = 32
 
 class InvalidResetTokenError(ValueError):
     """Raised for an unknown, expired or already used reset token."""
+
+
+class AdminTargetError(PermissionError):
+    """Raised when an admin asks for a reset link for an admin account."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,17 +78,23 @@ class PasswordResetService:
         """E-mail a reset link to the account with this e-mail, if it exists and is active.
 
         Does nothing for unknown or deactivated accounts, so callers can always answer the
-        same way. Without an e-mail provider the message is skipped; an admin can issue a
-        link instead (``issue_admin_link``). In development the link is also logged.
+        same way. Without an e-mail provider no link is issued at all, since it could never
+        reach the user (an admin can issue one instead, see ``issue_admin_link``); this also
+        keeps the public form from retiring a link an admin just handed over. In development
+        the link is also logged.
         """
         user = self._repository.get_user_by_email(email)
         if user is None or not user.is_active:
             return
+        if self._notification_service is None or not self._notification_service.email_enabled:
+            logger.info(
+                "Password reset requested, but e-mail is disabled: no link issued",
+                extra={"event": "auth.password_reset.email_disabled"},
+            )
+            return
         link = self._issue(user, ttl=EMAILED_LINK_TTL, issued_by=None)
         if self._settings.app_env.lower() == "development":
             logger.info("Password reset link (development only): %s", link.url)
-        if self._notification_service is None:
-            return
         self._notification_service.dispatch(
             render_email(
                 EmailTemplateName.PASSWORD_RESET,
@@ -97,12 +107,21 @@ class PasswordResetService:
     def issue_admin_link(self, user_id: str, *, admin_id: str) -> ResetLink:
         """Return a reset link for an admin to hand to the user (no e-mail is sent).
 
-        Raises ``LookupError`` when the user does not exist or is deactivated.
+        The new link replaces every unused link of the user. Admin accounts are refused, so
+        one admin cannot take over another admin's account this way.
+
+        Raises:
+            LookupError: If the user does not exist or is deactivated.
+            AdminTargetError: If the user is an admin.
+
         """
         user = self._repository.get_user(user_id)
         if user is None or not user.is_active:
             msg = "User not found"
             raise LookupError(msg)
+        if UserRole.ADMIN.value in user.roles:
+            msg = "Reset links cannot be issued for admin accounts"
+            raise AdminTargetError(msg)
         return self._issue(user, ttl=ADMIN_LINK_TTL, issued_by=admin_id)
 
     def confirm_reset(self, token: str, new_password: str) -> User:
@@ -143,16 +162,16 @@ class PasswordResetService:
         return user
 
     def _issue(self, user: User, *, ttl: timedelta, issued_by: str | None) -> ResetLink:
-        # Only the newest link works: retire the user's unused ones
+        # Only the newest link works: retire the user's unused ones. A self-service request
+        # (anyone who knows the e-mail can make one) never retires an admin-issued link.
         now = utc_now()
-        self._db.exec(
-            update(PasswordResetToken)
-            .where(
-                col(PasswordResetToken.user_id) == user.id,
-                col(PasswordResetToken.used_at).is_(None),
-            )
-            .values(used_at=now)
-        )
+        retire = [
+            col(PasswordResetToken.user_id) == user.id,
+            col(PasswordResetToken.used_at).is_(None),
+        ]
+        if issued_by is None:
+            retire.append(col(PasswordResetToken.issued_by).is_(None))
+        self._db.exec(update(PasswordResetToken).where(*retire).values(used_at=now))
         token = secrets.token_urlsafe(_TOKEN_BYTES)
         expires_at = now + ttl
         self._db.add(

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from app.api.deps.types import AppSettings, DbSession
-from app.core.rate_limit import check_login_account_limit, limiter
+from app.core.rate_limit import allow_password_reset_for, check_login_account_limit, limiter
 from app.core.security_logger import log_auth_failure, log_auth_success
 from app.schemas.common import success_response
 from app.services.auth_service import AuthService
@@ -229,13 +229,15 @@ def password_reset(
 ) -> Response:
     """Request a password reset link for the given email.
 
-    Public; rate-limited to 3 requests per minute. Always returns 202 so that the
-    response does not reveal whether the email is registered. For an active account,
-    a single-use link valid for 30 minutes is e-mailed (when e-mail is enabled) and
-    replaces any earlier unused link. While e-mail is disabled, an admin can issue a
-    link with `POST /admin/users/{user_id}/password-reset-link`.
+    Public; rate-limited to 3 requests per minute per IP and 3 per hour per e-mail
+    (requests over the e-mail limit are ignored silently). Always returns 202 so that
+    the response does not reveal whether the email is registered. For an active
+    account, a single-use link valid for 30 minutes is e-mailed and replaces earlier
+    unused e-mailed links. While e-mail is disabled no link is issued; an admin can
+    issue one with `POST /admin/users/{user_id}/password-reset-link`.
     """
-    reset_service.request_reset(payload.email)
+    if allow_password_reset_for(payload.email):
+        reset_service.request_reset(payload.email)
     db.commit()
     return success_response({"status": "accepted"}, status_code=status.HTTP_202_ACCEPTED)
 

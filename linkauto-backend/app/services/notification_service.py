@@ -205,6 +205,11 @@ class NotificationService:
         """Store the email gateway used to deliver notifications."""
         self.email_gateway = email_gateway
 
+    @property
+    def email_enabled(self) -> bool:
+        """Whether e-mails can reach anyone (``False`` without an e-mail provider)."""
+        return not isinstance(self.email_gateway, DisabledEmailGateway)
+
     def dispatch(self, payload: NotificationPayload) -> NotificationDispatchResult:
         """Send the payload and report whether it was delivered.
 

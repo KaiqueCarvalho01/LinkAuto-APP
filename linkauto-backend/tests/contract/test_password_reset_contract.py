@@ -7,11 +7,12 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from sqlmodel import col, select
 
+from app.core.rate_limit import allow_password_reset_for
 from app.models import PasswordResetToken, RefreshToken
 from app.models.base import utc_now
 from app.services.dependencies import get_notification_service
 from app.services.notification_service import DisabledEmailGateway, NotificationService
-from tests.factories import admin_headers, auth_headers, seed_student
+from tests.factories import admin_headers, auth_headers, seed_admin, seed_student
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -138,6 +139,43 @@ def test_confirm_rejects_bad_input(
     assert _confirm(client, token, password) == expected
 
 
+def test_public_request_keeps_an_admin_issued_link(
+    client: TestClient, db_session: Session, email_outbox: InMemoryEmailGateway
+) -> None:
+    user_id = _register(client)
+    url = client.post(
+        f"/api/v1/admin/users/{user_id}/password-reset-link", headers=admin_headers(db_session)
+    ).json()["data"]["reset_url"]
+
+    client.post("/api/v1/auth/password-reset", json={"email": EMAIL})
+
+    # Both the e-mailed link and the one the admin handed over work
+    assert len(email_outbox.sent_messages) == 1
+    assert _confirm(client, _token_from(url)) == 200
+
+
+def test_admin_accounts_cannot_get_reset_links(client: TestClient, db_session: Session) -> None:
+    headers = admin_headers(db_session, "admin-1")
+    seed_admin(db_session, "admin-2")
+
+    resp = client.post("/api/v1/admin/users/admin-2/password-reset-link", headers=headers)
+
+    assert resp.status_code == 403
+    assert db_session.exec(select(PasswordResetToken)).all() == []
+
+
+def test_reset_emails_are_limited_per_account() -> None:
+    assert [allow_password_reset_for("Flood@Test.com") for _ in range(4)] == [
+        True,
+        True,
+        True,
+        False,
+    ]
+    # Counted per normalized e-mail, whatever the case or the caller's IP
+    assert allow_password_reset_for("flood@test.com ") is False
+    assert allow_password_reset_for("other@test.com") is True
+
+
 class TestWithoutEmail:
     @pytest.fixture(autouse=True)
     def _disable_email(self, client: TestClient) -> None:
@@ -146,12 +184,30 @@ class TestWithoutEmail:
             DisabledEmailGateway()
         )
 
-    def test_request_still_answers_202(self, client: TestClient) -> None:
+    def test_request_answers_202_without_issuing_a_link(
+        self, client: TestClient, db_session: Session
+    ) -> None:
         _register(client)
 
         resp = client.post("/api/v1/auth/password-reset", json={"email": EMAIL})
 
         assert resp.status_code == 202
+        # It could never be delivered
+        assert db_session.exec(select(PasswordResetToken)).all() == []
+
+    def test_public_request_does_not_cancel_the_admin_link(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        user_id = _register(client)
+        url = client.post(
+            f"/api/v1/admin/users/{user_id}/password-reset-link",
+            headers=admin_headers(db_session),
+        ).json()["data"]["reset_url"]
+
+        # Anyone who knows the e-mail can submit the public form
+        client.post("/api/v1/auth/password-reset", json={"email": EMAIL})
+
+        assert _confirm(client, _token_from(url)) == 200
 
     def test_admin_issued_link_resets_the_password(
         self, client: TestClient, db_session: Session

@@ -1,18 +1,24 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ChakraProvider } from "@chakra-ui/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import PasswordResetConfirm from "./PasswordResetConfirm";
 import { httpClient } from "../services/httpClient";
 import { appSystem } from "../theme/system";
 
+function CurrentUrl() {
+	const location = useLocation();
+	return <output data-testid="url">{location.pathname + location.search}</output>;
+}
+
 const renderAt = (path: string) =>
 	render(
 		<MemoryRouter initialEntries={[path]}>
 			<ChakraProvider value={appSystem}>
 				<PasswordResetConfirm />
+				<CurrentUrl />
 			</ChakraProvider>
 		</MemoryRouter>,
 	);
@@ -43,6 +49,15 @@ describe("PasswordResetConfirm", () => {
 		});
 		expect(await screen.findByText(/senha alterada com sucesso/i)).toBeInTheDocument();
 		expect(screen.getByText("Fazer login")).toBeInTheDocument();
+	});
+
+	it("removes the token from the address bar", async () => {
+		renderAt("/password-reset/confirm?token=abc123");
+
+		await waitFor(() => {
+			expect(screen.getByTestId("url")).toHaveTextContent(/^\/password-reset\/confirm$/);
+		});
+		expect(screen.getByRole("button", { name: /salvar nova senha/i })).toBeInTheDocument();
 	});
 
 	it("does not submit when the passwords differ", async () => {

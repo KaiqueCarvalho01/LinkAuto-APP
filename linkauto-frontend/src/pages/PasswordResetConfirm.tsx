@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, Flex, Heading, HStack, Input, Stack, Text } from "@chakra-ui/react";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle } from "lucide-react";
@@ -7,8 +7,14 @@ import { httpClient } from "../services/httpClient";
 const MIN_PASSWORD_LENGTH = 8;
 
 export default function PasswordResetConfirm() {
-	const [searchParams] = useSearchParams();
-	const token = searchParams.get("token") ?? "";
+	const [searchParams, setSearchParams] = useSearchParams();
+	// Keep the token in memory only: remove it from the address bar and browser history
+	const [token] = useState(() => searchParams.get("token") ?? "");
+	useEffect(() => {
+		if (searchParams.has("token")) {
+			setSearchParams({}, { replace: true });
+		}
+	}, [searchParams, setSearchParams]);
 	const [password, setPassword] = useState("");
 	const [confirmation, setConfirmation] = useState("");
 	const [submitting, setSubmitting] = useState(false);
