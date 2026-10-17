@@ -92,7 +92,8 @@ All endpoints are implemented with strict Pydantic schemas and typed responses:
   - `POST /api/v1/auth/login` — Login with rate-limiting and token issue
   - `POST /api/v1/auth/refresh` — Single-use refresh token rotation with reuse detection
   - `POST /api/v1/auth/logout` — Revokes the session's refresh token and clears the cookie
-  - `POST /api/v1/auth/password-reset` — Password reset request
+  - `POST /api/v1/auth/password-reset` — Password reset request (link by e-mail, once a provider is configured)
+  - `POST /api/v1/auth/password-reset/confirm` — Sets the new password with the single-use link and signs out every session
 - **Users & Private Profiles:**
   - `GET /api/v1/users/me` — Current authenticated user profile
   - `PATCH /api/v1/users/me` — Profile update with Mass Assignment protection
@@ -106,8 +107,9 @@ All endpoints are implemented with strict Pydantic schemas and typed responses:
   - `POST /api/v1/slots` — Create instructor 1-hour slots
   - `DELETE /api/v1/slots/{id}` — Delete unbooked slot
 - **Bookings:**
-  - `GET /api/v1/bookings` — User bookings (student or instructor)
+  - `GET /api/v1/bookings` — User bookings; `?as=student|instructor` picks the side (users with both roles see both by default)
   - `POST /api/v1/bookings` — Atomic booking request (requires >= 2 consecutive slots)
+  - `PATCH /api/v1/bookings/{id}/confirm` — Confirmation by the instructor
   - `PATCH /api/v1/bookings/{id}/cancel` — Cancellation with 24h rule and automated 7-day suspension
 - **Messages & Reviews:**
   - `GET /api/v1/bookings/{id}/messages` — Booking conversation thread
@@ -119,7 +121,8 @@ All endpoints are implemented with strict Pydantic schemas and typed responses:
   - `GET /api/v1/admin/instructors/pending` — Pending verification queue
   - `POST /api/v1/admin/instructors/{id}/approve` — Approve instructor credentials
   - `POST /api/v1/admin/instructors/{id}/reject` — Reject with audit notes
-- **Automation Jobs:**
+  - `POST /api/v1/admin/users/{id}/password-reset-link` — Password reset link handed over by an admin while e-mail is disabled (admin accounts refused)
+- **Automation Jobs** (scheduled with `python -m app.jobs run all` every 15 minutes; see [`infra/README.md`](../infra/README.md#-jobs-agendados-agendamentos)):
   - `POST /api/v1/jobs/booking-reminder` — 24h pre-lesson reminder dispatch
   - `POST /api/v1/jobs/booking-timeout` — Auto-cancel PENDENTE bookings older than 24h
   - `POST /api/v1/jobs/booking-completion` — Auto-mark bookings REALIZADA 2h post-lesson

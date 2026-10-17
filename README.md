@@ -93,7 +93,8 @@ Todos os endpoints estão implementados e disponíveis com contratos estritos va
   - `POST /api/v1/auth/login` — Autenticação com rate limiting e emissão de tokens
   - `POST /api/v1/auth/refresh` — Rotação de refresh token de uso único, com detecção de reuso
   - `POST /api/v1/auth/logout` — Revoga o refresh token da sessão e apaga o cookie
-  - `POST /api/v1/auth/password-reset` — Solicitação de recuperação de senha
+  - `POST /api/v1/auth/password-reset` — Solicitação de recuperação de senha (link por e-mail, quando houver provedor)
+  - `POST /api/v1/auth/password-reset/confirm` — Define a nova senha com o link de uso único e encerra todas as sessões
 - **Usuários & Perfis Privados:**
   - `GET /api/v1/users/me` — Dados do usuário logado
   - `PATCH /api/v1/users/me` — Atualização de perfil blindada contra Mass Assignment
@@ -107,8 +108,9 @@ Todos os endpoints estão implementados e disponíveis com contratos estritos va
   - `POST /api/v1/slots` — Criação de slots de exatamente 1h pelo instrutor
   - `DELETE /api/v1/slots/{id}` — Remoção segura de slot não reservado
 - **Agendamentos (Bookings):**
-  - `GET /api/v1/bookings` — Minhas aulas (aluno ou instrutor)
+  - `GET /api/v1/bookings` — Minhas aulas; `?as=student|instructor` escolhe o lado (usuários com os dois papéis veem ambos por padrão)
   - `POST /api/v1/bookings` — Solicitação atômica (mínimo 2 slots consecutivos)
+  - `PATCH /api/v1/bookings/{id}/confirm` — Confirmação pelo instrutor
   - `PATCH /api/v1/bookings/{id}/cancel` — Cancelamento com regra de 24h e suspensão automática RN04
 - **Mensagens & Avaliações:**
   - `GET /api/v1/bookings/{id}/messages` — Chat do agendamento
@@ -120,7 +122,8 @@ Todos os endpoints estão implementados e disponíveis com contratos estritos va
   - `GET /api/v1/admin/instructors/pending` — Fila de credenciamentos pendentes
   - `POST /api/v1/admin/instructors/{id}/approve` — Aprovação de instrutor
   - `POST /api/v1/admin/instructors/{id}/reject` — Rejeição fundamentada
-- **Automação & Jobs:**
+  - `POST /api/v1/admin/users/{id}/password-reset-link` — Link de redefinição de senha entregue pelo admin enquanto não há e-mail (contas de admin recusadas)
+- **Automação & Jobs** (agendados com `python -m app.jobs run all` a cada 15 min; ver [`infra/README.md`](infra/README.md#-jobs-agendados-agendamentos)):
   - `POST /api/v1/jobs/booking-reminder` — Disparo de lembretes 24h antes da aula
   - `POST /api/v1/jobs/booking-timeout` — Cancelamento automático de reservas pendentes há >24h
   - `POST /api/v1/jobs/booking-completion` — Conclusão automática de aulas 2h após o término

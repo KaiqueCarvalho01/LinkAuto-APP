@@ -82,3 +82,4 @@ Rotinas de cron disparadas para manutenção do estado de agendamentos e lembret
 - `POST /api/v1/jobs/booking-timeout` (cancela reservas PENDENTES há mais de 24h).
 - `POST /api/v1/jobs/booking-completion` (marca reservas CONFIRMADAS como REALIZADA 2h após término).
 - **Contrato Unificado:** Retorno consistente com `processed`, `booking_ids`, `failed` e `failed_booking_ids`.
+- **Agendamento:** os mesmos jobs (e o `token-cleanup`, que apaga refresh tokens e links de redefinição vencidos há mais de 1 dia) rodam sem HTTP com `python -m app.jobs run all`, uma vez por ambiente a cada 15 minutos. Rodar duas vezes, inclusive em paralelo, é seguro. Ver `infra/README.md`.
