@@ -11,7 +11,7 @@ def test_production_config_rejects_insecure_jwt_secret() -> None:
     """D05 - P1: Settings deve falhar em produção se JWT_SECRET for 'change-me'."""
     with pytest.raises(ValidationError) as exc_info:
         Settings(APP_ENV="production", JWT_SECRET="change-me", RESET_SQLITE_ON_STARTUP=False)
-    assert "JWT_SECRET cannot be 'change-me' in production" in str(exc_info.value)
+    assert "JWT_SECRET cannot be 'change-me' outside development" in str(exc_info.value)
 
 
 def test_production_config_rejects_reset_sqlite_on_startup() -> None:
@@ -22,7 +22,7 @@ def test_production_config_rejects_reset_sqlite_on_startup() -> None:
             JWT_SECRET="secure-real-secret-12345",
             RESET_SQLITE_ON_STARTUP=True,
         )
-    assert "RESET_SQLITE_ON_STARTUP cannot be True in production" in str(exc_info.value)
+    assert "RESET_SQLITE_ON_STARTUP cannot be True outside development" in str(exc_info.value)
 
 
 def test_production_config_warns_on_localhost_cors(caplog: pytest.LogCaptureFixture) -> None:
@@ -36,6 +36,23 @@ def test_production_config_warns_on_localhost_cors(caplog: pytest.LogCaptureFixt
         )
 
     assert any("Localhost detected in CORS_ORIGINS" in message for message in caplog.messages)
+
+
+@pytest.mark.parametrize("app_env", ["staging", "prod", "Production ", "produciton", ""])
+def test_any_non_development_env_rejects_insecure_defaults(app_env: str) -> None:
+    """#79: the checks fail closed, not only for APP_ENV exactly "production"."""
+    with pytest.raises(ValidationError, match="JWT_SECRET cannot be"):
+        Settings(APP_ENV=app_env, RESET_SQLITE_ON_STARTUP=False)
+    with pytest.raises(ValidationError, match="RESET_SQLITE_ON_STARTUP cannot be True"):
+        Settings(APP_ENV=app_env, JWT_SECRET="secure-real-secret-12345")
+
+
+@pytest.mark.parametrize("app_env", ["development", "test", "ci", "CI"])
+def test_development_like_envs_keep_the_defaults(app_env: str) -> None:
+    settings = Settings(APP_ENV=app_env)
+
+    assert settings.is_development_like
+    assert settings.jwt_secret == "change-me"
 
 
 @pytest.mark.parametrize(

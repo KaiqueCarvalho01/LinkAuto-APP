@@ -19,6 +19,9 @@ from app.services.notification_service import (
 if TYPE_CHECKING:
     import pytest
 
+# Settings outside development must not use the insecure defaults (#79)
+SECURE_SECRET = "secure-real-secret-12345"
+
 
 def _production(ses_from_email: str | None = None) -> Settings:
     return Settings(
@@ -35,7 +38,12 @@ def test_development_without_ses_uses_in_memory_gateway() -> None:
 
 def test_configured_ses_sender_selects_ses_in_the_background() -> None:
     gateway = build_email_gateway(
-        Settings(APP_ENV="staging", SES_FROM_EMAIL="no-reply@linkauto.com.br")
+        Settings(
+            APP_ENV="staging",
+            JWT_SECRET=SECURE_SECRET,
+            RESET_SQLITE_ON_STARTUP=False,
+            SES_FROM_EMAIL="no-reply@linkauto.com.br",
+        )
     )
 
     assert isinstance(gateway, BackgroundEmailGateway)
@@ -50,7 +58,12 @@ def test_production_starts_without_any_email_provider() -> None:
 
 
 def test_non_development_without_ses_disables_email() -> None:
-    assert isinstance(build_email_gateway(Settings(APP_ENV="staging")), DisabledEmailGateway)
+    assert isinstance(
+        build_email_gateway(
+            Settings(APP_ENV="staging", JWT_SECRET=SECURE_SECRET, RESET_SQLITE_ON_STARTUP=False)
+        ),
+        DisabledEmailGateway,
+    )
 
 
 def test_production_with_ses_sender_uses_ses() -> None:
@@ -61,7 +74,11 @@ def test_production_with_ses_sender_uses_ses() -> None:
 
 def test_email_backend_can_disable_email() -> None:
     settings = Settings(
-        APP_ENV="staging", SES_FROM_EMAIL="no-reply@linkauto.com.br", EMAIL_BACKEND="disabled"
+        APP_ENV="staging",
+        JWT_SECRET=SECURE_SECRET,
+        RESET_SQLITE_ON_STARTUP=False,
+        SES_FROM_EMAIL="no-reply@linkauto.com.br",
+        EMAIL_BACKEND="disabled",
     )
 
     assert isinstance(build_email_gateway(settings), DisabledEmailGateway)
@@ -85,7 +102,11 @@ def test_disabled_gateway_drops_notifications_without_failing() -> None:
 
 def test_email_backend_can_force_the_in_memory_gateway() -> None:
     settings = Settings(
-        APP_ENV="staging", SES_FROM_EMAIL="no-reply@linkauto.com.br", EMAIL_BACKEND="memory"
+        APP_ENV="staging",
+        JWT_SECRET=SECURE_SECRET,
+        RESET_SQLITE_ON_STARTUP=False,
+        SES_FROM_EMAIL="no-reply@linkauto.com.br",
+        EMAIL_BACKEND="memory",
     )
 
     assert isinstance(build_email_gateway(settings), InMemoryEmailGateway)

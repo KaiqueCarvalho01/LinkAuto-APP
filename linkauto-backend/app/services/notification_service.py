@@ -163,9 +163,6 @@ class BackgroundEmailGateway:
         self._executor.shutdown(wait=wait)
 
 
-_IN_MEMORY_ENVS = {"development", "test", "ci"}
-
-
 def build_email_gateway(settings: Settings) -> EmailGateway:
     """Return the e-mail gateway configured by the settings. E-mail is optional.
 
@@ -178,7 +175,7 @@ def build_email_gateway(settings: Settings) -> EmailGateway:
     if backend == "auto":
         if settings.ses_from_email:
             backend = "ses"
-        elif settings.app_env.lower() in _IN_MEMORY_ENVS:
+        elif settings.is_development_like:
             backend = "memory"
         else:
             backend = "disabled"

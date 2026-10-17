@@ -12,6 +12,10 @@ logger = logging.getLogger("app.core.config")
 # Placeholder default that must be overridden outside development
 INSECURE_JWT_SECRET = "change-me"  # noqa: S105
 
+# Local and test environments. Every other APP_ENV is treated as deployed, so a typo or a
+# "staging" environment never runs with the insecure development defaults (fail closed)
+DEVELOPMENT_LIKE_ENVS = frozenset({"development", "test", "ci"})
+
 # psycopg (v3) is the installed PostgreSQL driver; SQLAlchemy defaults bare URLs to psycopg2
 _POSTGRES_URL_PREFIXES = ("postgresql://", "postgres://")
 POSTGRES_DRIVER_PREFIX = "postgresql+psycopg://"
@@ -73,33 +77,46 @@ class Settings(BaseSettings):
                 return POSTGRES_DRIVER_PREFIX + value.removeprefix(prefix)
         return value
 
+    @property
+    def is_development_like(self) -> bool:
+        """Whether APP_ENV is a local or test environment (development, test, ci)."""
+        return self.app_env.lower() in DEVELOPMENT_LIKE_ENVS
+
     @model_validator(mode="after")
     def validate_production_security(self) -> Settings:
-        """Reject insecure settings when APP_ENV is production.
+        """Reject insecure settings outside development, test and ci (fail closed).
 
-        Raises if JWT_SECRET is the placeholder or RESET_SQLITE_ON_STARTUP is enabled. Logs a
-        warning if rate limits aren't shared (no Redis) or CORS_ORIGINS contains localhost or
+        Any other APP_ENV (production, staging, a typo...) is treated as deployed: it raises if
+        JWT_SECRET is the placeholder or RESET_SQLITE_ON_STARTUP is enabled, and logs a warning
+        if rate limits aren't shared (no Redis) or CORS_ORIGINS contains localhost or
         127.0.0.1. E-mail, S3 and Redis are optional.
         """
-        if self.app_env.lower() == "production":
+        if not self.is_development_like:
             if self.jwt_secret == INSECURE_JWT_SECRET:
-                msg = f"JWT_SECRET cannot be {INSECURE_JWT_SECRET!r} in production environment."
+                msg = (
+                    f"JWT_SECRET cannot be {INSECURE_JWT_SECRET!r} outside development, test "
+                    f"and ci (APP_ENV={self.app_env!r}); set a long random secret."
+                )
                 raise ValueError(msg)
             if self.reset_sqlite_on_startup:
-                msg = "RESET_SQLITE_ON_STARTUP cannot be True in production environment."
+                msg = (
+                    "RESET_SQLITE_ON_STARTUP cannot be True outside development, test and ci "
+                    f"(APP_ENV={self.app_env!r})."
+                )
                 raise ValueError(msg)
             if self.rate_limit_storage_uri.startswith("memory://"):
                 logger.warning(
-                    "RATE_LIMIT_STORAGE_URI is memory:// in production: rate limits are counted "
-                    "per process, so with several workers or replicas the effective limit is "
-                    "multiplied. Set it to redis://... to share the counters."
+                    "RATE_LIMIT_STORAGE_URI is memory:// outside development: rate limits are "
+                    "counted per process, so with several workers or replicas the effective "
+                    "limit is multiplied. Set it to redis://... to share the counters."
                 )
 
             # CORS checks
             if "localhost" in self.cors_origins.lower() or "127.0.0.1" in self.cors_origins:
                 logger.warning(
-                    "Localhost detected in CORS_ORIGINS (%s) in production environment!",
+                    "Localhost detected in CORS_ORIGINS (%s) outside development (APP_ENV=%s)!",
                     self.cors_origins,
+                    self.app_env,
                 )
         return self
 

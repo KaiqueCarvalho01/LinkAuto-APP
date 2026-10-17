@@ -75,7 +75,6 @@ services:
     container_name: linkauto-postgres
     profiles:
       - postgres
-      - prod
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -100,15 +99,16 @@ services:
       target: development
     profiles:
       - postgres
-      - prod
     working_dir: /workspace
     volumes:
       - ../linkauto-backend:/workspace
       - /workspace/.venv
     env_file:
       - ../linkauto-backend/.env.example
+    # Local PostgreSQL stack: still a development environment (.env.example's placeholder
+    # JWT secret is only accepted for APP_ENV development/test/ci, see #79)
     environment: &postgres-env
-      APP_ENV: staging
+      APP_ENV: development
       RESET_SQLITE_ON_STARTUP: "false"
       DATABASE_URL: postgresql+psycopg://postgres:postgres_dev_password@postgres:5432/linkauto
     command: ["sh", "scripts/migrate.sh"]
@@ -125,7 +125,6 @@ services:
     container_name: linkauto-backend-postgres
     profiles:
       - postgres
-      - prod
     restart: unless-stopped
     working_dir: /workspace
     volumes:
@@ -154,7 +153,6 @@ services:
     container_name: linkauto-scheduler-postgres
     profiles:
       - postgres
-      - prod
     restart: unless-stopped
     working_dir: /workspace
     volumes:

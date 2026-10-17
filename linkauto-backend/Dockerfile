@@ -33,8 +33,12 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload
 # Production stage (lightweight, non-root)
 FROM base AS production
 
+# Deployed by default: the app refuses to start with the placeholder JWT_SECRET instead of
+# quietly serving a freshly seeded development database
 ENV UV_COMPILE_BYTECODE=1 \
-    UV_NO_DEV=1
+    UV_NO_DEV=1 \
+    APP_ENV=production \
+    RESET_SQLITE_ON_STARTUP=false
 
 WORKDIR /app
 
@@ -53,10 +57,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY alembic ./alembic
 COPY alembic.ini ./alembic.ini
 COPY scripts ./scripts
+# Readable (not writable) by the app user, whatever the file modes were in the build context
+RUN chmod -R a+rX,go-w /app
 
 # Instructor documents when no S3 bucket is configured (DOCUMENT_STORAGE_PATH=./storage).
 # Mount a persistent volume here, or the files are lost when the container is replaced.
-RUN mkdir -p /app/storage && chown -R appuser:appuser /app
+# Only the storage directory is writable by the app user; the code stays read-only to it
+RUN mkdir -p /app/storage && chown appuser:appuser /app/storage
 VOLUME ["/app/storage"]
 
 ENV PATH="/app/.venv/bin:$PATH"
