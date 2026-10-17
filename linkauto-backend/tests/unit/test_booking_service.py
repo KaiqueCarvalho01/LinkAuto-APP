@@ -200,7 +200,9 @@ class TestBookingServiceNotifications:
         assert len(gateway.sent_messages) == 1
         email = gateway.sent_messages[0]
         assert email["recipients"] == ["inst@test.com"]
-        assert "pendente" in email["body"]
+        assert email["subject"] == "Nova solicitação de aula de Stu"
+        assert "Olá, Inst!" in email["body"]
+        assert "stu-001" not in email["body"]
 
     def test_confirm_booking_dispatches_notification(self, db_session: Session) -> None:
 
@@ -220,7 +222,8 @@ class TestBookingServiceNotifications:
         assert len(gateway.sent_messages) == 1
         email = gateway.sent_messages[0]
         assert email["recipients"] == ["stu@test.com"]
-        assert "confirmada" in email["body"]
+        assert "Inst confirmou sua aula" in email["body"]
+        assert booking.id not in email["body"]
 
     def test_cancel_booking_dispatches_notification(self, db_session: Session) -> None:
 
@@ -241,8 +244,8 @@ class TestBookingServiceNotifications:
         assert len(gateway.sent_messages) == 1
         email = gateway.sent_messages[0]
         assert email["recipients"] == ["inst@test.com"]
-        assert "cancelado" in email["body"]
-        assert "Preciso cancelar" in email["body"]
+        assert "foi cancelada por Stu" in email["body"]
+        assert "Motivo: Preciso cancelar" in email["body"]
 
     @pytest.mark.parametrize(
         ("user_id", "expected_cancelled_by", "expected_recipients"),
@@ -282,7 +285,8 @@ class TestBookingServiceNotifications:
 
         assert cancelled.cancelled_by == "SISTEMA"
         assert [m["recipients"] for m in gateway.sent_messages] == [
-            ["stu@test.com", "inst@test.com"]
+            ["stu@test.com"],
+            ["inst@test.com"],
         ]
         for slot in slots:
             db_session.refresh(slot)

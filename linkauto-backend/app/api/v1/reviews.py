@@ -3,11 +3,8 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
-from sqlmodel import col, select
 
 from app.api.deps.types import CurrentUser, DbSession
-from app.models.booking import Booking
-from app.models.user import User
 from app.schemas.common import error_response, success_response
 from app.schemas.review import ReviewCreateRequest, ReviewResource
 from app.services.dependencies import Notifications
@@ -37,18 +34,6 @@ def create_booking_review(
     does not exist, 409 when it is not REALIZADA or was already reviewed by the
     caller, and 403 when the caller is not a participant.
     """
-    # Fetch booking to determine recipient
-    booking = db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
-    if not booking:
-        return error_response(code="NOT_FOUND", message="Booking not found", status_code=404)
-
-    # Determine recipient email
-    recipient_id = (
-        booking.instructor_id if current_user.user_id == booking.student_id else booking.student_id
-    )
-    recipient = db.exec(select(User).where(col(User.id) == recipient_id)).first()
-    recipient_email = recipient.email if recipient else None
-
     service = ReviewService(db, notification_service=notifications)
     try:
         review = service.create_review(
@@ -56,7 +41,6 @@ def create_booking_review(
             reviewer_id=current_user.user_id,
             rating=payload.rating,
             comment=payload.comment,
-            recipient_email=recipient_email,
         )
         db.commit()
         return success_response(ReviewResource.model_validate(review), status_code=201)

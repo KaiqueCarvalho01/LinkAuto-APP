@@ -75,6 +75,29 @@ def test_confirm_and_cancel_email_the_other_party(
     assert _recipients(email_outbox) == [["flow-inst@test.com"]]
 
 
+def test_booking_emails_never_show_internal_ids(
+    client: TestClient, db_session: Session, email_outbox: InMemoryEmailGateway
+) -> None:
+    inst_id, inst_token = _register_login("INSTRUTOR", "ids-inst@test.com", client, db_session)
+    stu_id, stu_token = _register_login("ALUNO", "ids-stu@test.com", client, db_session)
+    booking_id = _book(client, stu_token, inst_id, _setup_instructor_with_slots(inst_token, client))
+    client.patch(
+        f"/api/v1/bookings/{booking_id}/confirm", headers={"Authorization": f"Bearer {inst_token}"}
+    )
+    client.patch(
+        f"/api/v1/bookings/{booking_id}/cancel",
+        json={},
+        headers={"Authorization": f"Bearer {stu_token}"},
+    )
+
+    assert len(email_outbox.sent_messages) == 3
+    for message in email_outbox.sent_messages:
+        text = f"{message['subject']}{message['body']}"
+        for internal_id in (inst_id, stu_id, booking_id):
+            assert internal_id not in text
+        assert "Test Instructor" in text or "Aluno" in text
+
+
 def test_bookings_work_with_email_disabled(client: TestClient, db_session: Session) -> None:
     """With no e-mail provider configured the routes still succeed."""
     app = cast("FastAPI", client.app)

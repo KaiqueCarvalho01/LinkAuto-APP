@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     document_storage_path: str = Field(default="./storage", alias="DOCUMENT_STORAGE_PATH")
     # Public base URL of this API, used for links to locally stored documents
     public_api_url: str = Field(default="http://localhost:8000", alias="PUBLIC_API_URL")
+    # Public base URL of the web app, used for links in e-mails (and password reset links)
+    frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
+    # Inbox for admin-only notifications (e.g. a new instructor to validate); unset = skipped
+    admin_notification_email: str | None = Field(default=None, alias="ADMIN_NOTIFICATION_EMAIL")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -98,6 +102,10 @@ class Settings(BaseSettings):
                     self.cors_origins,
                 )
         return self
+
+    def frontend_link(self, path: str) -> str:
+        """Return the absolute URL of a frontend ``path`` (e.g. ``/my-lessons``)."""
+        return f"{self.frontend_url.rstrip('/')}/{path.lstrip('/')}"
 
     @property
     def cors_origin_list(self) -> list[str]:

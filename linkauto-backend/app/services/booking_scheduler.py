@@ -8,11 +8,6 @@ from datetime import UTC, datetime, timedelta
 from typing import Protocol
 
 from app.domain.booking import BookingStatus
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
 
 logger = logging.getLogger("app.services.booking_scheduler")
 
@@ -40,8 +35,12 @@ class BookingAutomationPort(Protocol):
         """Move the booking to ``status``, recording ``reason``."""
         ...
 
-    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
-        """Return the student and instructor emails of the booking."""
+
+class LessonReminderSender(Protocol):
+    """Sends the 24h lesson reminder of a booking (e.g. ``BookingNotifier``)."""
+
+    def send_lesson_reminder(self, booking_id: str) -> None:
+        """Remind the booking's participants of the lesson."""
         ...
 
 
@@ -61,11 +60,11 @@ class BookingScheduler:
     def __init__(
         self,
         automation_port: BookingAutomationPort,
-        notification_service: NotificationService | None = None,
+        reminder_sender: LessonReminderSender | None = None,
     ) -> None:
-        """Store the automation port and optional notification service."""
+        """Store the automation port and the optional reminder sender."""
         self._automation_port = automation_port
-        self._notification_service = notification_service
+        self._reminder_sender = reminder_sender
 
     @staticmethod
     def _now_utc(now_utc: datetime | None = None) -> datetime:
@@ -154,7 +153,7 @@ class BookingScheduler:
     def run_lesson_reminders(self, now_utc: datetime | None = None) -> BookingSchedulerResult:
         """Email reminders for confirmed lessons starting in 23-25 hours and mark them reminded.
 
-        The reminder goes to the student and instructor when a notification service is set.
+        The reminder goes to the student and instructor when a reminder sender is set.
         Per-booking failures are logged and reported in the result instead of raised.
         """
         reference = self._now_utc(now_utc)
@@ -168,28 +167,8 @@ class BookingScheduler:
 
         for booking_id in upcoming_ids:
             try:
-                # Trigger e-mail reminder
-                student_email, instructor_email = self._automation_port.get_booking_emails(
-                    booking_id
-                )
-                recipients = []
-                if student_email:
-                    recipients.append(student_email)
-                if instructor_email:
-                    recipients.append(instructor_email)
-
-                if recipients and self._notification_service:
-                    self._notification_service.dispatch(
-                        NotificationPayload(
-                            event=NotificationEvent.LESSON_REMINDER_24H,
-                            subject="Lembrete de aula LinkAuto",
-                            body=(
-                                f"Lembrete: Sua aula LinkAuto (Agendamento: {booking_id}) iniciará "
-                                "em aproximadamente 24 horas."
-                            ),
-                            recipients=recipients,
-                        )
-                    )
+                if self._reminder_sender:
+                    self._reminder_sender.send_lesson_reminder(booking_id)
 
                 # Mark as reminded
                 self._automation_port.mark_reminder_sent(booking_id)

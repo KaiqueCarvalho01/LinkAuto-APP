@@ -65,7 +65,6 @@ def test_create_review_valid_student_to_instructor(
         reviewer_id="student-1",
         rating=5,
         comment="Excelente!",
-        recipient_email="instructor@test.com",
     )
 
     assert review.id is not None
@@ -84,8 +83,9 @@ def test_create_review_valid_student_to_instructor(
     assert len(gateway.sent_messages) == 1
     email = gateway.sent_messages[0]
     assert email["recipients"] == ["instructor@test.com"]
-    assert "student-1" in email["body"]
-    assert "5" in email["body"]
+    assert "Student One avaliou" in email["body"]
+    assert "5 de 5 estrelas" in email["body"]
+    assert "student-1" not in email["body"]
 
 
 def test_create_review_rejects_non_realizada_booking(db_session: Session) -> None:

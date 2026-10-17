@@ -124,6 +124,8 @@ O envio de e-mails é **opcional**: sem provedor configurado a API funciona norm
 | `memory` | Sempre em memória (nada é enviado; útil em testes). |
 | `disabled` | Nunca envia; notificações são descartadas. |
 
+Os textos de todos os e-mails ficam em `app/services/notification_templates.py` (assunto + corpo por template). Os e-mails tratam as pessoas pelo nome do perfil (ou "Aluno"/"Instrutor"), mostram a data e o horário da aula e trazem um link para o app (`FRONTEND_URL`); IDs internos nunca aparecem. Cada destinatário recebe o seu e-mail, com o link da sua área. Notificações só para a administração (novo instrutor aguardando validação) vão para `ADMIN_NOTIFICATION_EMAIL` e são ignoradas se ela não estiver definida.
+
 Com SES, o envio acontece em segundo plano (pool de threads), então um SES lento não atrasa as respostas da API; falhas são registradas em log. As credenciais vêm de `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` ou da cadeia padrão da AWS (IAM role), na região `AWS_REGION`.
 
 ### Documentos de Credenciamento (S3)

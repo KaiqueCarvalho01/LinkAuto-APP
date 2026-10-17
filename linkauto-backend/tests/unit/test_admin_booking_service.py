@@ -144,9 +144,12 @@ class TestAdminBookingOverride:
             db_session.refresh(slot)
             assert slot.status == SlotStatus.DISPONIVEL.value
         assert [m["recipients"] for m in gateway.sent_messages] == [
-            ["stuadm@t.com", "instadm@t.com"]
+            ["stuadm@t.com"],
+            ["instadm@t.com"],
         ]
-        assert "Fraude confirmada" in gateway.sent_messages[0]["body"]
+        for message in gateway.sent_messages:
+            assert "pela administração do LinkAuto" in message["body"]
+            assert "Fraude confirmada" in message["body"]
 
     def test_override_from_cancelada_to_realizada_clears_cancellation_fields(
         self, db_session: Session

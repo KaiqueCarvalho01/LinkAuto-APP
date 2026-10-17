@@ -9,6 +9,7 @@ from fastapi import APIRouter, Response
 from app.api.deps.types import CurrentAdmin, DbSession
 from app.schemas.common import success_response
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
+from app.services.booking_notifier import BookingNotifier
 from app.services.booking_scheduler import BookingScheduler, BookingSchedulerResult
 from app.services.dependencies import Notifications
 
@@ -65,7 +66,7 @@ def run_booking_reminder(
     Covers bookings starting 23 to 25 hours from now that have not been reminded yet.
     """
     port = SqlAlchemyBookingAutomationPort(db)
-    scheduler = BookingScheduler(port, notification_service=notifications)
+    scheduler = BookingScheduler(port, reminder_sender=BookingNotifier(db, notifications))
     result = scheduler.run_lesson_reminders()
     db.commit()
     return _summary_response(result)

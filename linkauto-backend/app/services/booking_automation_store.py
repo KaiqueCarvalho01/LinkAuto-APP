@@ -10,7 +10,6 @@ from sqlmodel import col, select
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot
 from app.models.slot import Slot
-from app.models.user import User
 from app.services.booking_scheduler import BookingAutomationPort
 
 if TYPE_CHECKING:
@@ -90,19 +89,3 @@ class SqlAlchemyBookingAutomationPort(BookingAutomationPort):
         if booking:
             booking.reminder_sent = True
             self._db.flush()
-
-    @override
-    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
-        """Return the student and instructor emails of a booking, ``None`` when unknown."""
-        booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
-        if not booking:
-            return None, None
-
-        student = self._db.exec(select(User).where(col(User.id) == booking.student_id)).first()
-        instructor = self._db.exec(
-            select(User).where(col(User.id) == booking.instructor_id)
-        ).first()
-
-        student_email = student.email if student else None
-        instructor_email = instructor.email if instructor else None
-        return student_email, instructor_email

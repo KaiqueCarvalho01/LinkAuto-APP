@@ -3,11 +3,8 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
-from sqlmodel import col, select
 
 from app.api.deps.types import CurrentUser, DbSession
-from app.models.booking import Booking
-from app.models.user import User
 from app.schemas.booking_message import BookingMessageCreateRequest, MessageResource
 from app.schemas.common import error_response, success_response
 from app.services.booking_message_service import BookingMessageAccessError, BookingMessageService
@@ -30,25 +27,12 @@ def send_booking_message(
     may post. Returns 403 when the caller is not a participant and 404 when the
     booking does not exist.
     """
-    # Fetch booking to determine recipient
-    booking = db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
-    if not booking:
-        return error_response(code="NOT_FOUND", message="Booking not found", status_code=404)
-
-    # Determine recipient email
-    recipient_id = (
-        booking.instructor_id if current_user.user_id == booking.student_id else booking.student_id
-    )
-    recipient = db.exec(select(User).where(col(User.id) == recipient_id)).first()
-    recipient_email = recipient.email if recipient else None
-
     service = BookingMessageService(db, notification_service=notifications)
     try:
         msg = service.send_message(
             booking_id=booking_id,
             sender_id=current_user.user_id,
             content=payload.content,
-            recipient_email=recipient_email,
         )
         db.commit()
         return success_response(MessageResource.model_validate(msg), status_code=201)

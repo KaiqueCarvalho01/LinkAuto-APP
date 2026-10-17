@@ -13,18 +13,16 @@ from sqlmodel import col, or_, select
 from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
-from app.models.user import InstructorProfile, User
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
+from app.models.user import InstructorProfile
+from app.services.booking_notifier import BookingNotifier
 from app.services.penalty_service import PenaltyService
 
 if TYPE_CHECKING:
     from collections.abc import Collection
 
     from sqlmodel import Session
+
+    from app.services.notification_service import NotificationService
 
 CANCELLATION_NOTICE_HOURS = 24
 
@@ -72,7 +70,7 @@ class BookingService:
         """Store the database session, a penalty service and optional notification service."""
         self._db = db
         self._penalty = PenaltyService(db)
-        self._notification_service = notification_service
+        self._notifier = BookingNotifier(db, notification_service)
 
     def create_booking(
         self,
@@ -133,19 +131,8 @@ class BookingService:
             self._db.add(link)
         self._db.flush()
 
-        # FR-021: trigger email notification to instructor
-        instructor_user = self._db.exec(
-            select(User).where(col(User.id) == effective_instructor_id)
-        ).first()
-        if instructor_user and self._notification_service:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.NEW_PENDING_BOOKING,
-                    subject="Nova reserva pendente",
-                    body=f"Você tem um novo agendamento pendente criado pelo aluno {student_id}.",
-                    recipients=[instructor_user.email],
-                )
-            )
+        # FR-021: e-mail the instructor
+        self._notifier.booking_requested(booking)
 
         return booking
 
@@ -203,20 +190,8 @@ class BookingService:
         booking.confirmed_at = datetime.now(UTC)
         self._db.flush()
 
-        # FR-021: trigger email notification to student
-        student_user = self._db.exec(select(User).where(col(User.id) == booking.student_id)).first()
-        if student_user and self._notification_service:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.BOOKING_CONFIRMED,
-                    subject="Sua aula foi confirmada",
-                    body=(
-                        f"Sua solicitação de agendamento {booking_id} foi confirmada pelo "
-                        f"instrutor {instructor_id}."
-                    ),
-                    recipients=[student_user.email],
-                )
-            )
+        # FR-021: e-mail the student
+        self._notifier.booking_confirmed(booking)
 
         return booking
 
@@ -262,7 +237,6 @@ class BookingService:
 
     def _cancel(self, booking: Booking, cancelled_by: str, reason: str | None) -> Booking:
         """Cancel the booking, release its reserved slots and notify the affected parties."""
-        booking_id = booking.id
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CANCELADA)
         now = datetime.now(UTC)
 
@@ -276,20 +250,8 @@ class BookingService:
             self._apply_late_cancellation_penalty(booking, now)
         self._db.flush()
 
-        # FR-021: trigger email notification to student and/or instructor
-        recipients = self._cancellation_recipients(booking, cancelled_by)
-        if recipients and self._notification_service:
-            self._notification_service.dispatch(
-                NotificationPayload(
-                    event=NotificationEvent.BOOKING_CANCELLED,
-                    subject="Sua aula foi cancelada",
-                    body=(
-                        f"O agendamento {booking_id} foi cancelado por {cancelled_by}. Motivo: "
-                        f"{reason or ''}"
-                    ),
-                    recipients=recipients,
-                )
-            )
+        # FR-021: e-mail the other party (both for system cancellations)
+        self._notifier.booking_cancelled(booking)
 
         return booking
 
@@ -318,21 +280,6 @@ class BookingService:
                 booking.student_id,
                 reason=f"Cancelamento tardio (< 24h) do booking {booking.id} conforme RN04",
             )
-
-    def _cancellation_recipients(self, booking: Booking, cancelled_by: str) -> list[str]:
-        # Notify the other party; system cancellations (timeouts) notify both
-        if cancelled_by == CancelledBy.ALUNO.value:
-            user_ids = [booking.instructor_id]
-        elif cancelled_by == CancelledBy.INSTRUTOR.value:
-            user_ids = [booking.student_id]
-        else:
-            user_ids = [booking.student_id, booking.instructor_id]
-        recipients = []
-        for user_id in user_ids:
-            user = self._db.exec(select(User).where(col(User.id) == user_id)).first()
-            if user:
-                recipients.append(user.email)
-        return recipients
 
     def get_booking(self, booking_id: str) -> Booking | None:
         """Return the booking with the given ID, or ``None`` if it does not exist."""

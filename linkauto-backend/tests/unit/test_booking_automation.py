@@ -12,6 +12,7 @@ from app.models.user import (
     UserRole,
 )
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
+from app.services.booking_notifier import BookingNotifier
 from app.services.booking_scheduler import BookingAutomationPort, BookingScheduler
 from app.services.notification_service import InMemoryEmailGateway, NotificationService
 
@@ -118,7 +119,9 @@ class TestBookingAutomationPort:
         )
 
         port = SqlAlchemyBookingAutomationPort(db_session)
-        scheduler = BookingScheduler(port, notification_service=notification_svc)
+        scheduler = BookingScheduler(
+            port, reminder_sender=BookingNotifier(db_session, notification_svc)
+        )
 
         result = scheduler.run_lesson_reminders()
 
@@ -126,13 +129,12 @@ class TestBookingAutomationPort:
         assert booking.reminder_sent is True
         assert result.processed == 1
 
-        # Verify emails sent to both student and instructor
-        assert len(gateway.sent_messages) == 1
-        email = gateway.sent_messages[0]
-        # Should contain both recipients
-        assert "autostu@t.com" in email["recipients"]
-        assert "autoinst@t.com" in email["recipients"]
-        assert "Lembrete" in email["subject"]
+        # One reminder each for the student and the instructor
+        assert [m["recipients"] for m in gateway.sent_messages] == [
+            ["autostu@t.com"],
+            ["autoinst@t.com"],
+        ]
+        assert all("Lembrete" in m["subject"] for m in gateway.sent_messages)
 
 
 class FailingBookingAutomationPort(BookingAutomationPort):
@@ -157,10 +159,6 @@ class FailingBookingAutomationPort(BookingAutomationPort):
     @override
     def mark_reminder_sent(self, booking_id: str) -> None:
         pass
-
-    @override
-    def get_booking_emails(self, booking_id: str) -> tuple[str | None, str | None]:
-        return None, None
 
 
 def test_scheduler_pending_timeout_resilience_per_item() -> None:

@@ -10,16 +10,13 @@ from sqlmodel import col, select
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingStatusOverride, CancelledBy
 from app.models.slot import Slot, SlotStatus
-from app.models.user import User
+from app.services.booking_notifier import BookingNotifier
 from app.services.booking_service import BookingNotFoundError
-from app.services.notification_service import (
-    NotificationEvent,
-    NotificationPayload,
-    NotificationService,
-)
 
 if TYPE_CHECKING:
     from sqlmodel import Session
+
+    from app.services.notification_service import NotificationService
 
 OVERRIDE_TARGETS = (BookingStatus.REALIZADA.value, BookingStatus.CANCELADA.value)
 
@@ -32,7 +29,7 @@ class AdminBookingService:
     ) -> None:
         """Store the DB session and the optional notification service."""
         self._db = db
-        self._notification_service = notification_service
+        self._notifier = BookingNotifier(db, notification_service)
 
     def override_status(
         self, booking_id: str, target_status: str, reason: str, *, admin_id: str
@@ -92,7 +89,7 @@ class AdminBookingService:
         self._db.flush()
 
         if cancelled and previous_status != BookingStatus.CANCELADA.value:
-            self._notify_cancellation(booking, reason)
+            self._notifier.booking_cancelled(booking)
         return booking
 
     def _release_future_reserved_slots(self, booking: Booking, now: datetime) -> None:
@@ -102,24 +99,3 @@ class AdminBookingService:
         for slot in self._db.exec(select(Slot).where(col(Slot.id).in_(slot_ids))).all():
             if slot.status == SlotStatus.RESERVADO.value and slot.starts_at > now:
                 slot.status = SlotStatus.DISPONIVEL.value
-
-    def _notify_cancellation(self, booking: Booking, reason: str) -> None:
-        if self._notification_service is None:
-            return
-        recipients = []
-        for user_id in (booking.student_id, booking.instructor_id):
-            user = self._db.exec(select(User).where(col(User.id) == user_id)).first()
-            if user:
-                recipients.append(user.email)
-        if not recipients:
-            return
-        self._notification_service.dispatch(
-            NotificationPayload(
-                event=NotificationEvent.BOOKING_CANCELLED,
-                subject="Sua aula foi cancelada",
-                body=(
-                    f"O agendamento {booking.id} foi cancelado pela administração. Motivo: {reason}"
-                ),
-                recipients=recipients,
-            )
-        )
