@@ -19,7 +19,9 @@ def create_slot(
     """Create an available one-hour slot for the calling instructor.
 
     Requires the INSTRUTOR role. The slot must start in the future and last exactly
-    one hour (422 otherwise). Returns 409 when it overlaps an existing slot.
+    one hour (422 otherwise). Returns 409 when it overlaps an existing slot. Instructors
+    awaiting validation can prepare their agenda; the slots only become public and
+    bookable once the instructor is DETRAN-approved (RN01).
     """
     service = SlotService(db)
     try:
@@ -64,10 +66,16 @@ def list_instructor_slots(
 ) -> Response:
     """List an instructor's slots of any status, ordered by start time.
 
-    Public. The instructor may be identified by public slug or ID.
+    Public. The instructor may be identified by public slug or ID. Returns 404 when the
+    instructor doesn't exist or isn't DETRAN-approved and active (RN01).
     """
     service = SlotService(db)
-    slots = service.list_slots(instructor_id, status=None)
+    try:
+        slots = service.list_public_slots(instructor_id)
+    except LookupError as e:
+        raise HTTPException(
+            status_code=404, detail={"code": "INSTRUCTOR_NOT_FOUND", "message": str(e)}
+        ) from e
     return success_response(
         [SlotResource.model_validate(s).model_dump(mode="json") for s in slots],
         meta={"total": len(slots)},

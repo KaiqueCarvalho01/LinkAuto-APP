@@ -13,7 +13,7 @@ from sqlmodel import col, or_, select, update
 from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
-from app.models.user import InstructorProfile
+from app.services.bookable_instructor import find_bookable_instructor
 from app.services.booking_notifier import BookingNotifier
 from app.services.penalty_service import PenaltyService
 
@@ -55,6 +55,10 @@ class BookingAccessError(PermissionError):
     """Raised when a user attempts to operate on a booking they do not participate in."""
 
 
+class InstructorUnavailableError(LookupError):
+    """Raised when the instructor doesn't exist or can't be booked (not approved, inactive)."""
+
+
 class PenalizedStudentError(ValueError):
     """Raised when a student under an RN04 penalty tries to create a booking."""
 
@@ -82,11 +86,13 @@ class BookingService:
     ) -> Booking:
         """Create a PENDENTE booking over the given slots and reserve them.
 
-        ``instructor_id`` may be an instructor slug. The slots must be at least two consecutive,
-        available slots of that instructor (RN02). The instructor is notified by email.
+        ``instructor_id`` may be an instructor slug. The instructor must be DETRAN-approved and
+        active (RN01). The slots must be at least two consecutive, available slots of that
+        instructor (RN02). The instructor is notified by email.
 
         Raises:
             PenalizedStudentError: If the student is currently penalized (RN04).
+            InstructorUnavailableError: If the instructor isn't approved and active (RN01).
             SlotValidationError: If the slots violate RN02 or are unavailable.
 
         """
@@ -95,12 +101,12 @@ class BookingService:
             msg = "Student is currently penalized and cannot create bookings"
             raise PenalizedStudentError(msg)
 
-        # Resolve instructor slug if necessary
-
-        inst_prof = self._db.exec(
-            select(InstructorProfile).where(col(InstructorProfile.slug) == instructor_id)
-        ).first()
-        effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
+        # RN01: only approved, active instructors can be booked (slug or user ID)
+        instructor = find_bookable_instructor(self._db, instructor_id)
+        if instructor is None:
+            msg = "Instructor not found or not accepting bookings"
+            raise InstructorUnavailableError(msg)
+        effective_instructor_id = instructor.user_id
         # A user with both roles must not book (and later review) their own lessons
         if effective_instructor_id == student_id:
             msg = "You cannot book your own slots"
