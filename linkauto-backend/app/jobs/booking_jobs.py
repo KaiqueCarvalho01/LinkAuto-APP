@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Response
 
 from app.api.deps.types import CurrentAdmin, DbSession
-from app.jobs.runner import Job, run_job
+from app.jobs.runner import Job, run_booking_job
 from app.schemas.common import success_response
 from app.services.dependencies import Notifications
 
@@ -45,7 +45,7 @@ def run_booking_timeout(
 
     Their slots are released and both participants are notified.
     """
-    result = run_job(Job.TIMEOUT, db, notifications)
+    result = run_booking_job(Job.TIMEOUT, db, notifications)
     db.commit()
     return _summary_response(result)
 
@@ -57,7 +57,7 @@ def run_booking_completion(
     notifications: Notifications,
 ) -> Response:
     """Mark CONFIRMADA bookings as REALIZADA once their last slot ended 2+ hours ago. Admin only."""
-    result = run_job(Job.COMPLETION, db, notifications)
+    result = run_booking_job(Job.COMPLETION, db, notifications)
     db.commit()
     return _summary_response(result)
 
@@ -72,6 +72,6 @@ def run_booking_reminder(
 
     Covers bookings starting 23 to 25 hours from now that have not been reminded yet.
     """
-    result = run_job(Job.REMINDER, db, notifications)
+    result = run_booking_job(Job.REMINDER, db, notifications)
     db.commit()
     return _summary_response(result)

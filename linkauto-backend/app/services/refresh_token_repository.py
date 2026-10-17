@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlmodel import col, select, update
+from sqlmodel import col, delete, select, update
 
 from app.models import RefreshToken, generate_uuid7
 from app.models.base import utc_now
@@ -115,10 +115,6 @@ class RefreshTokenRepository:
     def delete_expired(self, *, before: datetime | None = None) -> int:
         """Delete tokens that expired before ``before`` (now by default); return the count."""
         cutoff = before or utc_now()
-        stale = self._db.exec(
-            select(RefreshToken).where(col(RefreshToken.expires_at) < cutoff)
-        ).all()
-        for token in stale:
-            self._db.delete(token)
+        result = self._db.exec(delete(RefreshToken).where(col(RefreshToken.expires_at) < cutoff))
         self._db.flush()
-        return len(stale)
+        return result.rowcount

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
 from app.services.booking_notifier import BookingNotifier
 from app.services.booking_scheduler import BookingScheduler, BookingSchedulerResult
+from app.services.token_cleanup_service import TokenCleanupResult, TokenCleanupService
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -21,12 +22,16 @@ class Job(StrEnum):
     TIMEOUT = "timeout"
     COMPLETION = "completion"
     REMINDER = "reminder"
+    TOKEN_CLEANUP = "token-cleanup"  # noqa: S105 - job name
 
 
-def run_job(
+type JobResult = BookingSchedulerResult | TokenCleanupResult
+
+
+def run_booking_job(
     job: Job, db: Session, notification_service: NotificationService | None
 ) -> BookingSchedulerResult:
-    """Run one job in the session. The caller commits."""
+    """Run one of the booking jobs (timeout, completion, reminder). The caller commits."""
     port = SqlAlchemyBookingAutomationPort(db, notification_service)
     scheduler = BookingScheduler(port, reminder_sender=BookingNotifier(db, notification_service))
     match job:
@@ -36,3 +41,13 @@ def run_job(
             return scheduler.run_confirmed_completion()
         case Job.REMINDER:
             return scheduler.run_lesson_reminders()
+        case _:
+            msg = f"{job} is not a booking job"
+            raise ValueError(msg)
+
+
+def run_job(job: Job, db: Session, notification_service: NotificationService | None) -> JobResult:
+    """Run any job in the session. The caller commits."""
+    if job is Job.TOKEN_CLEANUP:
+        return TokenCleanupService(db).run()
+    return run_booking_job(job, db, notification_service)

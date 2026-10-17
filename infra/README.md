@@ -150,18 +150,19 @@ docker run --rm --env-file prod.env linkauto-backend:<tag> scripts/migrate.sh
 
 ### ⏰ Jobs Agendados (Agendamentos)
 
-Três jobs mantêm os agendamentos em dia e precisam rodar periodicamente:
+Estes jobs mantêm os agendamentos e os tokens em dia e precisam rodar periodicamente:
 
 | Job | O que faz |
 | :--- | :--- |
 | `timeout` | Cancela (como `SISTEMA`) solicitações `PENDENTE` criadas há mais de 24h, libera os horários e avisa aluno e instrutor. |
 | `completion` | Marca como `REALIZADA` as aulas `CONFIRMADA` que terminaram há 2h ou mais (necessário para as avaliações). |
 | `reminder` | Envia o lembrete de 24h (quando o e-mail está configurado) e marca o agendamento como lembrado. |
+| `token-cleanup` | Apaga refresh tokens e links de redefinição de senha vencidos há mais de 1 dia (a folga mantém a detecção de reuso de tokens recém-vencidos). |
 
 Eles rodam com a mesma imagem e as mesmas variáveis de ambiente da aplicação, sem HTTP nem token de admin:
 
 ```bash
-python -m app.jobs run all                 # ou: run timeout completion reminder
+python -m app.jobs run all                 # ou: run timeout completion reminder token-cleanup
 docker run --rm --env-file prod.env linkauto-backend:<tag> python -m app.jobs run all
 ```
 

@@ -40,7 +40,13 @@ def test_run_all_runs_every_job(run_cli: RunCli) -> None:
     status, summaries = run_cli("run", "all")
 
     assert status == 0
-    assert [s["job"] for s in summaries] == ["timeout", "completion", "reminder"]
+    assert [s["job"] for s in summaries] == ["timeout", "completion", "reminder", "token-cleanup"]
+    assert summaries[-1] == {
+        "job": "token-cleanup",
+        "refresh_tokens_deleted": 0,
+        "password_reset_tokens_deleted": 0,
+        "failed": 0,
+    }
 
 
 def test_run_cancels_expired_pending_bookings(run_cli: RunCli, db_session: Session) -> None:
