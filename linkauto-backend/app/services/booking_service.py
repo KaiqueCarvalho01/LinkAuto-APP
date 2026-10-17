@@ -120,7 +120,9 @@ class BookingService:
         self._db.flush()
 
         # FR-021: trigger email notification to instructor
-        instructor_user = self._db.exec(select(User).where(col(User.id) == instructor_id)).first()
+        instructor_user = self._db.exec(
+            select(User).where(col(User.id) == effective_instructor_id)
+        ).first()
         if instructor_user and self._notification_service:
             self._notification_service.dispatch(
                 NotificationPayload(
