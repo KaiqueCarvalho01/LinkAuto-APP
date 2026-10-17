@@ -128,6 +128,11 @@ Os textos de todos os e-mails ficam em `app/services/notification_templates.py` 
 
 Com SES, o envio acontece em segundo plano (pool de threads), então um SES lento não atrasa as respostas da API; falhas são registradas em log. As credenciais vêm de `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` ou da cadeia padrão da AWS (IAM role), na região `AWS_REGION`.
 
+### Redefinição de Senha
+`POST /auth/password-reset` sempre responde 202 (não revela se o e-mail existe). Para uma conta ativa, gera um link de uso único (`FRONTEND_URL/password-reset/confirm?token=...`, válido por 30 minutos) e o envia por e-mail; um novo pedido invalida o link anterior. Só o hash SHA-256 do token fica no banco. `POST /auth/password-reset/confirm {token, new_password}` define a nova senha e desconecta todas as sessões da conta (revoga todos os refresh tokens).
+
+**Sem provedor de e-mail** (situação atual), o link não chega ao usuário. Nesse caso, um admin confirma a identidade da pessoa por outro canal e gera o link com `POST /admin/users/{user_id}/password-reset-link` (válido por 24 horas, também de uso único), enviando o `reset_url` retornado a ela. Em `APP_ENV=development` o link pedido pelo usuário também é registrado em log, para testes locais.
+
 ### Documentos de Credenciamento (S3)
 Os arquivos enviados em `POST /instructors/{id}/documents` são validados (MIME, tamanho e magic bytes) e gravados em armazenamento privado, com chaves geradas pelo servidor (`instructors/<id>/<tipo>-<uuid>.<ext>`); o nome original do arquivo fica apenas como metadado.
 

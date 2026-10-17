@@ -100,6 +100,18 @@ class RefreshTokenRepository:
         )
         self._db.flush()
 
+    def revoke_all_for_user(self, user_id: str) -> None:
+        """Revoke every not-yet-revoked token of the user (all sessions, e.g. on password reset)."""
+        self._db.exec(
+            update(RefreshToken)
+            .where(
+                col(RefreshToken.user_id) == user_id,
+                col(RefreshToken.revoked_at).is_(None),
+            )
+            .values(revoked_at=utc_now())
+        )
+        self._db.flush()
+
     def delete_expired(self, *, before: datetime | None = None) -> int:
         """Delete tokens that expired before ``before`` (now by default); return the count."""
         cutoff = before or utc_now()

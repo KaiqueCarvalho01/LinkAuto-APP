@@ -29,6 +29,7 @@ class EmailTemplateName(StrEnum):
     LESSON_REMINDER = "lesson_reminder"
     BOOKING_MESSAGE = "booking_message"
     REVIEW_RECEIVED = "review_received"
+    PASSWORD_RESET = "password_reset"  # noqa: S105 - template name
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,6 +113,15 @@ TEMPLATES: dict[EmailTemplateName, EmailTemplate] = {
         body=(
             "Olá, {recipient_name}!\n\n{reviewer_name} avaliou a aula de {lesson_time} com "
             "{rating} de 5 estrelas.\nComentário: {comment}\n\nVeja em: {link}"
+        ),
+    ),
+    EmailTemplateName.PASSWORD_RESET: EmailTemplate(
+        event=NotificationEvent.PASSWORD_RESET_REQUESTED,
+        subject="Redefinição de senha do LinkAuto",
+        body=(
+            "Recebemos um pedido para redefinir a senha da sua conta.\n\nPara escolher uma "
+            "nova senha, acesse o link abaixo em até {expires_minutes} minutos:\n{link}\n\n"
+            "Se você não fez esse pedido, ignore este e-mail: sua senha continua a mesma."
         ),
     ),
 }

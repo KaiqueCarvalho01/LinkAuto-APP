@@ -29,6 +29,7 @@ class NotificationEvent(StrEnum):
     BOOKING_CANCELLED = "booking_cancelled_for_student_instructor"
     NEW_BOOKING_MESSAGE = "new_booking_message"
     NEW_REVIEW_RECEIVED = "new_review_received"
+    PASSWORD_RESET_REQUESTED = "password_reset_requested"  # noqa: S105 - event name
 
 
 @dataclass(slots=True)

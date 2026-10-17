@@ -17,6 +17,7 @@ from app.services.document_storage import DocumentStorage, build_document_storag
 from app.services.identity_repository import IdentityRepository
 from app.services.instructor_document_service import InstructorDocumentService
 from app.services.notification_service import NotificationService, build_email_gateway
+from app.services.password_reset_service import PasswordResetService
 from app.services.profile_service import ProfileService
 from app.services.refresh_token_repository import RefreshTokenRepository
 
@@ -64,6 +65,22 @@ def get_auth_service(
 ) -> AuthService:
     """Build an ``AuthService`` wired to the request's repositories and notifications."""
     return AuthService(
+        settings=settings,
+        repository=repository,
+        refresh_tokens=RefreshTokenRepository(db),
+        notification_service=notifications,
+    )
+
+
+def get_password_reset_service(
+    settings: Annotated[Settings, Depends(get_settings)],
+    repository: Repository,
+    db: DbSession,
+    notifications: Notifications,
+) -> PasswordResetService:
+    """Build a ``PasswordResetService`` wired to the request's session and notifications."""
+    return PasswordResetService(
+        db=db,
         settings=settings,
         repository=repository,
         refresh_tokens=RefreshTokenRepository(db),

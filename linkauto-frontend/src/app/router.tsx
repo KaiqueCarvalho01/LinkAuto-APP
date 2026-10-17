@@ -35,6 +35,7 @@ import Help from "../pages/Help";
 import Terms from "../pages/Terms";
 import Privacy from "../pages/Privacy";
 import PasswordReset from "../pages/PasswordReset";
+import PasswordResetConfirm from "../pages/PasswordResetConfirm";
 import AuditLog from "../pages/admin/AuditLog";
 import FirstLicense from "../pages/students/FirstLicense";
 import LicensedDrivers from "../pages/students/LicensedDrivers";
@@ -755,6 +756,7 @@ export default function AppRouter() {
 				<Route path="/login" element={<LoginRoute />} />
 				<Route path="/register" element={<RegisterRoute />} />
 				<Route path="/password-reset" element={<PasswordReset />} />
+				<Route path="/password-reset/confirm" element={<PasswordResetConfirm />} />
 
 				<Route path="/app" element={<RootRedirect />} />
 				<Route path="*" element={<RootRedirect />} />

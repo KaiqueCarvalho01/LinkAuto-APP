@@ -162,10 +162,3 @@ class AuthService:
             jti=jti, user_id=user.id, expires_at=expires_at, family_id=family_id
         )
         return AuthTokens(access_token=access_token, refresh_token=refresh_token)
-
-    def trigger_password_reset(self, *, email: str) -> None:
-        """Start a password reset for the email; currently a no-op placeholder."""
-        user = self._repository.get_user_by_email(email)
-        if user is None:
-            return
-        return

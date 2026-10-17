@@ -6,6 +6,7 @@ from app.api.v1 import (
     admin_bookings,
     admin_instructors,
     admin_stats,
+    admin_users,
     auth,
     booking_messages,
     bookings,
@@ -27,6 +28,7 @@ api_v1_router.include_router(auth.router)
 api_v1_router.include_router(users.router)
 api_v1_router.include_router(admin_instructors.router)
 api_v1_router.include_router(admin_stats.router)
+api_v1_router.include_router(admin_users.router)
 api_v1_router.include_router(instructor_stats.router)
 api_v1_router.include_router(instructor_documents.router)
 api_v1_router.include_router(slots.router)

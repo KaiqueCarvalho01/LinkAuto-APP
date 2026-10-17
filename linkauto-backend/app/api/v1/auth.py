@@ -12,7 +12,12 @@ from app.core.rate_limit import check_login_account_limit, limiter
 from app.core.security_logger import log_auth_failure, log_auth_success
 from app.schemas.common import success_response
 from app.services.auth_service import AuthService
-from app.services.dependencies import get_auth_service, get_profile_service
+from app.services.dependencies import (
+    get_auth_service,
+    get_password_reset_service,
+    get_profile_service,
+)
+from app.services.password_reset_service import InvalidResetTokenError, PasswordResetService
 from app.services.profile_service import ProfileService
 
 if TYPE_CHECKING:
@@ -40,6 +45,13 @@ class PasswordResetRequest(BaseModel):
     """Email address of the account requesting a password reset."""
 
     email: str = Field(min_length=3)
+
+
+class PasswordResetConfirmRequest(BaseModel):
+    """Reset token from the link and the new password."""
+
+    token: str = Field(min_length=1)
+    new_password: str = Field(min_length=8)
 
 
 REFRESH_COOKIE = "refresh_token"
@@ -212,12 +224,43 @@ def logout(
 def password_reset(
     request: Request,  # noqa: ARG001 - required by slowapi's @limiter.limit
     payload: PasswordResetRequest,
-    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    reset_service: Annotated[PasswordResetService, Depends(get_password_reset_service)],
+    db: DbSession,
 ) -> Response:
-    """Accept a password reset request for the given email.
+    """Request a password reset link for the given email.
 
     Public; rate-limited to 3 requests per minute. Always returns 202 so that the
-    response does not reveal whether the email is registered.
+    response does not reveal whether the email is registered. For an active account,
+    a single-use link valid for 30 minutes is e-mailed (when e-mail is enabled) and
+    replaces any earlier unused link. While e-mail is disabled, an admin can issue a
+    link with `POST /admin/users/{user_id}/password-reset-link`.
     """
-    auth_service.trigger_password_reset(email=payload.email)
+    reset_service.request_reset(payload.email)
+    db.commit()
     return success_response({"status": "accepted"}, status_code=status.HTTP_202_ACCEPTED)
+
+
+@router.post("/password-reset/confirm")
+@limiter.limit("5/minute")
+def password_reset_confirm(
+    request: Request,  # noqa: ARG001 - required by slowapi's @limiter.limit
+    payload: PasswordResetConfirmRequest,
+    reset_service: Annotated[PasswordResetService, Depends(get_password_reset_service)],
+    db: DbSession,
+) -> Response:
+    """Set a new password using the token from a reset link.
+
+    Public; rate-limited to 5 requests per minute. The token works once. Every
+    session of the account is signed out (all refresh tokens are revoked). Returns
+    400 `INVALID_TOKEN` for an unknown, expired or already used token, and 422 for a
+    password shorter than 8 characters.
+    """
+    try:
+        reset_service.confirm_reset(payload.token, payload.new_password)
+    except InvalidResetTokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_TOKEN", "message": str(exc)},
+        ) from exc
+    db.commit()
+    return success_response({"status": "password_updated"})
