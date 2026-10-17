@@ -20,6 +20,7 @@ from app.services.booking_service import (
     PenalizedStudentError,
     SlotValidationError,
 )
+from app.services.dependencies import Notifications
 
 router = APIRouter(tags=["Bookings"])
 
@@ -29,6 +30,7 @@ def create_booking(
     body: BookingCreateRequest,
     current_user: CurrentAluno,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Create a PENDENTE booking for the calling student and reserve its slots.
 
@@ -38,7 +40,7 @@ def create_booking(
     student is under an active cancellation penalty (RN04). The instructor is
     notified of the new booking.
     """
-    service = BookingService(db)
+    service = BookingService(db, notification_service=notifications)
     try:
         booking = service.create_booking(
             student_id=current_user.user_id,
@@ -119,6 +121,7 @@ def confirm_booking(
     booking_id: str,
     current_user: CurrentInstrutor,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Confirm a PENDENTE booking and notify the student.
 
@@ -126,7 +129,7 @@ def confirm_booking(
     Returns 404 when the booking does not exist, 403 when the caller is not the
     booking's instructor, and 422 when the booking cannot move to CONFIRMADA.
     """
-    service = BookingService(db)
+    service = BookingService(db, notification_service=notifications)
     try:
         booking = service.confirm_booking(booking_id, current_user.user_id)
         db.commit()
@@ -150,6 +153,7 @@ def cancel_booking(
     body: BookingCancelRequest,
     current_user: CurrentUser,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Cancel a PENDENTE or CONFIRMADA booking and release its slots.
 
@@ -159,7 +163,7 @@ def cancel_booking(
     party is notified. Returns 404 when the booking does not exist and 422 when it is
     already in a terminal status.
     """
-    service = BookingService(db)
+    service = BookingService(db, notification_service=notifications)
     cancelled_by = "INSTRUTOR" if "INSTRUTOR" in current_user.roles else "ALUNO"
     try:
         booking = service.cancel_booking(

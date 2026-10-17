@@ -10,7 +10,7 @@ from app.models.booking import Booking
 from app.models.user import User
 from app.schemas.common import error_response, success_response
 from app.schemas.review import ReviewCreateRequest, ReviewResource
-from app.services.dependencies import get_notification_service
+from app.services.dependencies import Notifications
 from app.services.review_service import (
     ReviewAccessError,
     ReviewDuplicateError,
@@ -27,6 +27,7 @@ def create_booking_review(
     payload: ReviewCreateRequest,
     current_user: CurrentUser,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Submit a review of the other participant of a completed booking.
 
@@ -48,7 +49,7 @@ def create_booking_review(
     recipient = db.exec(select(User).where(col(User.id) == recipient_id)).first()
     recipient_email = recipient.email if recipient else None
 
-    service = ReviewService(db, notification_service=get_notification_service())
+    service = ReviewService(db, notification_service=notifications)
     try:
         review = service.create_review(
             booking_id=booking_id,

@@ -10,7 +10,7 @@ from app.api.deps.types import CurrentAdmin, DbSession
 from app.schemas.common import success_response
 from app.services.booking_automation_store import SqlAlchemyBookingAutomationPort
 from app.services.booking_scheduler import BookingScheduler, BookingSchedulerResult
-from app.services.dependencies import get_notification_service
+from app.services.dependencies import Notifications
 
 router = APIRouter(tags=["Jobs"])
 
@@ -58,13 +58,14 @@ def run_booking_completion(
 def run_booking_reminder(
     _: CurrentAdmin,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """E-mail a reminder for bookings whose lesson starts in about 24 hours. Admin only.
 
     Covers bookings starting 23 to 25 hours from now that have not been reminded yet.
     """
     port = SqlAlchemyBookingAutomationPort(db)
-    scheduler = BookingScheduler(port, notification_service=get_notification_service())
+    scheduler = BookingScheduler(port, notification_service=notifications)
     result = scheduler.run_lesson_reminders()
     db.commit()
     return _summary_response(result)

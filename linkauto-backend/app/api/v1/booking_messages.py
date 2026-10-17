@@ -11,7 +11,7 @@ from app.models.user import User
 from app.schemas.booking_message import BookingMessageCreateRequest, MessageResource
 from app.schemas.common import error_response, success_response
 from app.services.booking_message_service import BookingMessageAccessError, BookingMessageService
-from app.services.dependencies import get_notification_service
+from app.services.dependencies import Notifications
 
 router = APIRouter(prefix="/bookings/{booking_id}", tags=["Booking Messages"])
 
@@ -22,6 +22,7 @@ def send_booking_message(
     payload: BookingMessageCreateRequest,
     current_user: CurrentUser,
     db: DbSession,
+    notifications: Notifications,
 ) -> Response:
     """Post a message on a booking and notify the other participant by email.
 
@@ -41,7 +42,7 @@ def send_booking_message(
     recipient = db.exec(select(User).where(col(User.id) == recipient_id)).first()
     recipient_email = recipient.email if recipient else None
 
-    service = BookingMessageService(db, notification_service=get_notification_service())
+    service = BookingMessageService(db, notification_service=notifications)
     try:
         msg = service.send_message(
             booking_id=booking_id,
