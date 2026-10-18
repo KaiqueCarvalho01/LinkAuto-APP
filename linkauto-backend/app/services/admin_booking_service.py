@@ -10,7 +10,11 @@ from sqlmodel import col, select
 from app.domain.booking import BookingStatus, transition_booking
 from app.models.booking import Booking, BookingStatusOverride, CancelledBy
 from app.services.booking_notifier import BookingNotifier
-from app.services.booking_service import BookingNotFoundError, release_booking_slots
+from app.services.booking_service import (
+    BookingNotFoundError,
+    claim_status_change,
+    release_booking_slots,
+)
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -62,19 +66,20 @@ class AdminBookingService:
             BookingStatus(target_status),
             admin_override=True,
         )
-        booking.status = new_status.value
         now = datetime.now(UTC)
 
         cancelled = new_status == BookingStatus.CANCELADA
+        claim_status_change(
+            self._db,
+            booking,
+            previous_status,
+            status=new_status.value,
+            cancelled_at=now if cancelled else None,
+            cancelled_by=CancelledBy.ADMIN.value if cancelled else None,
+            cancellation_reason=reason if cancelled else None,
+        )
         if cancelled:
-            booking.cancelled_at = now
-            booking.cancelled_by = CancelledBy.ADMIN.value
-            booking.cancellation_reason = reason
             self._release_future_reserved_slots(booking, now)
-        else:
-            booking.cancelled_at = None
-            booking.cancelled_by = None
-            booking.cancellation_reason = None
 
         self._db.add(
             BookingStatusOverride(
