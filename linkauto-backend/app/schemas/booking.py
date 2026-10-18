@@ -8,6 +8,7 @@ from pydantic import BaseModel, field_validator, model_validator
 
 from app.domain.booking import MIN_SLOTS_PER_BOOKING
 from app.schemas.datetime import UtcDateTime
+from app.schemas.fields import Latitude, Longitude, ShortText
 from app.schemas.public_profile import BookingInstructorSummary, BookingStudentSummary
 from app.schemas.slot import SlotResource
 
@@ -19,9 +20,9 @@ class BookingCreateRequest(BaseModel):
 
     instructor_id: str
     slot_ids: list[str]
-    location_description: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
+    location_description: ShortText | None = None
+    latitude: Latitude | None = None
+    longitude: Longitude | None = None
 
     @field_validator("slot_ids")
     @classmethod
@@ -38,9 +39,9 @@ class BookingConfirmRequest(BaseModel):
 
 
 class BookingCancelRequest(BaseModel):
-    """Payload to cancel a booking, with an optional reason."""
+    """Payload to cancel a booking, with an optional reason (up to 500 characters)."""
 
-    reason: str | None = None
+    reason: ShortText | None = None
 
 
 class BookingAdminOverrideRequest(BaseModel):

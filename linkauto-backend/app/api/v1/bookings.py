@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, Response
 
 from app.api.deps.types import CurrentAluno, CurrentInstrutor, CurrentUser, DbSession
-from app.domain.booking import BookingTransitionError
+from app.domain.booking import BookingStatus, BookingTransitionError
 from app.schemas.booking import (
     BookingCancelRequest,
     BookingCreateRequest,
@@ -89,7 +89,7 @@ def _default_sides(roles: list[str]) -> list[BookingSide]:
 def list_bookings(
     current_user: CurrentUser,
     db: DbSession,
-    status: Annotated[str | None, Query()] = None,
+    status: Annotated[BookingStatus | None, Query()] = None,
     as_: Annotated[BookingSide | None, Query(alias="as")] = None,
 ) -> Response:
     """List the caller's bookings, newest first, optionally filtered by status.
@@ -102,7 +102,9 @@ def list_bookings(
     """
     service = BookingService(db)
     sides = [as_] if as_ else _default_sides(current_user.roles)
-    bookings = service.list_bookings(current_user.user_id, sides, status_filter=status)
+    bookings = service.list_bookings(
+        current_user.user_id, sides, status_filter=status.value if status else None
+    )
     return success_response(
         [BookingResource.model_validate(b).model_dump(mode="json") for b in bookings],
         meta={"total": len(bookings), "as": [side.value for side in sides]},

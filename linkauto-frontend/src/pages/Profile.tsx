@@ -508,6 +508,9 @@ export default function Profile({
                     </Text>
                     <Input
                       type="number"
+                      min={0}
+                      max={99999.99}
+                      step="0.01"
                       value={pricePerHour}
                       onChange={(e) => setPricePerHour(e.target.value)}
                       placeholder="Valor por Hora"
@@ -520,6 +523,8 @@ export default function Profile({
                     </Text>
                     <Input
                       type="number"
+                      min={1}
+                      max={200}
                       value={actionRadiusKm}
                       onChange={(e) => setActionRadiusKm(e.target.value)}
                       placeholder="Raio de atuação em km"
