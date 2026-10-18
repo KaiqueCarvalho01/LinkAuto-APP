@@ -131,9 +131,13 @@ describe("ProfileSidebar", () => {
 		const instrutorPanel = await screen.findByRole("tabpanel", {
 			name: /INSTRUTOR/i,
 		});
+		// The instructor side leads to the dashboard, not the student's lessons (#85)
 		expect(
-			await within(instrutorPanel).findByRole("link", { name: /Minhas Aulas/i }),
-		).toBeInTheDocument();
+			await within(instrutorPanel).findByRole("link", { name: /Painel do instrutor/i }),
+		).toHaveAttribute("href", "/instructor/dashboard");
+		expect(
+			within(instrutorPanel).queryByRole("link", { name: /Minhas Aulas/i }),
+		).not.toBeInTheDocument();
 	});
 
 	it("renders admin links for ADMIN role", () => {

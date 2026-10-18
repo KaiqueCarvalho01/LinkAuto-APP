@@ -20,6 +20,7 @@ import {
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { InstructorAgenda } from "../components/InstructorAgenda";
+import { InstructorUpcomingLessons } from "../components/InstructorUpcomingLessons";
 
 import Home from "../pages/Home";
 import InstructorDashboard from "../pages/InstructorDashboard";
@@ -49,6 +50,7 @@ import StudentPublicProfilePage from "../pages/StudentPublicProfilePage";
 import { bookingService } from "../services/bookingService";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
+import { homePathFor } from "./homePath";
 import type { InstructorSummary } from "../types/instructor";
 import type {
 	AdminStats,
@@ -139,11 +141,7 @@ function LoginRoute() {
 	const { isAuthenticated, roles, signIn } = useSessionStore();
 
 	if (isAuthenticated) {
-		if (roles.includes("ADMIN")) {
-			return <Navigate to="/admin/instructors" replace />;
-		}
-
-		return <Navigate to="/search" replace />;
+		return <Navigate to={homePathFor(roles)} replace />;
 	}
 
 	const handleAuthenticate = async ({
@@ -156,20 +154,7 @@ function LoginRoute() {
 		preferredRole: "student" | "instructor";
 	}) => {
 		const session = await signIn({ email, password });
-		if (session.user.roles.includes("ADMIN")) {
-			navigate("/admin/instructors", { replace: true });
-			return;
-		}
-
-		if (
-			preferredRole === "student" &&
-			session.user.roles.includes("ALUNO")
-		) {
-			navigate("/search", { replace: true });
-			return;
-		}
-
-		navigate("/profile", { replace: true });
+		navigate(homePathFor(session.user.roles, preferredRole), { replace: true });
 	};
 
 	return <Login onAuthenticate={handleAuthenticate} />;
@@ -552,12 +537,15 @@ function InstructorDashboardRoute() {
 			onAccept={confirm}
 			onReject={decline}
 			agenda={
-				<InstructorAgenda
-					token={token}
-					awaitingApproval={
-						session?.user?.instructor_profile?.detran_status !== "APROVADO"
-					}
-				/>
+				<>
+					<InstructorUpcomingLessons token={token} />
+					<InstructorAgenda
+						token={token}
+						awaitingApproval={
+							session?.user?.instructor_profile?.detran_status !== "APROVADO"
+						}
+					/>
+				</>
 			}
 			dashboardTitle="Instructor Panel"
 			pendingLabel="Minhas Reservas"
@@ -572,11 +560,7 @@ function RootRedirect() {
 		return <Navigate to="/" replace />;
 	}
 
-	if (roles.includes("ADMIN")) {
-		return <Navigate to="/admin/instructors" replace />;
-	}
-
-	return <Navigate to="/search" replace />;
+	return <Navigate to={homePathFor(roles)} replace />;
 }
 
 function ColorModeToggle() {
