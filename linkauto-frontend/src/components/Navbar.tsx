@@ -10,13 +10,6 @@ import {
 	MenuItem,
 	MenuPositioner,
 	Text,
-	PopoverRoot,
-	PopoverTrigger,
-	PopoverContent,
-	PopoverBody,
-	PopoverHeader,
-	PopoverFooter,
-	Link,
 	DrawerRoot,
 	DrawerTrigger,
 	DrawerContent,
@@ -24,10 +17,9 @@ import {
 	DrawerBody,
 	DrawerCloseTrigger,
 	Stack,
-	PopoverPositioner,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import { Menu, ChevronDown, Bell, LogOut } from "lucide-react";
+import { Menu, ChevronDown, LogOut } from "lucide-react";
 import { BrandLockup } from "./BrandLockup";
 import { useState, useEffect } from "react";
 import { useSessionStore } from "../state/sessionStore";
@@ -50,19 +42,6 @@ export function Navbar() {
 		setIsProfileOpen(true);
 	};
 
-	// Mock notifications for FE-002
-	const notifications = [
-		{
-			id: 1,
-			text: "Sua aula com Marcos foi confirmada.",
-			time: "2h atrás",
-		},
-		{
-			id: 2,
-			text: "Novo instrutor disponível na sua área.",
-			time: "5h atrás",
-		},
-	];
 
 	const user = session?.user;
 	const displayName =
@@ -245,80 +224,6 @@ export function Navbar() {
 				<HStack gap={4} display={{ base: "none", lg: "flex" }}>
 					{isAuthenticated ? (
 						<HStack gap={4}>
-							<PopoverRoot>
-								<PopoverTrigger asChild>
-									<IconButton
-										variant="ghost"
-										aria-label="Notificações"
-										position="relative">
-										<Bell size={20} />
-										<Box
-											position="absolute"
-											top="2"
-											right="2"
-											w="2"
-											h="2"
-											bg="laStatus.cancelled"
-											borderRadius="full"
-											border="2px solid"
-											borderColor="surface.panel"
-										/>
-									</IconButton>
-								</PopoverTrigger>
-								<PopoverPositioner>
-									<PopoverContent
-										rounded="xl"
-										shadow="xl"
-										border="1px solid"
-										borderColor="border.subtle"
-										bg="surface.panel">
-										<PopoverHeader
-											fontWeight="bold"
-											p={4}
-											borderBottom="1px solid"
-											borderColor="border.subtle">
-											Notificações
-										</PopoverHeader>
-										<PopoverBody p={0}>
-											<Stack gap={0}>
-												{notifications.map((n) => (
-													<Box
-														key={n.id}
-														p={4}
-														_hover={{
-															bg: "surface.muted",
-														}}
-														borderBottom="1px solid"
-														borderColor="border.subtle"
-														cursor="pointer">
-														<Text fontSize="sm">
-															{n.text}
-														</Text>
-														<Text
-															fontSize="xs"
-															color="text.muted"
-															mt={1}>
-															{n.time}
-														</Text>
-													</Box>
-												))}
-											</Stack>
-										</PopoverBody>
-										<PopoverFooter p={3} textAlign="center">
-											<Link
-												asChild
-												fontSize="sm"
-												fontWeight="bold"
-												color="brand.500">
-												<RouterLink to="/notifications">
-													Ver todas as notificações
-												</RouterLink>
-											</Link>
-										</PopoverFooter>
-									</PopoverContent>
-								</PopoverPositioner>
-							</PopoverRoot>
-
 							<HStack
 								gap={3}
 								cursor="pointer"
@@ -444,15 +349,6 @@ export function Navbar() {
 
 								{isAuthenticated ? (
 									<>
-										<Button
-											asChild
-											variant="ghost"
-											justifyContent="flex-start"
-											w="full">
-											<RouterLink to="/notifications">
-												Notificações
-											</RouterLink>
-										</Button>
 										<Button
 											variant="ghost"
 											justifyContent="flex-start"

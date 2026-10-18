@@ -64,7 +64,7 @@ describe("Navbar (Visitor State)", () => {
 });
 
 describe("Navbar (Authenticated State)", () => {
-	it("renders user avatar and notifications", () => {
+	it("renders the user avatar and no notifications button", () => {
 		vi.mocked(sessionStore.useSessionStore).mockReturnValue({
 			isAuthenticated: true,
 			session: {
@@ -92,7 +92,10 @@ describe("Navbar (Authenticated State)", () => {
 
 		renderWithProviders(<Navbar />);
 
-		expect(screen.getByRole("button", { name: /Notificações/i, hidden: true })).toBeInTheDocument();
+		// There is no notifications feature yet: no button with a fake unread dot (#86)
+		expect(
+			screen.queryByRole("button", { name: /Notificações/i, hidden: true }),
+		).not.toBeInTheDocument();
 		expect(screen.getByText(/João/i)).toBeInTheDocument();
 	});
 
@@ -164,7 +167,7 @@ describe("Navbar (Authenticated State)", () => {
 		expect(screen.getByText(/João Silva/i)).toBeInTheDocument();
 	});
 
-	it("opens notifications popover", async () => {
+	it("shows no made-up notifications or links to a placeholder page", async () => {
 		const user = userEvent.setup();
 		vi.mocked(sessionStore.useSessionStore).mockReturnValue({
 			isAuthenticated: true,
@@ -193,8 +196,12 @@ describe("Navbar (Authenticated State)", () => {
 
 		renderWithProviders(<Navbar />);
 
-		const notifyButton = screen.getByRole("button", { name: /Notificações/i, hidden: true });
-		await user.click(notifyButton);
-		expect(screen.getByText(/Sua aula com Marcos foi confirmada/i)).toBeInTheDocument();
+		// Open the mobile drawer too, which also linked to /notifications
+		await user.click(screen.getByRole("button", { name: /open menu/i, hidden: true }));
+
+		expect(screen.queryByText(/Sua aula com Marcos/i)).not.toBeInTheDocument();
+		expect(
+			document.querySelector('a[href="/notifications"]'),
+		).toBeNull();
 	});
 });
