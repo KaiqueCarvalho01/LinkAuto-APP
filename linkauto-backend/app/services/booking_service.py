@@ -8,9 +8,15 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+from sqlalchemy import func
 from sqlmodel import col, or_, select, update
 
-from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
+from app.domain.booking import (
+    MIN_SLOTS_PER_BOOKING,
+    BookingStatus,
+    BookingTransitionError,
+    transition_booking,
+)
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
 from app.services.bookable_instructor import find_bookable_instructor
@@ -214,15 +220,24 @@ class BookingService:
                 msg = "Slots must be consecutive — each slot must start when the previous ends"
                 raise SlotValidationError(msg)
 
+        # Slots are only checked to start in the future when created: past ones stay available
+        if slots[0].starts_at <= datetime.now(UTC):
+            msg = "Slots must start in the future"
+            raise SlotValidationError(msg)
+
         return slots
 
     def confirm_booking(self, booking_id: str, instructor_id: str) -> Booking:
         """Move a PENDENTE booking to CONFIRMADA and notify the student by email.
 
+        A booking whose lesson has already started can't be confirmed (it is left to the
+        24h timeout).
+
         Raises:
             BookingNotFoundError: If the booking does not exist.
             BookingAccessError: If the booking belongs to another instructor.
-            BookingTransitionError: If the booking cannot transition to CONFIRMADA.
+            BookingTransitionError: If the booking cannot transition to CONFIRMADA or its
+                lesson has already started.
 
         """
         booking = self._get_booking_or_raise(booking_id)
@@ -231,6 +246,10 @@ class BookingService:
             raise BookingAccessError(msg)
 
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CONFIRMADA)
+        first_start = self._first_slot_start(booking)
+        if first_start is not None and first_start <= datetime.now(UTC):
+            msg = "The lesson has already started and can no longer be confirmed"
+            raise BookingTransitionError(msg)
         booking.status = new_status.value
         booking.confirmed_at = datetime.now(UTC)
         self._db.flush()
@@ -322,6 +341,13 @@ class BookingService:
 
     def _release_reserved_slots(self, booking: Booking) -> None:
         release_booking_slots(self._db, booking)
+
+    def _first_slot_start(self, booking: Booking) -> datetime | None:
+        return self._db.exec(
+            select(func.min(Slot.starts_at))
+            .join(BookingSlot, col(BookingSlot.slot_id) == col(Slot.id))
+            .where(col(BookingSlot.booking_id) == booking.id)
+        ).one()
 
     def _apply_late_cancellation_penalty(self, booking: Booking, now: datetime) -> None:
         # RN04: penalty if student cancels within 24h of first slot

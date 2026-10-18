@@ -10,6 +10,8 @@ from sqlmodel import Session
 from app.core.database import create_db_engine, get_db
 from app.main import create_app
 from app.models.base import Base
+from app.services.dependencies import get_document_storage
+from app.services.document_storage import InMemoryDocumentStorage
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -72,4 +74,7 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
 def client(db_session: Session) -> TestClient:
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db_session
+    # Uploaded documents stay in memory: never write test files into the real ./storage
+    storage = InMemoryDocumentStorage()
+    app.dependency_overrides[get_document_storage] = lambda: storage
     return TestClient(app)

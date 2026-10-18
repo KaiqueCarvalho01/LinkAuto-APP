@@ -1,4 +1,5 @@
 export interface ApiStudentProfile {
+  slug: string;
   full_name: string | null;
   phone: string | null;
   city: string | null;
@@ -8,6 +9,7 @@ export interface ApiStudentProfile {
 }
 
 export interface ApiInstructorProfile {
+  slug: string;
   full_name: string | null;
   phone: string | null;
   city: string | null;

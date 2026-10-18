@@ -63,8 +63,8 @@ class ProfileService:
         """
         return [
             PublicInstructorSummary(
-                id=slug,
-                slug=slug,
+                id=profile.slug,
+                slug=profile.slug,
                 full_name=profile.full_name,
                 avatar_url=profile.avatar_url,
                 city=profile.city,
@@ -81,5 +81,4 @@ class ProfileService:
                 action_radius_km=profile.action_radius_km,
             ).model_dump()
             for profile in self._repository.list_public_instructors()
-            for slug in [self._repository.ensure_instructor_slug(profile)]
         ]

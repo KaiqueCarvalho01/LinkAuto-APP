@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 
 from sqlmodel import col, func, select
 
-from app.core.slug import generate_profile_slug
 from app.models import (
     DetranStatus,
     InstructorDocument,
@@ -52,6 +51,7 @@ def normalize_email(email: str) -> str:
 def serialize_student_profile(profile: StudentProfile) -> dict[str, Any]:
     """Return the private (owner/admin) view of a student profile."""
     return {
+        "slug": profile.slug,
         "full_name": profile.full_name,
         "phone": profile.phone,
         "city": profile.city,
@@ -64,6 +64,7 @@ def serialize_student_profile(profile: StudentProfile) -> dict[str, Any]:
 def serialize_instructor_profile(profile: InstructorProfile) -> dict[str, Any]:
     """Return the private (owner/admin) view of an instructor profile."""
     return {
+        "slug": profile.slug,
         "full_name": profile.full_name,
         "phone": profile.phone,
         "city": profile.city,
@@ -201,15 +202,6 @@ class IdentityRepository:
                 .order_by(col(InstructorProfile.created_at))
             ).all()
         )
-
-    def ensure_instructor_slug(self, profile: InstructorProfile) -> str:
-        """Return the profile's public slug, generating and storing one if missing."""
-        if not profile.slug:
-            profile.slug = generate_profile_slug(
-                profile.full_name, profile.city, default_prefix="instrutor"
-            )
-            self._db.flush()
-        return profile.slug
 
     def review_instructor(
         self, instructor_id: str, *, status: str, reviewed_by: str, reason: str | None = None

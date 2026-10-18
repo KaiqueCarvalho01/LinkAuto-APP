@@ -62,6 +62,13 @@ export default function Profile({
 }: ProfileProps) {
   const user = session?.user;
   const isInstructor = user?.roles.includes("INSTRUTOR") ?? false;
+  // Public profiles are addressed by slug; internal IDs are rejected by the API
+  const publicSlug = isInstructor
+    ? user?.instructor_profile?.slug
+    : user?.student_profile?.slug;
+  const publicProfilePath = publicSlug
+    ? `${isInstructor ? "/instructors" : "/students"}/${publicSlug}`
+    : null;
   const isStudent = user?.roles.includes("ALUNO") ?? false;
   const isAdmin = user?.roles.includes("ADMIN") ?? false;
   const navigate = useNavigate();
@@ -225,10 +232,7 @@ export default function Profile({
       label: "Visualizar meu perfil público",
       iconColor: "brand.solid",
       action: () => {
-        if (user?.id) {
-          const target = isInstructor ? `/instructors/${user.id}` : `/students/${user.id}`;
-          navigate(target);
-        }
+        if (publicProfilePath) navigate(publicProfilePath);
       },
     },
     {
@@ -316,7 +320,7 @@ export default function Profile({
                   Conta {roleLabel}
                 </Text>
               </Box>
-              {user?.id && (
+              {publicProfilePath && (
                 <Button
                   size="xs"
                   variant="outline"
@@ -324,12 +328,7 @@ export default function Profile({
                   bg="whiteAlpha.250"
                   color="text.primary"
                   _hover={{ bg: "whiteAlpha.350" }}
-                  onClick={() => {
-                    const target = isInstructor
-                      ? `/instructors/${user.id}`
-                      : `/students/${user.id}`;
-                    navigate(target);
-                  }}>
+                  onClick={() => navigate(publicProfilePath)}>
                   <ExternalLink size={12} />
                   Ver perfil público
                 </Button>

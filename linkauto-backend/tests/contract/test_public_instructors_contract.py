@@ -58,7 +58,7 @@ def test_public_instructors_do_not_leak_private_data(
         assert private_field not in raw
 
 
-def test_public_instructors_generate_missing_slugs(client: TestClient, db_session: Session) -> None:
+def test_public_instructors_have_name_based_slugs(client: TestClient, db_session: Session) -> None:
     seed_instructor(db_session, "inst-no-slug", full_name="Sem Slug", city="Mogi Mirim")
     db_session.commit()
 

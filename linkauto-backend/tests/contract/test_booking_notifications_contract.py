@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, cast
 
 from app.models import InstructorProfile
 from app.services.dependencies import get_notification_service
-from app.services.identity_repository import IdentityRepository
 from app.services.notification_service import DisabledEmailGateway, NotificationService
 from tests.contract.test_us2_booking_contract import (
     _register_login,
@@ -40,8 +39,7 @@ def test_booking_by_slug_emails_the_instructor(
     _, stu_token = _register_login("ALUNO", "slug-stu@test.com", client, db_session)
     profile = db_session.get(InstructorProfile, inst_id)
     assert profile is not None
-    slug = IdentityRepository(db_session).ensure_instructor_slug(profile)
-    db_session.commit()
+    slug = profile.slug
     slot_ids = _setup_instructor_with_slots(inst_token, client)
 
     _book(client, stu_token, slug, slot_ids)

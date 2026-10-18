@@ -1,6 +1,7 @@
 export type UserRole = "ALUNO" | "INSTRUTOR" | "ADMIN";
 
 export interface StudentProfile {
+	slug?: string;
 	full_name?: string;
 	phone?: string;
 	city?: string;
@@ -11,6 +12,7 @@ export interface StudentProfile {
 }
 
 export interface InstructorProfile {
+	slug?: string;
 	full_name?: string;
 	phone?: string;
 	city?: string;
