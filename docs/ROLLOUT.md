@@ -31,6 +31,7 @@ Este documento registra decisões tomadas durante o desenvolvimento, para que po
 | Redefinição de senha com link de uso único (hash SHA-256 no banco; 30 min por e-mail; limite de 3 pedidos por hora por e-mail). **Sem e-mail**, o pedido público não gera link; um admin confirma a identidade por outro canal e gera o link (`POST /admin/users/{id}/password-reset-link`, 24 h). Pedidos públicos nunca invalidam um link de admin, e contas de admin não recebem links por essa rota. Em `development` o link também vai para o log. Redefinir a senha desconecta todas as sessões. | O pedido de redefinição não fazia nada, e não há provedor de e-mail. | #52 |
 | Os jobs rodam por CLI (`python -m app.jobs run all`), agendados **uma vez por ambiente** a cada 15 minutos. Rodar duas vezes, inclusive em paralelo, é seguro (`UPDATE` condicional por agendamento). O timeout libera os horários e avisa os dois lados. Os e-mails saem antes do commit da execução: se o commit falhar, a próxima execução pode repetir um e-mail (entrega pelo menos uma vez). | Sem agendamento, solicitações nunca expiravam, aulas nunca viravam `REALIZADA` (bloqueando avaliações) e lembretes nunca saíam. | #53 |
 | O job `token-cleanup` apaga refresh tokens e links de redefinição vencidos há mais de 1 dia. | A tabela `refresh_tokens` crescia sem limite; a folga mantém a detecção de reuso. | #54 |
+| O cadastro exige um e-mail válido; login e redefinição de senha aceitam o e-mail como foi gravado, para não bloquear contas antigas. O cadastro continua respondendo "Email already registered." para e-mails já usados: é uma troca deliberada (o usuário precisa saber o que houve, e sem provedor de e-mail não dá para avisar por e-mail), limitada a 5 cadastros por minuto por IP. Um limite por e-mail não ajudaria, porque cada teste usa um e-mail diferente. Revisitar quando houver e-mail. | Cadastro aceitava `not-an-email`. | #81 |
 
 ---
 
@@ -43,6 +44,7 @@ Este documento registra decisões tomadas durante o desenvolvimento, para que po
 - [ ] Rodar `scripts/migrate.sh` como passo de pré-deploy no pipeline (ver [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)). A pilha #50–#57 adicionou a migração `0004` (`password_reset_tokens`); a `0005` libera os horários de agendamentos já cancelados (#69); a `0006` grava os slugs públicos que faltam (#72).
 - [ ] Agendar `python -m app.jobs run all` a cada 15 minutos, **uma vez por ambiente** (ex.: `CronJob` do Kubernetes com `concurrencyPolicy: Forbid`). Ver [`infra/README.md`](../infra/README.md#-jobs-agendados-agendamentos).
 - [ ] Montar um volume persistente em `/app/storage` (documentos de instrutores).
+- [ ] Definir um `JWT_SECRET` aleatório com pelo menos 32 bytes (ex.: `openssl rand -hex 32`); a API não inicia com menos fora de desenvolvimento (#82).
 - [ ] Definir `PUBLIC_API_URL`, `FRONTEND_URL` (links nos e-mails e na redefinição de senha) e, atrás de proxy reverso, `TRUSTED_PROXIES`.
 - [ ] Combinar com a equipe de suporte o procedimento para gerar links de redefinição de senha enquanto não houver e-mail (confirmar a identidade antes).
 

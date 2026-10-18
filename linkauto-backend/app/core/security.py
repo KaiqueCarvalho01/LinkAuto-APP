@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Literal
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
@@ -108,7 +108,7 @@ def decode_token(
     """
     try:
         raw_payload = jwt.decode(token, settings.jwt_secret, algorithms=[DEFAULT_ALGORITHM])
-    except JWTError as exc:
+    except jwt.PyJWTError as exc:
         msg = "Invalid token"
         raise ValueError(msg) from exc
 

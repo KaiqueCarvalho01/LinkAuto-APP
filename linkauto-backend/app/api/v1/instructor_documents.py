@@ -7,9 +7,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 
 from app.api.deps.types import CurrentUser, DbSession
+from app.core.rate_limit import check_upload_limit
 from app.schemas.common import success_response
 from app.services.dependencies import get_instructor_document_service
 from app.services.instructor_document_service import (
+    DocumentsAlreadyApprovedError,
     DocumentTooLargeError,
     DocumentValidationError,
     InstructorDocumentService,
@@ -31,9 +33,11 @@ async def upload_documents(  # noqa: PLR0913, PLR0917 - FastAPI injects each dep
 
     May be called by the instructor themself or by an ADMIN; any other caller gets
     403. Each file must be a PDF, JPEG or PNG whose content matches its declared type
-    (400 otherwise) and at most 10 MB (413 otherwise). Files are stored in private
-    object storage under server-generated keys; only admins can view them, through
-    short-lived links. Returns 404 when the instructor does not exist.
+    (400 otherwise) and at most 10 MB (413 otherwise; the whole request is capped at
+    MAX_REQUEST_BODY_BYTES). A new upload replaces any earlier set; instructors already
+    approved get 409. Limited to 10 uploads per hour per user (429). Files are stored
+    in private object storage under server-generated keys; only admins can view them,
+    through short-lived links. Returns 404 when the instructor does not exist.
     """
     if current_user.user_id != instructor_id and "ADMIN" not in current_user.roles:
         raise HTTPException(
@@ -43,6 +47,7 @@ async def upload_documents(  # noqa: PLR0913, PLR0917 - FastAPI injects each dep
                 "message": "Cannot upload documents for another instructor.",
             },
         )
+    check_upload_limit(current_user.user_id)
     try:
         result = await service.upload_documents(
             instructor_id=instructor_id,
@@ -53,6 +58,11 @@ async def upload_documents(  # noqa: PLR0913, PLR0917 - FastAPI injects each dep
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "VALIDATION_ERROR", "message": str(exc)},
+        ) from exc
+    except DocumentsAlreadyApprovedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "CONFLICT", "message": str(exc)},
         ) from exc
     except DocumentTooLargeError as exc:
         raise HTTPException(

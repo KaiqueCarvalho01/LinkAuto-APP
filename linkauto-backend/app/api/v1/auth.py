@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 from app.api.deps.types import AppSettings, DbSession
 from app.core.rate_limit import allow_password_reset_for, check_login_account_limit, limiter
@@ -27,9 +27,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class RegisterRequest(BaseModel):
-    """Credentials and requested roles for a new account."""
+    """Credentials and requested roles for a new account (the e-mail must be valid)."""
 
-    email: str = Field(min_length=3)
+    # Validated only here: login and password reset accept any stored address unchanged
+    email: EmailStr = Field(max_length=254)
     password: str = Field(min_length=8)
     roles: list[str] = Field(min_length=1)
     # Stored on every profile created for the requested roles
@@ -89,9 +90,11 @@ def register(
 ) -> Response:
     """Register a new user account and return its profile.
 
-    Public; rate-limited to 5 requests per minute. The optional `full_name` is
-    stored on the profiles created for the roles. Registering with the ADMIN role
-    is not allowed. Returns 400 for a duplicate email, unsupported or forbidden roles.
+    Public; rate-limited to 5 requests per minute. The e-mail must be a valid
+    address (422 otherwise). The optional `full_name` is stored on the profiles
+    created for the roles. Registering with the ADMIN role is not allowed. Returns
+    400 for a duplicate email (a deliberate trade-off, see docs/ROLLOUT.md),
+    unsupported or forbidden roles.
     """
     try:
         user = auth_service.register(

@@ -11,6 +11,8 @@ logger = logging.getLogger("app.core.config")
 
 # Placeholder default that must be overridden outside development
 INSECURE_JWT_SECRET = "change-me"  # noqa: S105
+# HS256 keys must be at least as long as the SHA-256 output (RFC 7518 §3.2)
+MIN_JWT_SECRET_BYTES = 32
 
 # Local and test environments. Every other APP_ENV is treated as deployed, so a typo or a
 # "staging" environment never runs with the insecure development defaults (fail closed)
@@ -61,6 +63,8 @@ class Settings(BaseSettings):
     document_storage_path: str = Field(default="./storage", alias="DOCUMENT_STORAGE_PATH")
     # Public base URL of this API, used for links to locally stored documents
     public_api_url: str = Field(default="http://localhost:8000", alias="PUBLIC_API_URL")
+    # Largest request body accepted (413 above it); fits two 10 MB credential documents
+    max_request_body_bytes: int = Field(default=25 * 1024 * 1024, alias="MAX_REQUEST_BODY_BYTES")
     # Public base URL of the web app, used for links in e-mails (and password reset links)
     frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
     # Inbox for admin-only notifications (e.g. a new instructor to validate); unset = skipped
@@ -96,6 +100,13 @@ class Settings(BaseSettings):
                 msg = (
                     f"JWT_SECRET cannot be {INSECURE_JWT_SECRET!r} outside development, test "
                     f"and ci (APP_ENV={self.app_env!r}); set a long random secret."
+                )
+                raise ValueError(msg)
+            if len(self.jwt_secret.encode()) < MIN_JWT_SECRET_BYTES:
+                msg = (
+                    f"JWT_SECRET must be at least {MIN_JWT_SECRET_BYTES} bytes outside "
+                    f"development, test and ci (APP_ENV={self.app_env!r}); HS256 needs a key "
+                    "at least as long as its hash (RFC 7518 §3.2)."
                 )
                 raise ValueError(msg)
             if self.reset_sqlite_on_startup:

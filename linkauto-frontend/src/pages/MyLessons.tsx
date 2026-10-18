@@ -25,14 +25,18 @@ interface MyLessonsProps {
 
 export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
   const [bookings, setBookings] = useState<BookingPreview[]>([]);
-  const [loading, setLoading] = useState(false);
+  // The token the bookings on screen were loaded with: while it differs from the current
+  // one the first load is in flight (derived instead of set at the start of the effect)
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [reloading, setReloading] = useState(false);
+  const loading = reloading || (Boolean(token) && loadedFor !== token);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadBookings = useCallback(async () => {
     if (!token) return;
-    setLoading(true);
+    setReloading(true);
     setErrorMessage(null);
     try {
       const data = await bookingService.getMyBookings(token, { as: "student" });
@@ -41,25 +45,26 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
       console.error("Error loading bookings:", err);
       setErrorMessage("Não foi possível carregar seus agendamentos.");
     } finally {
-      setLoading(false);
+      setReloading(false);
     }
   }, [token]);
 
   useEffect(() => {
     let isMounted = true;
     if (!token) return;
-    setLoading(true);
-    setErrorMessage(null);
     bookingService.getMyBookings(token, { as: "student" })
       .then((data) => {
-        if (isMounted) setBookings(data);
+        if (isMounted) {
+          setBookings(data);
+          setErrorMessage(null);
+        }
       })
       .catch((err) => {
         console.error("Error loading bookings:", err);
         if (isMounted) setErrorMessage("Não foi possível carregar seus agendamentos.");
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (isMounted) setLoadedFor(token);
       });
 
     return () => {

@@ -28,7 +28,9 @@ def test_production_starts_without_redis_and_warns(caplog: pytest.LogCaptureFixt
     """Redis is optional: without it, limits are counted per process (with a warning)."""
     with caplog.at_level(logging.WARNING):
         settings = Settings(
-            APP_ENV="production", JWT_SECRET="secure", RESET_SQLITE_ON_STARTUP=False
+            APP_ENV="production",
+            JWT_SECRET="secure-real-secret-0123456789abcdef",
+            RESET_SQLITE_ON_STARTUP=False,
         )
 
     assert settings.rate_limit_storage_uri == "memory://"

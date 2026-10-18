@@ -32,13 +32,11 @@ import SearchPage from "../pages/SearchPage";
 import Register from "../pages/Register";
 import About from "../pages/About";
 import Contact from "../pages/Contact";
-import Notifications from "../pages/Notifications";
 import Help from "../pages/Help";
 import Terms from "../pages/Terms";
 import Privacy from "../pages/Privacy";
 import PasswordReset from "../pages/PasswordReset";
 import PasswordResetConfirm from "../pages/PasswordResetConfirm";
-import AuditLog from "../pages/admin/AuditLog";
 import FirstLicense from "../pages/students/FirstLicense";
 import LicensedDrivers from "../pages/students/LicensedDrivers";
 import HowItWorksStudent from "../pages/students/HowItWorks";
@@ -681,14 +679,6 @@ export default function AppRouter() {
 						}
 					/>
 					<Route
-						path="/notifications"
-						element={
-							<ProtectedRoute>
-								<Notifications />
-							</ProtectedRoute>
-						}
-					/>
-					<Route
 						path="/my-lessons"
 						element={
 							<ProtectedRoute>
@@ -713,16 +703,6 @@ export default function AppRouter() {
 							<ProtectedRoute>
 								<RoleRoute roles={["ADMIN"]}>
 									<AdminInstructorDashboardRoute />
-								</RoleRoute>
-							</ProtectedRoute>
-						}
-					/>
-					<Route
-						path="/admin/audit"
-						element={
-							<ProtectedRoute>
-								<RoleRoute roles={["ADMIN"]}>
-									<AuditLog />
 								</RoleRoute>
 							</ProtectedRoute>
 						}

@@ -40,7 +40,7 @@ Security Top 10:2023 e OWASP Cheat Sheet Series.
    - SQLite em desenvolvimento.
    - PostgreSQL + PostGIS como alvo de producao descrito nas specs.
    - `bcrypt` para hashing de senhas.
-   - `python-jose[cryptography]` para JWT.
+   - `PyJWT` para JWT (HS256; a chave precisa de pelo menos 32 bytes fora de desenvolvimento).
    - `python-multipart` para upload.
    - `boto3` para AWS SES/S3.
    - Uvicorn como servidor ASGI.

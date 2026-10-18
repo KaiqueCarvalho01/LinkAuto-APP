@@ -19,7 +19,7 @@ def test_production_config_rejects_reset_sqlite_on_startup() -> None:
     with pytest.raises(ValidationError) as exc_info:
         Settings(
             APP_ENV="production",
-            JWT_SECRET="secure-real-secret-12345",
+            JWT_SECRET="secure-real-secret-0123456789abcdef",
             RESET_SQLITE_ON_STARTUP=True,
         )
     assert "RESET_SQLITE_ON_STARTUP cannot be True outside development" in str(exc_info.value)
@@ -30,7 +30,7 @@ def test_production_config_warns_on_localhost_cors(caplog: pytest.LogCaptureFixt
     with caplog.at_level(logging.WARNING):
         Settings(
             APP_ENV="production",
-            JWT_SECRET="secure-real-secret-12345",
+            JWT_SECRET="secure-real-secret-0123456789abcdef",
             RESET_SQLITE_ON_STARTUP=False,
             CORS_ORIGINS="http://localhost:3000,https://linkauto.com",
         )
@@ -39,20 +39,35 @@ def test_production_config_warns_on_localhost_cors(caplog: pytest.LogCaptureFixt
 
 
 @pytest.mark.parametrize("app_env", ["staging", "prod", "Production ", "produciton", ""])
-def test_any_non_development_env_rejects_insecure_defaults(app_env: str) -> None:
+def test_any_non_development_env_rejects_insecure_defaults(
+    app_env: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """#79: the checks fail closed, not only for APP_ENV exactly "production"."""
+    monkeypatch.delenv("JWT_SECRET", raising=False)
     with pytest.raises(ValidationError, match="JWT_SECRET cannot be"):
         Settings(APP_ENV=app_env, RESET_SQLITE_ON_STARTUP=False)
     with pytest.raises(ValidationError, match="RESET_SQLITE_ON_STARTUP cannot be True"):
-        Settings(APP_ENV=app_env, JWT_SECRET="secure-real-secret-12345")
+        Settings(APP_ENV=app_env, JWT_SECRET="secure-real-secret-0123456789abcdef")
 
 
 @pytest.mark.parametrize("app_env", ["development", "test", "ci", "CI"])
-def test_development_like_envs_keep_the_defaults(app_env: str) -> None:
+def test_development_like_envs_keep_the_defaults(
+    app_env: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("JWT_SECRET", raising=False)
     settings = Settings(APP_ENV=app_env)
 
     assert settings.is_development_like
     assert settings.jwt_secret == "change-me"
+
+
+def test_deployed_envs_require_a_32_byte_jwt_secret() -> None:
+    """#82: HS256 keys shorter than the hash are rejected outside development."""
+    with pytest.raises(ValidationError, match="at least 32 bytes"):
+        Settings(APP_ENV="production", JWT_SECRET="x" * 31, RESET_SQLITE_ON_STARTUP=False)
+
+    settings = Settings(APP_ENV="production", JWT_SECRET="x" * 32, RESET_SQLITE_ON_STARTUP=False)
+    assert settings.jwt_secret == "x" * 32
 
 
 @pytest.mark.parametrize(
@@ -80,7 +95,7 @@ def test_production_config_does_not_require_s3() -> None:
     """S3 is optional: without a bucket, documents are kept on the local disk."""
     settings = Settings(
         APP_ENV="production",
-        JWT_SECRET="secure-real-secret-12345",
+        JWT_SECRET="secure-real-secret-0123456789abcdef",
         RESET_SQLITE_ON_STARTUP=False,
     )
 

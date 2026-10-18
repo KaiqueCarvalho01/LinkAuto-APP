@@ -16,7 +16,7 @@ from app.api import api_router
 from app.core import Settings, get_settings
 from app.core.dev_db import initialize_sqlite_dev_database
 from app.core.logging import CorrelationIDMiddleware, setup_logging
-from app.core.middleware import SecurityHeadersMiddleware
+from app.core.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from app.core.rate_limit import limiter, trusted_proxy_middleware_hosts
 from app.schemas.common import error_response
 
@@ -59,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(SlowAPIMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(MaxBodySizeMiddleware, max_bytes=settings.max_request_body_bytes)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
