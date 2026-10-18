@@ -1,17 +1,13 @@
 """Public instructor search endpoint."""
 
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
 
 from app.api.deps.types import DbSession
-from app.core.slug import generate_profile_slug
 from app.schemas.common import success_response
 from app.schemas.instructor_search import InstructorSearchFilters
 from app.services.instructor_search_service import InstructorSearchService
-
-if TYPE_CHECKING:
-    from app.models.user import InstructorProfile
 
 router = APIRouter(tags=["Instructor Search"])
 
@@ -29,18 +25,10 @@ def search_instructors(
     """
     results = InstructorSearchService(db).search(filters)
 
-    def _resolve_slug(p: InstructorProfile) -> str:
-        if not p.slug:
-            slug = generate_profile_slug(p.full_name, p.city, default_prefix="instrutor")
-            p.slug = slug
-            db.flush()
-            return slug
-        return p.slug
-
     data = [
         {
-            "id": _resolve_slug(p),
-            "slug": _resolve_slug(p),
+            "id": p.slug,
+            "slug": p.slug,
             "full_name": p.full_name,
             "city": p.city,
             "state": p.state,

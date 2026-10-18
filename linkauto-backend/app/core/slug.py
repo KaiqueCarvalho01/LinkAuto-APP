@@ -6,6 +6,9 @@ import re
 import secrets
 import unicodedata
 
+STUDENT_SLUG_PREFIX = "aluno"
+INSTRUCTOR_SLUG_PREFIX = "instrutor"
+
 
 def slugify(text: str) -> str:
     """Normalize text into an ASCII, lowercase, hyphen-separated slug."""
@@ -34,3 +37,13 @@ def generate_profile_slug(
 
     entropy = secrets.token_hex(max(2, suffix_length // 2))
     return f"{base}-{entropy}"
+
+
+def placeholder_slug(prefix: str) -> str:
+    """Return the slug a profile gets before it has a name, e.g. ``aluno-3f2a``."""
+    return generate_profile_slug(None, default_prefix=prefix)
+
+
+def is_placeholder_slug(slug: str | None, prefix: str) -> bool:
+    """Whether ``slug`` is still the nameless placeholder ``<prefix>-<hex>``."""
+    return slug is None or re.fullmatch(rf"{re.escape(prefix)}-[0-9a-f]+", slug) is not None

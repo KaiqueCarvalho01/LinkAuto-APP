@@ -40,7 +40,7 @@ Este documento registra decisões tomadas durante o desenvolvimento, para que po
 - [ ] Tornar **Backend OK** e **Frontend OK** status checks obrigatórios em `main` (Settings → Branches).
 
 ### Produção
-- [ ] Rodar `scripts/migrate.sh` como passo de pré-deploy no pipeline (ver [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)). A pilha #50–#57 adicionou a migração `0004` (`password_reset_tokens`); a `0005` libera os horários de agendamentos já cancelados (#69).
+- [ ] Rodar `scripts/migrate.sh` como passo de pré-deploy no pipeline (ver [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)). A pilha #50–#57 adicionou a migração `0004` (`password_reset_tokens`); a `0005` libera os horários de agendamentos já cancelados (#69); a `0006` grava os slugs públicos que faltam (#72).
 - [ ] Agendar `python -m app.jobs run all` a cada 15 minutos, **uma vez por ambiente** (ex.: `CronJob` do Kubernetes com `concurrencyPolicy: Forbid`). Ver [`infra/README.md`](../infra/README.md#-jobs-agendados-agendamentos).
 - [ ] Montar um volume persistente em `/app/storage` (documentos de instrutores).
 - [ ] Definir `PUBLIC_API_URL`, `FRONTEND_URL` (links nos e-mails e na redefinição de senha) e, atrás de proxy reverso, `TRUSTED_PROXIES`.

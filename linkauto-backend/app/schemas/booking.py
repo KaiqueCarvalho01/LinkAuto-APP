@@ -6,7 +6,6 @@ from typing import Any
 
 from pydantic import BaseModel, field_validator, model_validator
 
-from app.core.slug import generate_profile_slug
 from app.domain.booking import MIN_SLOTS_PER_BOOKING
 from app.schemas.datetime import UtcDateTime
 from app.schemas.public_profile import BookingInstructorSummary, BookingStudentSummary
@@ -111,18 +110,13 @@ class BookingResource(BaseModel):
         profile = getattr(data, "instructor_profile", None)
         if profile is None or isinstance(data, dict):
             return data
-        # Profiles created before slugs existed get a display-only slug here; it is
-        # persisted the next time the profile is listed publicly
-        slug = profile.slug or generate_profile_slug(
-            profile.full_name, profile.city, default_prefix="instrutor"
-        )
         values = {
             name: getattr(data, name)
             for name in cls.model_fields
             if name not in {"instructor", "student"}
         }
         values["instructor"] = BookingInstructorSummary(
-            slug=slug,
+            slug=profile.slug,
             full_name=profile.full_name,
             avatar_url=profile.avatar_url,
             city=profile.city,

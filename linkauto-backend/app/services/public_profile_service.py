@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from sqlalchemy import func
 from sqlmodel import col, select
 
-from app.core.slug import generate_profile_slug
 from app.models.booking import Booking
 from app.models.review import Review
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User
@@ -23,27 +22,11 @@ if TYPE_CHECKING:
 
 
 class PublicProfileService:
-    """Build public profile responses, generating missing profile slugs on demand."""
+    """Build public profile responses (profiles are addressed by their stored slugs)."""
 
     def __init__(self, db: Session) -> None:
         """Store the DB session used for profile and review queries."""
         self._db = db
-
-    def _ensure_instructor_slug(self, prof: InstructorProfile) -> str:
-        if not prof.slug:
-            slug = generate_profile_slug(prof.full_name, prof.city, default_prefix="instrutor")
-            prof.slug = slug
-            self._db.flush()
-            return slug
-        return prof.slug
-
-    def _ensure_student_slug(self, prof: StudentProfile) -> str:
-        if not prof.slug:
-            slug = generate_profile_slug(prof.full_name, prof.city, default_prefix="aluno")
-            prof.slug = slug
-            self._db.flush()
-            return slug
-        return prof.slug
 
     def _get_reviewer_author(self, reviewer_id: str) -> PublicReviewAuthor:
         # Check student profile first
@@ -51,7 +34,7 @@ class PublicProfileService:
             select(StudentProfile).where(col(StudentProfile.user_id) == reviewer_id)
         ).first()
         if stud and stud.full_name:
-            slug = self._ensure_student_slug(stud)
+            slug = stud.slug
             return PublicReviewAuthor(
                 id=slug,
                 slug=slug,
@@ -64,7 +47,7 @@ class PublicProfileService:
             select(InstructorProfile).where(col(InstructorProfile.user_id) == reviewer_id)
         ).first()
         if inst and inst.full_name:
-            slug = self._ensure_instructor_slug(inst)
+            slug = inst.slug
             return PublicReviewAuthor(
                 id=slug,
                 slug=slug,

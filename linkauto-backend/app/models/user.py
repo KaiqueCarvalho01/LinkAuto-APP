@@ -4,10 +4,17 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import Optional
 
-from sqlalchemy import JSON, Double, String
+from sqlalchemy import JSON, Double, String, event
 from sqlalchemy import Enum as SqlEnum
 from sqlmodel import Field, Relationship
 
+from app.core.slug import (
+    INSTRUCTOR_SLUG_PREFIX,
+    STUDENT_SLUG_PREFIX,
+    generate_profile_slug,
+    is_placeholder_slug,
+    placeholder_slug,
+)
 from app.models.base import AuditTimestampsMixin, AuditUUIDBase
 
 
@@ -71,7 +78,13 @@ class StudentProfile(AuditTimestampsMixin, table=True):
     user_id: str = Field(
         sa_type=String(36), foreign_key="users.id", ondelete="CASCADE", primary_key=True
     )
-    slug: str | None = Field(default=None, sa_type=String(150), unique=True, index=True)
+    # Set when the profile is created: public profile URLs never change by themselves
+    slug: str = Field(
+        default_factory=lambda: placeholder_slug(STUDENT_SLUG_PREFIX),
+        sa_type=String(150),
+        unique=True,
+        index=True,
+    )
     full_name: str | None = Field(default=None, sa_type=String(255))
     phone: str | None = Field(default=None, sa_type=String(30))
     city: str | None = Field(default=None, sa_type=String(120))
@@ -94,7 +107,13 @@ class InstructorProfile(AuditTimestampsMixin, table=True):
     user_id: str = Field(
         sa_type=String(36), foreign_key="users.id", ondelete="CASCADE", primary_key=True
     )
-    slug: str | None = Field(default=None, sa_type=String(150), unique=True, index=True)
+    # Set when the profile is created: public profile URLs never change by themselves
+    slug: str = Field(
+        default_factory=lambda: placeholder_slug(INSTRUCTOR_SLUG_PREFIX),
+        sa_type=String(150),
+        unique=True,
+        index=True,
+    )
     full_name: str | None = Field(default=None, sa_type=String(255))
     phone: str | None = Field(default=None, sa_type=String(30))
     city: str | None = Field(default=None, sa_type=String(120))
@@ -114,3 +133,25 @@ class InstructorProfile(AuditTimestampsMixin, table=True):
     is_active: bool = True
 
     user: User = Relationship(back_populates="instructor_profile")
+
+
+def _name_placeholder_slug(profile: StudentProfile | InstructorProfile, prefix: str) -> None:
+    """Give a profile a name-based slug the first time it has a name.
+
+    Profiles start with a placeholder slug (``aluno-3f2a``). Once a slug carries a name it
+    never changes again, so shared profile links keep working.
+    """
+    if profile.full_name and is_placeholder_slug(profile.slug, prefix):
+        profile.slug = generate_profile_slug(profile.full_name, profile.city, default_prefix=prefix)
+
+
+@event.listens_for(StudentProfile, "before_insert")
+@event.listens_for(StudentProfile, "before_update")
+def _name_student_slug(_mapper: object, _connection: object, profile: StudentProfile) -> None:
+    _name_placeholder_slug(profile, STUDENT_SLUG_PREFIX)
+
+
+@event.listens_for(InstructorProfile, "before_insert")
+@event.listens_for(InstructorProfile, "before_update")
+def _name_instructor_slug(_mapper: object, _connection: object, profile: InstructorProfile) -> None:
+    _name_placeholder_slug(profile, INSTRUCTOR_SLUG_PREFIX)
