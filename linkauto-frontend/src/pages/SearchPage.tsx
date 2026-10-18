@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, MapPin } from "lucide-react";
 import {
   Box,
@@ -51,7 +51,10 @@ export default function SearchPage({
   const [sortBy, setSortBy] = useState<"distance" | "rating" | "price_asc" | "price_desc">("distance");
   const minRating = 0;
   const [maxPrice, setMaxPrice] = useState("");
-  const [loading, setLoading] = useState(false);
+  // The filters whose results are on screen: while they differ from the current filters, a
+  // search is in flight (derived instead of set at the start of the effect)
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const [searchingManually, setSearchingManually] = useState(false);
   const [instructors, setInstructors] = useState<InstructorSummary[]>([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>();
   const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -90,9 +93,8 @@ export default function SearchPage({
     );
   };
 
-  const loadInstructors = useCallback(async () => {
-    setLoading(true);
-    const params: InstructorSearchParams = {
+  const searchParams = useMemo<InstructorSearchParams>(
+    () => ({
       latitude: coords.lat,
       longitude: coords.lng,
       radiusKm,
@@ -100,52 +102,48 @@ export default function SearchPage({
       sortBy,
       minRating: minRating > 0 ? minRating : undefined,
       maxPrice: maxPrice.trim() !== "" ? parseFloat(maxPrice) : undefined,
-    };
+    }),
+    [coords, radiusKm, specialty, sortBy, minRating, maxPrice],
+  );
+  const searchKey = JSON.stringify(searchParams);
+  const loading = searchingManually || loadedKey !== searchKey;
 
+  const showResults = useCallback((results: InstructorSummary[]) => {
+    setInstructors(results);
+    setSelectedInstructorId((current) => current ?? results[0]?.id);
+  }, []);
+
+  const loadInstructors = async () => {
+    setSearchingManually(true);
     try {
-      const results = await instructorService.searchInstructors(params, token);
-      setInstructors(results);
-      setSelectedInstructorId((current) => current ?? results[0]?.id);
+      showResults(await instructorService.searchInstructors(searchParams, token));
     } catch (err) {
       console.error("Error searching instructors:", err);
       setInstructors([]);
     } finally {
-      setLoading(false);
+      setSearchingManually(false);
     }
-  }, [coords, radiusKm, specialty, sortBy, minRating, maxPrice, token]);
+  };
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
-    const params: InstructorSearchParams = {
-      latitude: coords.lat,
-      longitude: coords.lng,
-      radiusKm,
-      specialty,
-      sortBy,
-      minRating: minRating > 0 ? minRating : undefined,
-      maxPrice: maxPrice.trim() !== "" ? parseFloat(maxPrice) : undefined,
-    };
-
-    instructorService.searchInstructors(params, token)
+    instructorService
+      .searchInstructors(searchParams, token)
       .then((results) => {
-        if (isMounted) {
-          setInstructors(results);
-          setSelectedInstructorId((current) => current ?? results[0]?.id);
-        }
+        if (isMounted) showResults(results);
       })
       .catch((err) => {
         console.error("Error searching instructors:", err);
         if (isMounted) setInstructors([]);
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (isMounted) setLoadedKey(searchKey);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [coords, radiusKm, specialty, sortBy, minRating, maxPrice, token]);
+  }, [searchParams, searchKey, token, showResults]);
 
   const selectedInstructor =
     instructors.find((item) => item.id === selectedInstructorId) ??
