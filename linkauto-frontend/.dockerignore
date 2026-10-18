@@ -4,4 +4,7 @@ dist
 .coverage
 coverage
 test-results
-
+# Local env files would be baked into the image (Vite reads .env*); keep the example only
+.env
+.env.*
+!.env.example

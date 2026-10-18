@@ -148,6 +148,22 @@ docker run --rm --env-file prod.env linkauto-backend:<tag> scripts/migrate.sh
 - **Não** rode as migrações no startup de cada réplica: várias réplicas subindo ao mesmo tempo disputam o mesmo schema.
 - Escreva migrações compatíveis com a versão anterior (*expand/contract*), já que a versão antiga continua servindo enquanto a nova sobe.
 
+### 🌐 Imagem de Produção do Frontend
+
+O frontend é um SPA estático servido por Nginx sem privilégios (porta `8080`). A URL pública da API entra no bundle em tempo de build e é **obrigatória** (o build falha sem ela):
+
+```bash
+docker build --target production \
+  --build-arg VITE_API_BASE_URL=https://api.seu-dominio.com.br/api/v1 \
+  -t linkauto-frontend:<tag> linkauto-frontend
+docker run -d -p 80:8080 linkauto-frontend:<tag>
+```
+
+- Rotas do app (`/my-lessons`, `/password-reset/confirm?token=...`) caem no `index.html`, então recarregar a página e abrir links de e-mail funciona.
+- `/assets/` tem cache longo (arquivos com hash); o `index.html` é sempre revalidado.
+- `GET /health` responde `ok` (usado pelo `HEALTHCHECK` da imagem).
+- Defina `FRONTEND_URL` do backend com a URL pública deste frontend (links nos e-mails e na redefinição de senha).
+
 ### ⏰ Jobs Agendados (Agendamentos)
 
 Estes jobs mantêm os agendamentos e os tokens em dia e precisam rodar periodicamente:
