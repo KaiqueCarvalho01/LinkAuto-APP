@@ -150,7 +150,9 @@ def test_happy_path_e2e_journey(client: TestClient, db_session: Session) -> None
     _post(client, reviews_url, {"rating": 4, "comment": "Aluno dedicado."}, headers_instructor)
 
     # 8. Only the student's review of the instructor is public
-    resp = client.get(f"/api/v1/instructors/{instructor_id}/reviews")
+    instructor_profile = db_session.get(InstructorProfile, instructor_id)
+    assert instructor_profile is not None
+    resp = client.get(f"/api/v1/instructors/{instructor_profile.slug}/reviews")
     assert resp.status_code == 200
     reviews_list = resp.json()["data"]
     assert len(reviews_list) == 1

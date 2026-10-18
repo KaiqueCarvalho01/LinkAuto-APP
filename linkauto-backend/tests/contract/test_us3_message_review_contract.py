@@ -115,7 +115,7 @@ def test_booking_messages_endpoints_contract_and_auth(
 def test_booking_reviews_endpoints_contract_and_auth(
     client: TestClient, db_session: Session
 ) -> None:
-    """POST /bookings/{id}/reviews and GET /instructors/{id}/reviews enforce rules and contract."""
+    """POST /bookings/{id}/reviews and GET /instructors/{slug}/reviews: rules and contract."""
     student_token, _, intruder_token = _seed_auth_users(db_session)
 
     # Create non-realizada booking
@@ -178,8 +178,14 @@ def test_booking_reviews_endpoints_contract_and_auth(
     assert response.json()["error"]["code"] == "CONFLICT"
 
     # 5. List instructor reviews -> 200 OK and reviews listing envelope
-    response = client.get("/api/v1/instructors/instructor-1/reviews?page=1&page_size=10")
+    # Public, by slug only: the internal ID is rejected and never returned
+    assert client.get("/api/v1/instructors/instructor-1/reviews").status_code == 404
+    profile = db_session.get(InstructorProfile, "instructor-1")
+    assert profile is not None
+    response = client.get(f"/api/v1/instructors/{profile.slug}/reviews?page=1&page_size=10")
     assert response.status_code == 200
+    assert "student-1" not in response.text
+    assert "instructor-1" not in response.text
     json_data = response.json()
     assert json_data["error"] is None
     assert isinstance(json_data["data"], list)

@@ -56,7 +56,8 @@ export interface ApiInstructorSearchResult {
 
 export interface ApiSlotResource {
   id: string;
-  instructor_id: string;
+  // Only on the instructor's own slots; the public slot list leaves it out
+  instructor_id?: string;
   starts_at: string;
   ends_at: string;
   status: string;
