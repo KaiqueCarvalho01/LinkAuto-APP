@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from sqlalchemy import func
 from sqlmodel import col, select
 
 from app.domain.booking import BookingStatus
@@ -19,6 +20,35 @@ if TYPE_CHECKING:
     from app.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
+
+
+def refresh_instructor_rating(db: Session, instructor_id: str) -> None:
+    """Recompute an instructor's cached rating from the reviews they received as instructor.
+
+    Only reviews of REALIZADA bookings count (a booking an admin later cancels drops out).
+    The profile row is locked first (``SELECT ... FOR UPDATE`` on PostgreSQL), so two
+    reviews saved at the same time can't overwrite each other's count: the second waits,
+    then recomputes with both.
+    """
+    profile = db.exec(
+        select(InstructorProfile)
+        .where(col(InstructorProfile.user_id) == instructor_id)
+        .with_for_update()
+    ).first()
+    if profile is None:
+        return
+    average, count = db.exec(
+        select(func.avg(Review.rating), func.count(col(Review.id)))
+        .join(Booking, col(Booking.id) == col(Review.booking_id))
+        .where(
+            col(Review.reviewed_id) == instructor_id,
+            col(Booking.instructor_id) == instructor_id,
+            col(Booking.status) == BookingStatus.REALIZADA.value,
+        )
+    ).one()
+    profile.rating_count = count
+    profile.rating_avg = float(average or 0.0)
+    db.flush()
 
 
 class ReviewAccessError(ValueError):
@@ -121,21 +151,9 @@ class ReviewService:
         self._db.add(review)
         self._db.flush()
 
-        # If reviewed is the instructor, update their average rating and count on InstructorProfile
+        # Reviews of the instructor feed their cached rating average (search and profile)
         if reviewed_id == booking.instructor_id:
-            profile = self._db.exec(
-                select(InstructorProfile).where(col(InstructorProfile.user_id) == reviewed_id)
-            ).first()
-            if profile:
-                current_count = profile.rating_count
-                current_avg = float(profile.rating_avg)
-
-                new_count = current_count + 1
-                new_avg = ((current_avg * current_count) + rating) / new_count
-
-                profile.rating_count = new_count
-                profile.rating_avg = new_avg
-                self._db.flush()
+            refresh_instructor_rating(self._db, reviewed_id)
 
         # E-mail the reviewed participant
         self._notifier.review_received(

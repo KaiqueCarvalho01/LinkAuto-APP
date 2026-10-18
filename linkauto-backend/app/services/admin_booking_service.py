@@ -15,6 +15,7 @@ from app.services.booking_service import (
     claim_status_change,
     release_booking_slots,
 )
+from app.services.review_service import refresh_instructor_rating
 
 if TYPE_CHECKING:
     from sqlmodel import Session
@@ -80,6 +81,9 @@ class AdminBookingService:
         )
         if cancelled:
             self._release_future_reserved_slots(booking, now)
+        # Only REALIZADA lessons count towards the instructor's rating
+        if BookingStatus.REALIZADA.value in (previous_status, new_status.value):
+            refresh_instructor_rating(self._db, booking.instructor_id)
 
         self._db.add(
             BookingStatusOverride(
