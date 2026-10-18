@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 
-from sqlalchemy import Index, String, Text
+from sqlalchemy import Index, String, Text, text
 from sqlmodel import Field, Relationship
 
 from app.models.base import AuditUUIDBase
@@ -61,20 +61,33 @@ class Booking(AuditUUIDBase, table=True):
     )
 
 
+# A slot is held by at most one booking at a time: links released by a cancellation don't count
+ACTIVE_LINK = text("released_at IS NULL")
+
+
 class BookingSlot(AuditUUIDBase, table=True):
     """Link between a booking and one of its slots.
 
-    ``slot_id`` is unique, so a slot can belong to at most one booking; rows are deleted
-    with their booking or slot.
+    A cancelled booking keeps its links (as history) with ``released_at`` set, so the slot can
+    be booked again. Among unreleased links ``slot_id`` is unique: a slot is held by at most
+    one booking at a time. Rows are deleted with their booking or slot.
     """
 
     __tablename__ = "booking_slots"
-    __table_args__ = (Index("ix_booking_slots_unique", "booking_id", "slot_id", unique=True),)
+    __table_args__ = (
+        Index("ix_booking_slots_unique", "booking_id", "slot_id", unique=True),
+        Index(
+            "uq_booking_slots_active_slot",
+            "slot_id",
+            unique=True,
+            sqlite_where=ACTIVE_LINK,
+            postgresql_where=ACTIVE_LINK,
+        ),
+    )
 
     booking_id: str = Field(sa_type=String(36), foreign_key="bookings.id", ondelete="CASCADE")
-    slot_id: str = Field(
-        sa_type=String(36), foreign_key="slots.id", ondelete="CASCADE", unique=True
-    )
+    slot_id: str = Field(sa_type=String(36), foreign_key="slots.id", ondelete="CASCADE")
+    released_at: datetime | None = None
 
     booking: Booking = Relationship(back_populates="slots")
     slot: Slot = Relationship(sa_relationship_kwargs={"lazy": "joined"})

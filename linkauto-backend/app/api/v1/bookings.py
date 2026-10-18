@@ -18,6 +18,7 @@ from app.services.booking_service import (
     BookingNotFoundError,
     BookingService,
     BookingSide,
+    InstructorUnavailableError,
     PenalizedStudentError,
     SlotValidationError,
 )
@@ -38,9 +39,10 @@ def create_booking(
     Requires the ALUNO role. `instructor_id` may be the instructor's public slug.
     Per RN02 the booking needs at least 2 consecutive one-hour slots, all available
     and belonging to that instructor; otherwise 422 is returned (also when a user
-    with both roles tries to book their own slots). Returns 403 when the
-    student is under an active cancellation penalty (RN04). The instructor is
-    notified of the new booking.
+    with both roles tries to book their own slots). Returns 404 `INSTRUCTOR_NOT_FOUND`
+    when the instructor doesn't exist or isn't DETRAN-approved and active (RN01), and
+    403 when the student is under an active cancellation penalty (RN04). The
+    instructor is notified of the new booking.
     """
     service = BookingService(db, notification_service=notifications)
     try:
@@ -67,6 +69,10 @@ def create_booking(
     except PenalizedStudentError as e:
         raise HTTPException(
             status_code=403, detail={"code": "STUDENT_PENALIZED", "message": str(e)}
+        ) from e
+    except InstructorUnavailableError as e:
+        raise HTTPException(
+            status_code=404, detail={"code": "INSTRUCTOR_NOT_FOUND", "message": str(e)}
         ) from e
 
 

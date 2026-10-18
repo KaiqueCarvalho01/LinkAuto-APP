@@ -112,9 +112,9 @@ docker compose -f infra/docker-compose.yml exec frontend npm run typecheck
 
 Por padrão, o ambiente de desenvolvimento utiliza o **SQLite** com reinicialização determinística e seed rico de teste (`RESET_SQLITE_ON_STARTUP=true`).
 
-### 🐘 Ativando o PostgreSQL + PostGIS (Produção/Staging)
+### 🐘 Ativando o PostgreSQL + PostGIS
 
-Caso queira testar a aplicação integrada com o banco relacional geoespacial PostgreSQL:
+Caso queira testar a aplicação integrada com o banco relacional geoespacial PostgreSQL (ainda como ambiente de desenvolvimento, `APP_ENV=development`, com o `JWT_SECRET` de exemplo):
 
 ```bash
 docker compose -f infra/docker-compose.yml --profile postgres up -d

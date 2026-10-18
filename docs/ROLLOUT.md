@@ -14,7 +14,7 @@ Este documento registra decisões tomadas durante o desenvolvimento, para que po
 | Os papéis (roles) são lidos do banco a cada requisição, não do JWT. | Uma consulta por chave primária por requisição; remover um papel ou desativar a conta vale na hora. | #42 |
 | Logout revoga a sessão inteira (família de refresh tokens), não só o token apresentado. | Outros dispositivos continuam logados. | #43 |
 | Limite de login por conta: 10 tentativas a cada 15 minutos por e-mail, além de 10/min por IP. | Proteção contra força bruta, com o risco de alguém bloquear um e-mail conhecido por 15 minutos. Pode virar atraso progressivo se os bloqueios gerarem suporte. | #47 |
-| **Redis é opcional.** Sem `RATE_LIMIT_STORAGE_URI=redis://...`, os limites são contados por processo e produção registra um aviso. Produção só falha no startup com `JWT_SECRET` inseguro ou `RESET_SQLITE_ON_STARTUP`. | Decisão do time. | #47 |
+| **Redis é opcional.** Sem `RATE_LIMIT_STORAGE_URI=redis://...`, os limites são contados por processo e produção registra um aviso. Fora de `development`/`test`/`ci` (qualquer outro `APP_ENV`, não só `production`, #79), a API não inicia com `JWT_SECRET` inseguro ou `RESET_SQLITE_ON_STARTUP`. | Decisão do time. | #47, #79 |
 | **S3 é opcional.** Sem `S3_BUCKET`, documentos de instrutores ficam no disco local em `DOCUMENT_STORAGE_PATH` (volume `/app/storage` na imagem de produção), com links assinados (HMAC) de 5 minutos para admins. | Decisão do time. | #46 |
 | **E-mail é opcional** (ainda não há provedor). Sem `SES_FROM_EMAIL`, as notificações são ignoradas e registradas em log (INFO) em todos os ambientes; `EMAIL_BACKEND=disabled` desliga explicitamente. | Decisão do time. Toda funcionalidade precisa funcionar sem e-mail. | #45 |
 | O desenvolvimento continua usando `create_all` + seed em vez de migrações. | Fica para o time decidir. | #39, #28 |
@@ -40,7 +40,7 @@ Este documento registra decisões tomadas durante o desenvolvimento, para que po
 - [ ] Tornar **Backend OK** e **Frontend OK** status checks obrigatórios em `main` (Settings → Branches).
 
 ### Produção
-- [ ] Rodar `scripts/migrate.sh` como passo de pré-deploy no pipeline (ver [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)). Esta pilha adiciona a migração `0004` (`password_reset_tokens`).
+- [ ] Rodar `scripts/migrate.sh` como passo de pré-deploy no pipeline (ver [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)). A pilha #50–#57 adicionou a migração `0004` (`password_reset_tokens`); a `0005` libera os horários de agendamentos já cancelados (#69).
 - [ ] Agendar `python -m app.jobs run all` a cada 15 minutos, **uma vez por ambiente** (ex.: `CronJob` do Kubernetes com `concurrencyPolicy: Forbid`). Ver [`infra/README.md`](../infra/README.md#-jobs-agendados-agendamentos).
 - [ ] Montar um volume persistente em `/app/storage` (documentos de instrutores).
 - [ ] Definir `PUBLIC_API_URL`, `FRONTEND_URL` (links nos e-mails e na redefinição de senha) e, atrás de proxy reverso, `TRUSTED_PROXIES`.

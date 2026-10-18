@@ -13,7 +13,7 @@ from sqlmodel import col, or_, select, update
 from app.domain.booking import MIN_SLOTS_PER_BOOKING, BookingStatus, transition_booking
 from app.models.booking import Booking, BookingSlot, CancelledBy
 from app.models.slot import Slot, SlotStatus
-from app.models.user import InstructorProfile
+from app.services.bookable_instructor import find_bookable_instructor
 from app.services.booking_notifier import BookingNotifier
 from app.services.penalty_service import PenaltyService
 
@@ -55,8 +55,40 @@ class BookingAccessError(PermissionError):
     """Raised when a user attempts to operate on a booking they do not participate in."""
 
 
+class InstructorUnavailableError(LookupError):
+    """Raised when the instructor doesn't exist or can't be booked (not approved, inactive)."""
+
+
 class PenalizedStudentError(ValueError):
     """Raised when a student under an RN04 penalty tries to create a booking."""
+
+
+def release_booking_slots(
+    db: Session, booking: Booking, *, starting_after: datetime | None = None
+) -> None:
+    """Release a cancelled booking's slots so they can be booked again.
+
+    Every link is marked ``released_at`` (the booking keeps them as history), and reserved
+    slots go back to DISPONIVEL; with ``starting_after``, only slots starting after it do
+    (past slots stay reserved, they can't be booked anyway).
+    """
+    now = datetime.now(UTC)
+    links = db.exec(
+        select(BookingSlot).where(
+            col(BookingSlot.booking_id) == booking.id,
+            col(BookingSlot.released_at).is_(None),
+        )
+    ).all()
+    for link in links:
+        link.released_at = now
+    slot_ids = [link.slot_id for link in links]
+    if slot_ids:
+        for slot in db.exec(select(Slot).where(col(Slot.id).in_(slot_ids))).all():
+            if slot.status != SlotStatus.RESERVADO.value:
+                continue
+            if starting_after is None or slot.starts_at > starting_after:
+                slot.status = SlotStatus.DISPONIVEL.value
+    db.flush()
 
 
 class BookingService:
@@ -82,11 +114,13 @@ class BookingService:
     ) -> Booking:
         """Create a PENDENTE booking over the given slots and reserve them.
 
-        ``instructor_id`` may be an instructor slug. The slots must be at least two consecutive,
-        available slots of that instructor (RN02). The instructor is notified by email.
+        ``instructor_id`` may be an instructor slug. The instructor must be DETRAN-approved and
+        active (RN01). The slots must be at least two consecutive, available slots of that
+        instructor (RN02). The instructor is notified by email.
 
         Raises:
             PenalizedStudentError: If the student is currently penalized (RN04).
+            InstructorUnavailableError: If the instructor isn't approved and active (RN01).
             SlotValidationError: If the slots violate RN02 or are unavailable.
 
         """
@@ -95,12 +129,12 @@ class BookingService:
             msg = "Student is currently penalized and cannot create bookings"
             raise PenalizedStudentError(msg)
 
-        # Resolve instructor slug if necessary
-
-        inst_prof = self._db.exec(
-            select(InstructorProfile).where(col(InstructorProfile.slug) == instructor_id)
-        ).first()
-        effective_instructor_id = inst_prof.user_id if inst_prof else instructor_id
+        # RN01: only approved, active instructors can be booked (slug or user ID)
+        instructor = find_bookable_instructor(self._db, instructor_id)
+        if instructor is None:
+            msg = "Instructor not found or not accepting bookings"
+            raise InstructorUnavailableError(msg)
+        effective_instructor_id = instructor.user_id
         # A user with both roles must not book (and later review) their own lessons
         if effective_instructor_id == student_id:
             msg = "You cannot book your own slots"
@@ -108,10 +142,21 @@ class BookingService:
 
         slots = self._get_bookable_slots(slot_ids, effective_instructor_id)
 
-        # Reserve slots atomically (first-write-wins)
+        # Reserve slots atomically: only slots still available are taken, so when two students
+        # book the same slots at once exactly one wins (first-write-wins)
+        reserved = self._db.exec(
+            update(Slot)
+            .where(
+                col(Slot.id).in_([slot.id for slot in slots]),
+                col(Slot.status) == SlotStatus.DISPONIVEL.value,
+            )
+            .values(status=SlotStatus.RESERVADO.value)
+        )
+        if reserved.rowcount != len(slots):
+            msg = "Slots not available: they were just booked by someone else"
+            raise SlotValidationError(msg)
         for slot in slots:
-            slot.status = SlotStatus.RESERVADO.value
-        self._db.flush()
+            self._db.refresh(slot)
 
         # Create booking
         booking = Booking(
@@ -276,13 +321,7 @@ class BookingService:
         return booking
 
     def _release_reserved_slots(self, booking: Booking) -> None:
-        # Release reserved slots back to DISPONIVEL (D12: O(1) Batch Query Optimization)
-        slot_ids = [link.slot_id for link in booking.slots]
-        if not slot_ids:
-            return
-        for slot in self._db.exec(select(Slot).where(col(Slot.id).in_(slot_ids))).all():
-            if slot.status == SlotStatus.RESERVADO.value:
-                slot.status = SlotStatus.DISPONIVEL.value
+        release_booking_slots(self._db, booking)
 
     def _apply_late_cancellation_penalty(self, booking: Booking, now: datetime) -> None:
         # RN04: penalty if student cancels within 24h of first slot

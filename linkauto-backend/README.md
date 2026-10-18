@@ -102,6 +102,9 @@ uv sync --no-dev         # Instala apenas as dependências de produção
 | Desenvolvimento (padrão) | `sqlite:///./app.db` |
 | PostgreSQL + PostGIS | `postgresql+psycopg://usuario:senha@host:5432/linkauto` |
 
+### Ambientes (`APP_ENV`)
+`development`, `test` e `ci` aceitam os padrões de desenvolvimento. **Qualquer outro valor** (`production`, `staging`, um erro de digitação...) é tratado como ambiente publicado: a API não inicia com `JWT_SECRET=change-me` nem com `RESET_SQLITE_ON_STARTUP=true`. A imagem Docker de produção já define `APP_ENV=production` e `RESET_SQLITE_ON_STARTUP=false`, então rodá-la sem um `JWT_SECRET` real falha no startup em vez de servir um banco de desenvolvimento.
+
 O driver PostgreSQL é o **psycopg 3** (`psycopg[binary]`, já incluso nas dependências). URLs `postgresql://` ou `postgres://` (como as fornecidas por provedores gerenciados) são convertidas automaticamente para `postgresql+psycopg://`.
 
 ### Rate Limiting e Proxy Reverso

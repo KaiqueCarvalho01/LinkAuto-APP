@@ -19,6 +19,7 @@ import {
 
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
+import { InstructorAgenda } from "../components/InstructorAgenda";
 
 import Home from "../pages/Home";
 import InstructorDashboard from "../pages/InstructorDashboard";
@@ -550,6 +551,14 @@ function InstructorDashboardRoute() {
 			requests={requests}
 			onAccept={confirm}
 			onReject={decline}
+			agenda={
+				<InstructorAgenda
+					token={token}
+					awaitingApproval={
+						session?.user?.instructor_profile?.detran_status !== "APROVADO"
+					}
+				/>
+			}
 			dashboardTitle="Instructor Panel"
 			pendingLabel="Minhas Reservas"
 			instructorStats={instructorStats}
