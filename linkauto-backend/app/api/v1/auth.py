@@ -32,6 +32,8 @@ class RegisterRequest(BaseModel):
     email: str = Field(min_length=3)
     password: str = Field(min_length=8)
     roles: list[str] = Field(min_length=1)
+    # Stored on every profile created for the requested roles
+    full_name: str | None = Field(default=None, max_length=255)
 
 
 class LoginRequest(BaseModel):
@@ -87,12 +89,16 @@ def register(
 ) -> Response:
     """Register a new user account and return its profile.
 
-    Public; rate-limited to 5 requests per minute. Registering with the ADMIN role
+    Public; rate-limited to 5 requests per minute. The optional `full_name` is
+    stored on the profiles created for the roles. Registering with the ADMIN role
     is not allowed. Returns 400 for a duplicate email, unsupported or forbidden roles.
     """
     try:
         user = auth_service.register(
-            email=payload.email, password=payload.password, roles=payload.roles
+            email=payload.email,
+            password=payload.password,
+            roles=payload.roles,
+            full_name=payload.full_name,
         )
     except ValueError as exc:
         raise HTTPException(

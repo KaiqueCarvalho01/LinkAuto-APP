@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import col, select
 
+from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.booking_message import BookingMessage
 from app.services.booking_notifier import BookingNotifier
@@ -21,6 +22,10 @@ logger = logging.getLogger(__name__)
 
 class BookingMessageAccessError(ValueError):
     """Raised when a user who is not the booking's student or instructor accesses its chat."""
+
+
+class BookingMessageClosedError(ValueError):
+    """Raised when posting to the chat of a cancelled booking."""
 
 
 class BookingMessageService:
@@ -43,8 +48,9 @@ class BookingMessageService:
     ) -> BookingMessage:
         """Persist a message on the booking and notify the other participant by e-mail.
 
-        Raises ``ValueError`` if the booking does not exist and
-        ``BookingMessageAccessError`` if the sender is not a participant.
+        Raises ``ValueError`` if the booking does not exist, ``BookingMessageAccessError`` if
+        the sender is not a participant and ``BookingMessageClosedError`` if the booking was
+        cancelled.
         """
         # Fetch booking to check existence and authorization
         booking = self._db.exec(select(Booking).where(col(Booking.id) == booking_id)).first()
@@ -61,6 +67,12 @@ class BookingMessageService:
             )
             msg = "You are not a participant in this booking"
             raise BookingMessageAccessError(msg)
+
+        # A cancelled booking's chat is read-only: it can't be used to keep e-mailing the
+        # other participant
+        if booking.status == BookingStatus.CANCELADA.value:
+            msg = "This booking was cancelled; its conversation is closed"
+            raise BookingMessageClosedError(msg)
 
         # Create the message
         message = BookingMessage(

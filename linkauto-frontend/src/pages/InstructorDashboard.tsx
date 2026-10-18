@@ -22,7 +22,7 @@ interface InstructorDashboardProps {
 	readonly approvedInstructors?: number;
 	readonly adminStats?: AdminStats | undefined;
 	readonly instructorStats?: InstructorStats | undefined;
-	// Extra section shown below the requests (the instructor's agenda)
+	// Extra sections shown below the requests (upcoming lessons and the agenda)
 	readonly agenda?: ReactNode;
 }
 

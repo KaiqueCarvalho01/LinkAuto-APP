@@ -17,6 +17,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
 	LogOut,
 	Calendar,
+	LayoutDashboard,
 	Search,
 	User as UserIcon,
 	Shield,
@@ -59,6 +60,33 @@ export function ProfileSidebar({ open, onOpenChange }: ProfileSidebarProps) {
 						gap={3}>
 						<RouterLink to="/admin/instructors">
 							<Shield size={20} /> Gerenciar Instrutores
+						</RouterLink>
+					</Button>
+					<Button
+						asChild
+						variant="ghost"
+						justifyContent="flex-start"
+						w="full"
+						gap={3}>
+						<RouterLink to="/profile">
+							<UserIcon size={20} /> Meu Perfil
+						</RouterLink>
+					</Button>
+				</Stack>
+			);
+		}
+
+		if (role === "INSTRUTOR") {
+			return (
+				<Stack gap={2} mt={4}>
+					<Button
+						asChild
+						variant="ghost"
+						justifyContent="flex-start"
+						w="full"
+						gap={3}>
+						<RouterLink to="/instructor/dashboard">
+							<LayoutDashboard size={20} /> Painel do instrutor
 						</RouterLink>
 					</Button>
 					<Button

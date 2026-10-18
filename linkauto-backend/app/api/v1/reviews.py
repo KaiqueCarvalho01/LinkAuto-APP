@@ -8,6 +8,7 @@ from app.api.deps.types import CurrentUser, DbSession
 from app.schemas.common import error_response, success_response
 from app.schemas.review import ReviewCreateRequest, ReviewResource
 from app.services.dependencies import Notifications
+from app.services.public_profile_service import PublicProfileService
 from app.services.review_service import (
     ReviewAccessError,
     ReviewDuplicateError,
@@ -52,22 +53,23 @@ def create_booking_review(
         return error_response(code="NOT_FOUND", message=str(e), status_code=404)
 
 
-@router.get("/instructors/{instructor_id}/reviews", response_model=dict)
+@router.get("/instructors/{slug}/reviews", response_model=dict)
 def list_instructor_reviews(
-    instructor_id: str,
+    slug: str,
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> Response:
-    """List reviews received by an instructor, newest first, paginated.
+    """List the reviews an instructor received, newest first, paginated.
 
-    Public.
+    Public. The instructor is identified by public slug only (internal IDs are not
+    accepted), and must be DETRAN-approved and active (404 otherwise). Reviews use the
+    same public shape as the profile page: reviewers by name and slug, no internal IDs.
     """
-    service = ReviewService(db)
-    reviews = service.list_instructor_reviews(
-        instructor_id=instructor_id,
-        page=page,
-        page_size=page_size,
-    )
-    resources = [ReviewResource.model_validate(r) for r in reviews]
-    return success_response(resources)
+    try:
+        reviews = PublicProfileService(db).list_instructor_reviews(
+            slug, page=page, page_size=page_size
+        )
+    except ValueError as e:
+        return error_response(code="NOT_FOUND", message=str(e), status_code=404)
+    return success_response([review.model_dump() for review in reviews])

@@ -54,7 +54,9 @@ class AuthService:
         self._refresh_tokens = refresh_tokens
         self._notification_service = notification_service
 
-    def register(self, *, email: str, password: str, roles: list[str]) -> User:
+    def register(
+        self, *, email: str, password: str, roles: list[str], full_name: str | None = None
+    ) -> User:
         """Register a user with a hashed password.
 
         Registering an instructor sends a "waiting for validation" notification to
@@ -65,7 +67,7 @@ class AuthService:
             msg = "FORBIDDEN_ROLE: Public registration with ADMIN role is not allowed."
             raise ValueError(msg)
         user = self._repository.create_user(
-            email=email, password_hash=hash_password(password), roles=roles
+            email=email, password_hash=hash_password(password), roles=roles, full_name=full_name
         )
 
         if UserRole.INSTRUTOR.value in user.roles:

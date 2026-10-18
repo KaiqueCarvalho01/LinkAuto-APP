@@ -157,6 +157,21 @@ export const bookingService = {
     return (response.data || []).map(mapApiBookingToRequest);
   },
 
+  // Confirmed lessons the instructor still has to give, soonest first
+  getUpcomingLessons: async (token: string): Promise<DashboardRequest[]> => {
+    const response = await httpClient.get<ApiBookingResource[]>(
+      "/bookings?status=CONFIRMADA&as=instructor",
+      { token },
+    );
+    const now = Date.now();
+    const firstStart = (api: ApiBookingResource) =>
+      Math.min(...(api.slots ?? []).map((link) => new Date(link.slot.starts_at).getTime()));
+    return (response.data || [])
+      .filter((api) => firstStart(api) > now)
+      .sort((a, b) => firstStart(a) - firstStart(b))
+      .map(mapApiBookingToRequest);
+  },
+
   getBookingDetail: async (bookingId: string, token: string): Promise<ApiBookingResource> => {
     const response = await httpClient.get<ApiBookingResource>(`/bookings/${bookingId}`, {
       token,

@@ -21,6 +21,10 @@ if TYPE_CHECKING:
     from sqlmodel import Session
 
 
+ANONYMOUS_NAME = "Usuário LinkAuto"
+ANONYMOUS_SLUG = "usuario-linkauto"
+
+
 class PublicProfileService:
     """Build public profile responses (profiles are addressed by their stored slugs)."""
 
@@ -55,13 +59,60 @@ class PublicProfileService:
                 avatar_url=inst.avatar_url,
             )
 
-        # Fallback
-        user = self._db.exec(select(User).where(col(User.id) == reviewer_id)).first()
-        name = user.email.split("@")[0] if user and user.email else "Usuário LinkAuto"
-        fallback_slug = f"usuario-{reviewer_id[:8]}"
-        return PublicReviewAuthor(
-            id=fallback_slug, slug=fallback_slug, full_name=name, avatar_url=None
+        # No name on either profile: never fall back to the e-mail or the internal ID
+        slug = (stud.slug if stud else None) or (inst.slug if inst else None) or ANONYMOUS_SLUG
+        return PublicReviewAuthor(id=slug, slug=slug, full_name=ANONYMOUS_NAME, avatar_url=None)
+
+    def _review_items(
+        self, reviewed_id: str, *, offset: int = 0, limit: int | None = None
+    ) -> list[PublicReviewItem]:
+        """Return the public view of the reviews a user received, newest first."""
+        stmt = (
+            select(Review)
+            .where(col(Review.reviewed_id) == reviewed_id)
+            .order_by(col(Review.created_at).desc())
+            .offset(offset)
         )
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        return [
+            PublicReviewItem(
+                id=review.id,
+                reviewer=self._get_reviewer_author(review.reviewer_id),
+                rating=review.rating,
+                comment=review.comment,
+                created_at=review.created_at.isoformat().replace("+00:00", "Z"),
+            )
+            for review in self._db.exec(stmt).all()
+        ]
+
+    def list_instructor_reviews(
+        self, slug: str, *, page: int = 1, page_size: int = 20
+    ) -> list[PublicReviewItem]:
+        """Return a page of the public reviews of an active, DETRAN-approved instructor.
+
+        Lookup is by slug only, like the public profile. Raises ``ValueError`` if no active,
+        approved instructor matches.
+        """
+        prof = self._find_public_instructor(slug)
+        return self._review_items(prof.user_id, offset=(page - 1) * page_size, limit=page_size)
+
+    def _find_public_instructor(self, slug: str) -> InstructorProfile:
+        # STRICT: lookup by slug only; raw user IDs are rejected (404)
+        prof = self._db.exec(
+            select(InstructorProfile)
+            .join(User, col(User.id) == col(InstructorProfile.user_id))
+            .where(
+                col(InstructorProfile.slug) == slug,
+                col(InstructorProfile.detran_status) == DetranStatus.APROVADO.value,
+                col(InstructorProfile.is_active).is_(True),
+                col(User.is_active).is_(True),
+            )
+        ).first()
+        if not prof:
+            msg = "Instructor not found or not approved"
+            raise ValueError(msg)
+        return prof
 
     def get_public_instructor(self, slug: str) -> PublicInstructorProfileResponse:
         """Return the public profile and reviews of an active, DETRAN-approved instructor.
@@ -69,48 +120,8 @@ class PublicProfileService:
         Lookup is by slug only (raw user IDs are not accepted). Raises ``ValueError`` if no
         active, approved instructor matches.
         """
-        # STRICT: Lookup strictly by slug. Raw UUIDs are rejected with 404
-        prof = self._db.exec(
-            select(InstructorProfile).where(
-                col(InstructorProfile.slug) == slug,
-                col(InstructorProfile.detran_status) == DetranStatus.APROVADO.value,
-                col(InstructorProfile.is_active).is_(True),
-            )
-        ).first()
-        if not prof:
-            msg = "Instructor not found or not approved"
-            raise ValueError(msg)
-
-        user = self._db.exec(
-            select(User).where(col(User.id) == prof.user_id, col(User.is_active).is_(True))
-        ).first()
-        if not user:
-            msg = "Instructor not found or not approved"
-            raise ValueError(msg)
-
-        raw_reviews = self._db.exec(
-            select(Review)
-            .where(col(Review.reviewed_id) == prof.user_id)
-            .order_by(col(Review.created_at).desc())
-        ).all()
-
-        review_items: list[PublicReviewItem] = []
-        for r in raw_reviews:
-            author = self._get_reviewer_author(r.reviewer_id)
-            created_at_str = (
-                r.created_at.isoformat().replace("+00:00", "Z")
-                if hasattr(r, "created_at") and r.created_at
-                else ""
-            )
-            review_items.append(
-                PublicReviewItem(
-                    id=r.id,
-                    reviewer=author,
-                    rating=r.rating,
-                    comment=r.comment,
-                    created_at=created_at_str,
-                )
-            )
+        prof = self._find_public_instructor(slug)
+        review_items = self._review_items(prof.user_id)
 
         return PublicInstructorProfileResponse(
             id=slug,
@@ -153,33 +164,10 @@ class PublicProfileService:
             .where(col(Booking.student_id) == prof.user_id, col(Booking.status) == "REALIZADA")
         ).one()
 
-        raw_reviews = self._db.exec(
-            select(Review)
-            .where(col(Review.reviewed_id) == prof.user_id)
-            .order_by(col(Review.created_at).desc())
-        ).all()
+        review_items = self._review_items(prof.user_id)
+        total_rating = sum(item.rating for item in review_items)
 
-        review_items: list[PublicReviewItem] = []
-        total_rating = 0
-        for r in raw_reviews:
-            total_rating += r.rating
-            author = self._get_reviewer_author(r.reviewer_id)
-            created_at_str = (
-                r.created_at.isoformat().replace("+00:00", "Z")
-                if hasattr(r, "created_at") and r.created_at
-                else ""
-            )
-            review_items.append(
-                PublicReviewItem(
-                    id=r.id,
-                    reviewer=author,
-                    rating=r.rating,
-                    comment=r.comment,
-                    created_at=created_at_str,
-                )
-            )
-
-        rating_count = len(raw_reviews)
+        rating_count = len(review_items)
         rating_avg = round(total_rating / rating_count, 1) if rating_count > 0 else 5.0
 
         return PublicStudentProfileResponse(

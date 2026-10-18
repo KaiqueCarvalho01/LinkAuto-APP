@@ -78,3 +78,44 @@ describe("sessionStore.signOut", () => {
 		expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
 	});
 });
+
+describe("sessionStore.signUp", () => {
+	beforeEach(() => {
+		vi.stubGlobal("localStorage", createMemoryStorage());
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it.each([
+		["  Ana Souza ", "Ana Souza"],
+		["   ", undefined],
+	])("sends the name typed at registration (%j)", async (typed, sent) => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			new Response(JSON.stringify({ data: {}, error: null, meta: {} }), {
+				status: 201,
+				headers: { "content-type": "application/json" },
+			}),
+		);
+		vi.stubGlobal("fetch", fetchMock);
+		const { result } = renderHook(() => useSessionStore(), { wrapper });
+
+		await act(async () => {
+			await result.current.signUp({
+				email: "ana@test.com",
+				password: "Pass1234!",
+				roles: ["ALUNO"],
+				fullName: typed,
+			});
+		});
+
+		const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
+		expect(body).toEqual({
+			email: "ana@test.com",
+			password: "Pass1234!",
+			roles: ["ALUNO"],
+			...(sent ? { full_name: sent } : {}),
+		});
+	});
+});

@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Response
 
 from app.api.deps.types import CurrentInstrutor, DbSession
 from app.schemas.common import success_response
-from app.schemas.slot import SlotCreateRequest, SlotResource
+from app.schemas.slot import PublicSlotResource, SlotCreateRequest, SlotResource
 from app.services.slot_service import SlotOverlapError, SlotService
 
 router = APIRouter(tags=["Slots"])
@@ -78,7 +78,7 @@ def list_instructor_slots(
             status_code=404, detail={"code": "INSTRUCTOR_NOT_FOUND", "message": str(e)}
         ) from e
     return success_response(
-        [SlotResource.model_validate(s).model_dump(mode="json") for s in slots],
+        [PublicSlotResource.model_validate(s).model_dump(mode="json") for s in slots],
         meta={"total": len(slots)},
     )
 

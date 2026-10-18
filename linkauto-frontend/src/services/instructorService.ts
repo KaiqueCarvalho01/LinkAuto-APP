@@ -140,15 +140,4 @@ export const instructorService = {
       },
     }));
   },
-
-  getInstructorReviews: async (
-    instructorId: string,
-    page = 1
-  ): Promise<BookingReview[]> => {
-    const response = await httpClient.get<ApiReviewResource[]>(
-      `/instructors/${instructorId}/reviews?page=${page}&page_size=20`
-    );
-    const list = response.data || [];
-    return list.map(mapApiReviewToFrontend);
-  },
 };

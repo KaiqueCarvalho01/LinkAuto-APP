@@ -143,21 +143,3 @@ class ReviewService:
         )
 
         return review
-
-    def list_instructor_reviews(
-        self,
-        instructor_id: str,
-        page: int = 1,
-        page_size: int = 20,
-    ) -> list[Review]:
-        """Return a page of reviews received by the instructor, newest first."""
-        offset = (page - 1) * page_size
-        return list(
-            self._db.exec(
-                select(Review)
-                .where(col(Review.reviewed_id) == instructor_id)
-                .order_by(col(Review.created_at).desc())
-                .offset(offset)
-                .limit(page_size)
-            ).all()
-        )

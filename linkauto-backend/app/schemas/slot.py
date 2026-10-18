@@ -45,3 +45,14 @@ class SlotResource(BaseModel):
     status: str
 
     model_config = {"from_attributes": True}
+
+
+class PublicSlotResource(BaseModel):
+    """Slot as shown to students: no internal instructor ID (the URL already names them)."""
+
+    id: str
+    starts_at: UtcDateTime
+    ends_at: UtcDateTime
+    status: str
+
+    model_config = {"from_attributes": True}

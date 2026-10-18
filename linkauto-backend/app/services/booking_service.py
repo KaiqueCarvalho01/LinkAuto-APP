@@ -69,6 +69,27 @@ class PenalizedStudentError(ValueError):
     """Raised when a student under an RN04 penalty tries to create a booking."""
 
 
+def claim_status_change(
+    db: Session, booking: Booking, expected_status: str, **values: object
+) -> None:
+    """Write ``values`` (a status change) only if the booking is still ``expected_status``.
+
+    The conditional UPDATE makes concurrent changes safe: when an instructor confirms while
+    the student cancels (or the timeout job runs), only the first one applies and the other
+    gets ``BookingTransitionError`` instead of silently overwriting it. ``booking`` is
+    refreshed with the stored values.
+    """
+    result = db.exec(
+        update(Booking)
+        .where(col(Booking.id) == booking.id, col(Booking.status) == expected_status)
+        .values(**values)
+    )
+    if result.rowcount != 1:
+        msg = "The booking was changed in the meantime; reload it and try again"
+        raise BookingTransitionError(msg)
+    db.refresh(booking)
+
+
 def release_booking_slots(
     db: Session, booking: Booking, *, starting_after: datetime | None = None
 ) -> None:
@@ -250,9 +271,13 @@ class BookingService:
         if first_start is not None and first_start <= datetime.now(UTC):
             msg = "The lesson has already started and can no longer be confirmed"
             raise BookingTransitionError(msg)
-        booking.status = new_status.value
-        booking.confirmed_at = datetime.now(UTC)
-        self._db.flush()
+        claim_status_change(
+            self._db,
+            booking,
+            booking.status,
+            status=new_status.value,
+            confirmed_at=datetime.now(UTC),
+        )
 
         # FR-021: e-mail the student
         self._notifier.booking_confirmed(booking)
@@ -324,10 +349,15 @@ class BookingService:
         new_status = transition_booking(BookingStatus(booking.status), BookingStatus.CANCELADA)
         now = datetime.now(UTC)
 
-        booking.status = new_status.value
-        booking.cancelled_at = now
-        booking.cancelled_by = cancelled_by
-        booking.cancellation_reason = reason
+        claim_status_change(
+            self._db,
+            booking,
+            booking.status,
+            status=new_status.value,
+            cancelled_at=now,
+            cancelled_by=cancelled_by,
+            cancellation_reason=reason,
+        )
 
         self._release_reserved_slots(booking)
         if cancelled_by == CancelledBy.ALUNO.value:

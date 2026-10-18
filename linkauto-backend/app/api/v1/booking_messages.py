@@ -5,9 +5,14 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Response
 
 from app.api.deps.types import CurrentUser, DbSession
+from app.core.rate_limit import check_message_limit
 from app.schemas.booking_message import BookingMessageCreateRequest, MessageResource
 from app.schemas.common import error_response, success_response
-from app.services.booking_message_service import BookingMessageAccessError, BookingMessageService
+from app.services.booking_message_service import (
+    BookingMessageAccessError,
+    BookingMessageClosedError,
+    BookingMessageService,
+)
 from app.services.dependencies import Notifications
 
 router = APIRouter(prefix="/bookings/{booking_id}", tags=["Booking Messages"])
@@ -21,12 +26,15 @@ def send_booking_message(
     db: DbSession,
     notifications: Notifications,
 ) -> Response:
-    """Post a message on a booking and notify the other participant by email.
+    """Post a message (up to 2000 characters) on a booking and notify the other participant.
 
     Any authenticated user may call it, but only the booking's student or instructor
-    may post. Returns 403 when the caller is not a participant and 404 when the
-    booking does not exist.
+    may post. Limited to 20 messages per minute per user (429). Returns 403 when the
+    caller is not a participant, 404 when the booking does not exist and 409 when it
+    was cancelled (its conversation is closed). The e-mail to the other participant
+    includes at most the first 300 characters.
     """
+    check_message_limit(current_user.user_id)
     service = BookingMessageService(db, notification_service=notifications)
     try:
         msg = service.send_message(
@@ -38,6 +46,8 @@ def send_booking_message(
         return success_response(MessageResource.model_validate(msg), status_code=201)
     except BookingMessageAccessError as e:
         return error_response(code="FORBIDDEN", message=str(e), status_code=403)
+    except BookingMessageClosedError as e:
+        return error_response(code="CONFLICT", message=str(e), status_code=409)
     except ValueError as e:
         return error_response(code="NOT_FOUND", message=str(e), status_code=404)
 
