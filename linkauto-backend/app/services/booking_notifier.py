@@ -33,6 +33,17 @@ INSTRUCTOR_FALLBACK_NAME = "Instrutor"
 STUDENT_BOOKINGS_PATH = "/my-lessons"
 INSTRUCTOR_BOOKINGS_PATH = "/instructor/dashboard"
 
+# The e-mail only previews a message; the full text is in the app
+MESSAGE_PREVIEW_LENGTH = 300
+
+
+def message_preview(content: str) -> str:
+    """Return ``content`` cut to ``MESSAGE_PREVIEW_LENGTH`` characters, marked with an ellipsis."""
+    if len(content) <= MESSAGE_PREVIEW_LENGTH:
+        return content
+    return content[:MESSAGE_PREVIEW_LENGTH].rstrip() + "…"
+
+
 _WEEKDAYS = (
     "segunda-feira",
     "terça-feira",
@@ -149,7 +160,7 @@ class BookingNotifier:
             recipient,
             lesson_time,
             sender_name=sender.name,
-            content=content,
+            content=message_preview(content),
         )
 
     def review_received(

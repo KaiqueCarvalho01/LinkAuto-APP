@@ -12,7 +12,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
-from limits import parse
+from limits import RateLimitItem, parse
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.wrappers import Limit
@@ -63,21 +63,21 @@ _login_account_limit = parse(LOGIN_ACCOUNT_LIMIT)
 # Password reset e-mails per account, so a victim's inbox can't be flooded by rotating IPs
 PASSWORD_RESET_ACCOUNT_LIMIT = "3/hour"  # noqa: S105 - a rate limit, not a password
 _password_reset_account_limit = parse(PASSWORD_RESET_ACCOUNT_LIMIT)
+# Booking messages per sender (each one e-mails the other participant)
+MESSAGE_LIMIT = "20/minute"
+_message_limit = parse(MESSAGE_LIMIT)
 
 
-def check_login_account_limit(email: str) -> None:
-    """Count a login attempt for the account; raise ``RateLimitExceeded`` (429) if over.
-
-    Uses the limiter's shared storage, so the count is global across workers.
-    """
+def _hit_or_raise(limit: RateLimitItem, namespace: str, key: str, scope: str) -> None:
+    """Count one hit on the shared storage; raise ``RateLimitExceeded`` (429) if over."""
     if not limiter.enabled:
         return
-    if not limiter.limiter.hit(_login_account_limit, "login", login_account_key(email)):
+    if not limiter.limiter.hit(limit, namespace, key):
         raise RateLimitExceeded(
             Limit(
-                _login_account_limit,
-                key_func=lambda: login_account_key(email),
-                scope="login-account",
+                limit,
+                key_func=lambda: key,
+                scope=scope,
                 per_method=False,
                 methods=None,
                 error_message=None,
@@ -86,6 +86,23 @@ def check_login_account_limit(email: str) -> None:
                 override_defaults=False,
             )
         )
+
+
+def check_login_account_limit(email: str) -> None:
+    """Count a login attempt for the account; raise ``RateLimitExceeded`` (429) if over.
+
+    Uses the limiter's shared storage, so the count is global across workers.
+    """
+    _hit_or_raise(_login_account_limit, "login", login_account_key(email), "login-account")
+
+
+def check_message_limit(user_id: str) -> None:
+    """Count a booking message sent by the user; raise ``RateLimitExceeded`` (429) if over.
+
+    Per account, not per IP: every message e-mails the other participant, so a sender must
+    not be able to flood an inbox by rotating IPs.
+    """
+    _hit_or_raise(_message_limit, "messages", f"user:{user_id}", "booking-messages")
 
 
 def allow_password_reset_for(email: str) -> bool:

@@ -6,11 +6,13 @@ from pydantic import BaseModel, Field
 
 from app.schemas.datetime import UtcDateTime
 
+MAX_MESSAGE_LENGTH = 2000
+
 
 class BookingMessageCreateRequest(BaseModel):
-    """Payload to post a non-empty message to a booking's conversation."""
+    """Payload to post a message (1 to 2000 characters) to a booking's conversation."""
 
-    content: str = Field(..., min_length=1)
+    content: str = Field(..., min_length=1, max_length=MAX_MESSAGE_LENGTH)
 
 
 class MessageResource(BaseModel):
