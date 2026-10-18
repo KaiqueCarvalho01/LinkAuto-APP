@@ -47,6 +47,7 @@ import Benefits from "../pages/instructors/Benefits";
 import Simulator from "../pages/instructors/Simulator";
 import InstructorPublicProfilePage from "../pages/InstructorPublicProfilePage";
 import StudentPublicProfilePage from "../pages/StudentPublicProfilePage";
+import { adminService, type PendingInstructors } from "../services/adminService";
 import { bookingService } from "../services/bookingService";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
@@ -301,29 +302,20 @@ function AdminInstructorDashboardRoute() {
 	const [requests, setRequests] = useState<DashboardRequest[]>([]);
 	const [adminStats, setAdminStats] = useState<AdminStats | undefined>();
 
-	const loadPending = useCallback(async (): Promise<DashboardRequest[]> => {
+	const [pendingTotal, setPendingTotal] = useState(0);
+	const [actionError, setActionError] = useState<string | null>(null);
+
+	const loadPending = useCallback(async (): Promise<PendingInstructors> => {
 		if (!token) {
-			return [];
+			return { requests: [], total: 0 };
 		}
-
-		const payload = await httpClient.get<UserAccount[]>(
-			"/admin/instructors?status=PENDENTE",
-			{
-				token,
-			},
-		);
-
-		const mapped = payload.data.map((item) => ({
-			id: item.id,
-			name: item.instructor_profile?.full_name || item.email,
-			city: item.instructor_profile?.city || "Sem cidade",
-			neighborhood: item.instructor_profile?.neighborhood || "",
-			date: "Pendente",
-			time: "Revisão",
-			specialties: item.instructor_profile?.specialties || [],
-		}));
-		return mapped;
+		return adminService.getPendingInstructors(token);
 	}, [token]);
+
+	const applyPending = useCallback((pending: PendingInstructors) => {
+		setRequests(pending.requests);
+		setPendingTotal(pending.total);
+	}, []);
 
 	const loadStats = useCallback(async (): Promise<AdminStats | undefined> => {
 		if (!token) return undefined;
@@ -356,14 +348,15 @@ function AdminInstructorDashboardRoute() {
 		let active = true;
 
 		void loadPending()
-			.then((nextRequests) => {
+			.then((pending) => {
 				if (active) {
-					setRequests(nextRequests);
+					applyPending(pending);
 				}
 			})
-			.catch(() => {
+			.catch((err) => {
+				console.error("Failed to load pending instructors:", err);
 				if (active) {
-					setRequests([]);
+					setActionError("Não foi possível carregar os instrutores pendentes.");
 				}
 			});
 
@@ -376,7 +369,7 @@ function AdminInstructorDashboardRoute() {
 		return () => {
 			active = false;
 		};
-	}, [loadPending, loadStats]);
+	}, [loadPending, loadStats, applyPending]);
 
 	const instructorData = useMemo(
 		() => ({
@@ -386,37 +379,45 @@ function AdminInstructorDashboardRoute() {
 		[session?.user?.email],
 	);
 
+	const refresh = async () => {
+		try {
+			applyPending(await loadPending());
+		} catch (err) {
+			console.error("Failed to reload pending instructors:", err);
+		}
+		const updatedStats = await loadStats();
+		if (updatedStats) setAdminStats(updatedStats);
+	};
+
+	// Failures are shown to the admin, and the list reloaded so it shows the truth
+	const decide = async (decision: () => Promise<void>, failure: string) => {
+		setActionError(null);
+		try {
+			await decision();
+		} catch (err) {
+			console.error(failure, err);
+			setActionError(failure);
+		}
+		await refresh();
+	};
+
 	const approve = async (instructorId: string) => {
-		if (!token) {
-			return;
-		}
-
-		await httpClient.patch<UserAccount>(
-			`/admin/instructors/${instructorId}/approve`,
-			{},
-			{ token },
+		if (!token) return;
+		await decide(
+			() => adminService.approveInstructor(instructorId, token),
+			"Não foi possível aprovar o instrutor. Tente novamente.",
 		);
-		setRequests(await loadPending());
-		const updatedStats = await loadStats();
-		if (updatedStats) setAdminStats(updatedStats);
 	};
 
-	const reject = async (instructorId: string) => {
-		if (!token) {
-			return;
-		}
-
-		await httpClient.patch<UserAccount>(
-			`/admin/instructors/${instructorId}/reject`,
-			{ reason: "Rejeitado pela revisao administrativa." },
-			{ token },
+	const reject = async (instructorId: string, reason?: string) => {
+		if (!token) return;
+		await decide(
+			() => adminService.rejectInstructor(instructorId, reason ?? "", token),
+			"Não foi possível recusar o instrutor. Tente novamente.",
 		);
-		setRequests(await loadPending());
-		const updatedStats = await loadStats();
-		if (updatedStats) setAdminStats(updatedStats);
 	};
 
-	const pendingCount = requests.length;
+	const pendingCount = pendingTotal;
 
 	return (
 		<InstructorDashboard
@@ -428,6 +429,9 @@ function AdminInstructorDashboardRoute() {
 			dashboardTitle="Administrative Panel"
 			pendingLabel="Pending Instructors"
 			isAdminDashboard={true}
+			requireRejectReason={true}
+			pendingTotal={pendingTotal}
+			actionError={actionError}
 			pendingInstructors={pendingCount}
 			approvedInstructors={adminStats?.approvedInstructors ?? 0}
 			adminStats={adminStats}
