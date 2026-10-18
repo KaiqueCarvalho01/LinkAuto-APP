@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import and_
@@ -12,8 +13,6 @@ from app.models.slot import Slot, SlotStatus
 from app.services.bookable_instructor import find_bookable_instructor
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from sqlmodel import Session
 
 
@@ -84,14 +83,16 @@ class SlotService:
     def list_public_slots(self, instructor_ref: str) -> list[Slot]:
         """Return the slots of a bookable instructor, identified by public slug or user ID.
 
-        Raises ``LookupError`` when the instructor doesn't exist or isn't DETRAN-approved and
-        active (RN01), so their slots are only public while they can be booked.
+        Only slots that haven't started yet are returned: past ones can't be booked. Raises
+        ``LookupError`` when the instructor doesn't exist or isn't DETRAN-approved and active
+        (RN01), so their slots are only public while they can be booked.
         """
         instructor = find_bookable_instructor(self._db, instructor_ref)
         if instructor is None:
             msg = "Instructor not found or not accepting bookings"
             raise LookupError(msg)
-        return self.list_slots(instructor.user_id)
+        now = datetime.now(UTC)
+        return [slot for slot in self.list_slots(instructor.user_id) if slot.starts_at > now]
 
     def delete_slot(self, instructor_id: str, slot_id: str) -> None:
         """Remove one of the instructor's slots.

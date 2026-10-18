@@ -64,9 +64,10 @@ def list_instructor_slots(
     instructor_id: str,
     db: DbSession,
 ) -> Response:
-    """List an instructor's slots of any status, ordered by start time.
+    """List an instructor's upcoming slots of any status, ordered by start time.
 
-    Public. The instructor may be identified by public slug or ID. Returns 404 when the
+    Public. Slots that already started are left out. The instructor may be identified
+    by public slug or ID. Returns 404 when the
     instructor doesn't exist or isn't DETRAN-approved and active (RN01).
     """
     service = SlotService(db)

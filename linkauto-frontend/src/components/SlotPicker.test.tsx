@@ -64,4 +64,27 @@ describe("SlotPicker", () => {
 
 		expect(screen.getByTestId("slot-slot-3")).toBeDisabled();
 	});
+
+	it("groups slots under their date, in order", () => {
+		const twoDays: BookingSlot[] = [
+			{
+				id: "late",
+				label: "08:00 - 09:00",
+				startAt: "2026-05-23T08:00:00.000Z",
+				endAt: "2026-05-23T09:00:00.000Z",
+				state: "DISPONIVEL",
+			},
+			...slots,
+		];
+
+		renderWithProviders(
+			<SlotPicker slots={twoDays} selectedIds={[]} onSelectedIdsChange={() => undefined} />,
+		);
+
+		const friday = screen.getByText("Sexta-feira, 22/05/2026");
+		const saturday = screen.getByText("Sábado, 23/05/2026");
+		expect(friday.compareDocumentPosition(saturday) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		// Same "08:00 - 09:00" label on both days, told apart by the heading
+		expect(screen.getAllByText("08:00 - 09:00")).toHaveLength(2);
+	});
 });

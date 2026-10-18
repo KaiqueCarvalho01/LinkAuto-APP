@@ -8,7 +8,20 @@ import {
 } from "@chakra-ui/react";
 
 import { bookingSelectionIsValid } from "../features/bookings/bookingRules";
+import { formatDateLabel } from "../services/bookingService";
 import type { BookingSlot } from "../types/booking";
+
+export const groupSlotsByDay = (slots: BookingSlot[]): [string, BookingSlot[]][] => {
+	const groups = new Map<string, BookingSlot[]>();
+	const sorted = [...slots].sort(
+		(a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+	);
+	for (const slot of sorted) {
+		const day = formatDateLabel(slot.startAt);
+		groups.set(day, [...(groups.get(day) ?? []), slot]);
+	}
+	return [...groups.entries()];
+};
 
 interface SlotPickerProps {
 	readonly slots: BookingSlot[];
@@ -22,6 +35,8 @@ export function SlotPicker({
 	onSelectedIdsChange,
 }: SlotPickerProps) {
 	const selectedSet = new Set(selectedIds);
+	// Slots from several days look identical ("08:00 - 09:00"), so group them under each date
+	const slotsByDay = groupSlotsByDay(slots);
 	const validSelection = bookingSelectionIsValid(slots, selectedIds);
 
 	const toggleSlot = (slot: BookingSlot) => {
@@ -39,53 +54,60 @@ export function SlotPicker({
 
 	return (
 		<VStack align="stretch" gap={4}>
-			<SimpleGrid columns={{ base: 2, md: 3 }} gap={3}>
-				{slots.map((slot) => {
-					const selected = selectedSet.has(slot.id);
-					const disabled = slot.state !== "DISPONIVEL";
+			{slotsByDay.map(([day, daySlots]) => (
+				<Box key={day}>
+					<Text fontSize="sm" fontWeight="800" color="text.secondary" mb={2}>
+						{day}
+					</Text>
+					<SimpleGrid columns={{ base: 2, md: 3 }} gap={3}>
+						{daySlots.map((slot) => {
+							const selected = selectedSet.has(slot.id);
+							const disabled = slot.state !== "DISPONIVEL";
 
-					let bg = "surface.panel";
-					let color = "text.primary";
-					let borderColor = "border.default";
-					let hoverProps: {
-						_hover?: { bg: string; borderColor?: string };
-					} = {
-						_hover: {
-							bg: "brand.muted",
-							borderColor: "brand.solid",
-						},
-					};
+							let bg = "surface.panel";
+							let color = "text.primary";
+							let borderColor = "border.default";
+							let hoverProps: {
+								_hover?: { bg: string; borderColor?: string };
+							} = {
+								_hover: {
+									bg: "brand.muted",
+									borderColor: "brand.solid",
+								},
+							};
 
-					if (disabled) {
-						bg = "surface.muted";
-						color = "text.muted";
-						hoverProps = {};
-					} else if (selected) {
-						bg = "brand.solid";
-						color = "text.inverse";
-						borderColor = "brand.solid";
-						hoverProps = { _hover: { bg: "brand.emphasized" } };
-					}
+							if (disabled) {
+								bg = "surface.muted";
+								color = "text.muted";
+								hoverProps = {};
+							} else if (selected) {
+								bg = "brand.solid";
+								color = "text.inverse";
+								borderColor = "brand.solid";
+								hoverProps = { _hover: { bg: "brand.emphasized" } };
+							}
 
-					return (
-						<Button
-							key={slot.id}
-							h="54px"
-							onClick={() => toggleSlot(slot)}
-							disabled={disabled}
-							border="1px solid"
-							borderColor={borderColor}
-							bg={bg}
-							color={color}
-							fontWeight="700"
-							borderRadius="xl"
-							{...hoverProps}
-							data-testid={`slot-${slot.id}`}>
-							{slot.label}
-						</Button>
-					);
-				})}
-			</SimpleGrid>
+							return (
+								<Button
+									key={slot.id}
+									h="54px"
+									onClick={() => toggleSlot(slot)}
+									disabled={disabled}
+									border="1px solid"
+									borderColor={borderColor}
+									bg={bg}
+									color={color}
+									fontWeight="700"
+									borderRadius="xl"
+									{...hoverProps}
+									data-testid={`slot-${slot.id}`}>
+									{slot.label}
+								</Button>
+							);
+						})}
+					</SimpleGrid>
+				</Box>
+			))}
 
 			<Box>
 				{selectedIds.length === 0 ? (
