@@ -169,6 +169,7 @@ function RegisterRoute() {
 	}
 
 	const handleRegister = async ({
+		name,
 		email,
 		password,
 		preferredRole,
@@ -179,7 +180,7 @@ function RegisterRoute() {
 		preferredRole: "student" | "instructor";
 	}) => {
 		const roles = preferredRole === "student" ? ["ALUNO"] : ["INSTRUTOR"];
-		await signUp({ email, password, roles });
+		await signUp({ email, password, roles, fullName: name });
 		// After successful registration, redirect to login
 		navigate("/login", { replace: true });
 	};

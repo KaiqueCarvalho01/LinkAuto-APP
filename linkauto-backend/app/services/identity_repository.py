@@ -97,8 +97,16 @@ class IdentityRepository:
 
     # --- users -----------------------------------------------------------------------------
 
-    def create_user(self, email: str, password_hash: str, roles: Iterable[str]) -> User:
+    def create_user(
+        self,
+        email: str,
+        password_hash: str,
+        roles: Iterable[str],
+        full_name: str | None = None,
+    ) -> User:
         """Create an active user with default profiles for its ALUNO/INSTRUTOR roles.
+
+        ``full_name`` (stripped; blank means none) is stored on each created profile.
 
         Raises ``ValueError`` when no role is given or a role is unsupported, and
         ``DuplicateEmailError`` when the email is already registered.
@@ -118,10 +126,11 @@ class IdentityRepository:
 
         user = User(email=normalized_email, password_hash=password_hash, roles=role_list)
         self._db.add(user)
+        name = (full_name or "").strip() or None
         if UserRole.ALUNO.value in role_list:
-            user.student_profile = StudentProfile(user_id=user.id)
+            user.student_profile = StudentProfile(user_id=user.id, full_name=name)
         if UserRole.INSTRUTOR.value in role_list:
-            user.instructor_profile = InstructorProfile(user_id=user.id)
+            user.instructor_profile = InstructorProfile(user_id=user.id, full_name=name)
         self._db.flush()
         return user
 

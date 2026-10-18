@@ -23,6 +23,7 @@ interface SessionContextValue {
 		email: string;
 		password: string;
 		roles: string[];
+		fullName?: string;
 	}) => Promise<void>;
 	signOut: () => Promise<void>;
 	clearSession: () => void;
@@ -120,15 +121,18 @@ export function SessionProvider({ children }: SessionProviderProps) {
 			email,
 			password,
 			roles,
+			fullName,
 		}: {
 			email: string;
 			password: string;
 			roles: string[];
+			fullName?: string;
 		}) => {
 			await httpClient.post("/auth/register", {
 				email,
 				password,
 				roles,
+				full_name: fullName?.trim() || undefined,
 			});
 		},
 		[],
