@@ -65,6 +65,19 @@ const isApiErrorEnvelope = (value: unknown): value is ApiErrorEnvelope => {
 	);
 };
 
+const toHttpClientError = (status: number, payload: unknown): HttpClientError => {
+	const typedPayload = isApiErrorEnvelope(payload) ? payload : null;
+	const message = typedPayload?.error.message || `HTTP ${status}`;
+	return new HttpClientError(message, status, typedPayload);
+};
+
+const toSuccessEnvelope = <TData>(payload: unknown): ApiSuccessEnvelope<TData> => {
+	if (payload === null) {
+		return { data: null as TData, error: null, meta: {} };
+	}
+	return payload as ApiSuccessEnvelope<TData>;
+};
+
 const request = async <TData>(
 	method: HttpMethod,
 	path: string,
@@ -103,54 +116,56 @@ const request = async <TData>(
 
 	const payload = await parseResponse(response);
 	if (!response.ok) {
-		if (
-			response.status === 401 &&
-			!path.includes("/auth/refresh") &&
-			!path.includes("/auth/login") &&
-			!path.includes("/auth/logout")
-		) {
-			try {
-				const refreshPayload = await httpClient.post<{ access_token: string }>("/auth/refresh", {}, {
-					headers: { "Content-Type": "application/json" }
-				});
-				const newAccessToken = refreshPayload.data.access_token;
-				if (tokenRefreshedCallback) {
-					tokenRefreshedCallback(newAccessToken);
-				}
-
-				const nextInit = { ...requestInit };
-				nextInit.headers = {
-					...nextInit.headers,
-					Authorization: `Bearer ${newAccessToken}`,
-				};
-				const nextResponse = await fetch(buildUrl(path), nextInit);
-				const nextPayload = await parseResponse(nextResponse);
-				if (nextResponse.ok) {
-					return nextPayload as ApiSuccessEnvelope<TData>;
-				}
-			} catch (refreshErr) {
-				if (authFailureCallback) {
-					authFailureCallback();
-				}
-				throw refreshErr;
+		const isAuthEndpoint =
+			path.includes("/auth/refresh") ||
+			path.includes("/auth/login") ||
+			path.includes("/auth/logout");
+		if (response.status === 401 && !isAuthEndpoint) {
+			const newAccessToken = await refreshAccessToken();
+			const nextInit = {
+				...requestInit,
+				headers: { ...requestInit.headers, Authorization: `Bearer ${newAccessToken}` },
+			};
+			// Network errors on the retry propagate as-is: they don't end the session
+			const nextResponse = await fetch(buildUrl(path), nextInit);
+			const nextPayload = await parseResponse(nextResponse);
+			if (!nextResponse.ok) {
+				throw toHttpClientError(nextResponse.status, nextPayload);
 			}
+			return toSuccessEnvelope<TData>(nextPayload);
 		}
 
-		const typedPayload = isApiErrorEnvelope(payload) ? payload : null;
-		const fallback = `HTTP ${response.status}`;
-		const message = typedPayload?.error.message || fallback;
-		throw new HttpClientError(message, response.status, typedPayload);
+		throw toHttpClientError(response.status, payload);
 	}
 
-	if (payload === null) {
-		return {
-			data: null as TData,
-			error: null,
-			meta: {},
-		};
-	}
+	return toSuccessEnvelope<TData>(payload);
+};
 
-	return payload as ApiSuccessEnvelope<TData>;
+// One refresh at a time: refresh tokens are single-use, and presenting one twice is treated
+// by the API as theft (the whole session is revoked). Concurrent 401s share this promise.
+let refreshInFlight: Promise<string> | null = null;
+
+const refreshAccessToken = (): Promise<string> => {
+	refreshInFlight ??= (async () => {
+		try {
+			const refreshed = await request<{ access_token: string }>("POST", "/auth/refresh", {
+				body: {},
+			});
+			const newAccessToken = refreshed.data.access_token;
+			tokenRefreshedCallback?.(newAccessToken);
+			return newAccessToken;
+		} catch (err) {
+			// Only a rejected refresh token ends the session; a 429, 5xx or network error
+			// leaves it alone so the user can retry
+			if (err instanceof HttpClientError && err.status === 401) {
+				authFailureCallback?.();
+			}
+			throw err;
+		} finally {
+			refreshInFlight = null;
+		}
+	})();
+	return refreshInFlight;
 };
 
 export const httpClient = {
