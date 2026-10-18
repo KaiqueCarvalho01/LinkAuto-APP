@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     document_storage_path: str = Field(default="./storage", alias="DOCUMENT_STORAGE_PATH")
     # Public base URL of this API, used for links to locally stored documents
     public_api_url: str = Field(default="http://localhost:8000", alias="PUBLIC_API_URL")
+    # Largest request body accepted (413 above it); fits two 10 MB credential documents
+    max_request_body_bytes: int = Field(default=25 * 1024 * 1024, alias="MAX_REQUEST_BODY_BYTES")
     # Public base URL of the web app, used for links in e-mails (and password reset links)
     frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
     # Inbox for admin-only notifications (e.g. a new instructor to validate); unset = skipped

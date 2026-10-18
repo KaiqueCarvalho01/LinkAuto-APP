@@ -271,8 +271,12 @@ class IdentityRepository:
 
     def purge_instructor_documents(self, instructor_id: str) -> list[str]:
         """Delete the instructor's document records and return their storage keys."""
+        return self.delete_documents(self.list_documents(instructor_id))
+
+    def delete_documents(self, documents: Iterable[InstructorDocument]) -> list[str]:
+        """Delete the given document records and return their storage keys."""
         purged_keys: list[str] = []
-        for document in self.list_documents(instructor_id):
+        for document in documents:
             purged_keys.extend(
                 key for key in (document.detran_credential_url, document.criminal_record_url) if key
             )

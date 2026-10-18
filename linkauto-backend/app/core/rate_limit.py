@@ -63,6 +63,9 @@ _login_account_limit = parse(LOGIN_ACCOUNT_LIMIT)
 # Password reset e-mails per account, so a victim's inbox can't be flooded by rotating IPs
 PASSWORD_RESET_ACCOUNT_LIMIT = "3/hour"  # noqa: S105 - a rate limit, not a password
 _password_reset_account_limit = parse(PASSWORD_RESET_ACCOUNT_LIMIT)
+# Credential document uploads per user (each one stores two files of up to 10 MB)
+UPLOAD_LIMIT = "10/hour"
+_upload_limit = parse(UPLOAD_LIMIT)
 # Booking messages per sender (each one e-mails the other participant)
 MESSAGE_LIMIT = "20/minute"
 _message_limit = parse(MESSAGE_LIMIT)
@@ -116,3 +119,8 @@ def allow_password_reset_for(email: str) -> bool:
     return limiter.limiter.hit(
         _password_reset_account_limit, "password-reset", login_account_key(email)
     )
+
+
+def check_upload_limit(user_id: str) -> None:
+    """Count a document upload by the user; raise ``RateLimitExceeded`` (429) if over."""
+    _hit_or_raise(_upload_limit, "uploads", f"user:{user_id}", "document-uploads")
