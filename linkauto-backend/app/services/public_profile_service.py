@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from sqlalchemy import func
 from sqlmodel import col, select
 
+from app.domain.booking import BookingStatus
 from app.models.booking import Booking
 from app.models.review import Review
 from app.models.user import DetranStatus, InstructorProfile, StudentProfile, User
@@ -20,6 +21,8 @@ from app.schemas.public_profile import (
 if TYPE_CHECKING:
     from sqlmodel import Session
 
+
+type ReviewSide = Literal["instructor", "student"]
 
 ANONYMOUS_NAME = "Usuário LinkAuto"
 ANONYMOUS_SLUG = "usuario-linkauto"
@@ -64,12 +67,30 @@ class PublicProfileService:
         return PublicReviewAuthor(id=slug, slug=slug, full_name=ANONYMOUS_NAME, avatar_url=None)
 
     def _review_items(
-        self, reviewed_id: str, *, offset: int = 0, limit: int | None = None
+        self,
+        reviewed_id: str,
+        side: ReviewSide,
+        *,
+        offset: int = 0,
+        limit: int | None = None,
     ) -> list[PublicReviewItem]:
-        """Return the public view of the reviews a user received, newest first."""
+        """Return the public reviews a user received on one side of their bookings, newest first.
+
+        A user with both roles is reviewed as instructor by their students and as student by
+        their instructors; each public profile only shows its own side. Only reviews of
+        REALIZADA bookings are shown.
+        """
+        booking_side = (
+            col(Booking.instructor_id) if side == "instructor" else col(Booking.student_id)
+        )
         stmt = (
             select(Review)
-            .where(col(Review.reviewed_id) == reviewed_id)
+            .join(Booking, col(Booking.id) == col(Review.booking_id))
+            .where(
+                col(Review.reviewed_id) == reviewed_id,
+                booking_side == reviewed_id,
+                col(Booking.status) == BookingStatus.REALIZADA.value,
+            )
             .order_by(col(Review.created_at).desc())
             .offset(offset)
         )
@@ -95,7 +116,9 @@ class PublicProfileService:
         approved instructor matches.
         """
         prof = self._find_public_instructor(slug)
-        return self._review_items(prof.user_id, offset=(page - 1) * page_size, limit=page_size)
+        return self._review_items(
+            prof.user_id, "instructor", offset=(page - 1) * page_size, limit=page_size
+        )
 
     def _find_public_instructor(self, slug: str) -> InstructorProfile:
         # STRICT: lookup by slug only; raw user IDs are rejected (404)
@@ -121,7 +144,7 @@ class PublicProfileService:
         active, approved instructor matches.
         """
         prof = self._find_public_instructor(slug)
-        review_items = self._review_items(prof.user_id)
+        review_items = self._review_items(prof.user_id, "instructor")
 
         return PublicInstructorProfileResponse(
             id=slug,
@@ -164,7 +187,7 @@ class PublicProfileService:
             .where(col(Booking.student_id) == prof.user_id, col(Booking.status) == "REALIZADA")
         ).one()
 
-        review_items = self._review_items(prof.user_id)
+        review_items = self._review_items(prof.user_id, "student")
         total_rating = sum(item.rating for item in review_items)
 
         rating_count = len(review_items)

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { Award, Calendar, Check, Clock, Star, Users, X } from "lucide-react";
-import { Box, Button, HStack, Stack, Text, Badge } from "@chakra-ui/react";
+import { AlertTriangle, Award, Calendar, Check, Clock, Star, Users, X } from "lucide-react";
+import { Box, Button, HStack, Stack, Text, Textarea, Badge } from "@chakra-ui/react";
 
 import type { AdminStats, DashboardRequest, InstructorStats } from "../types/session";
 
@@ -13,7 +13,7 @@ interface InstructorDashboardProps {
 	readonly instructorData?: InstructorData;
 	readonly requests?: DashboardRequest[];
 	readonly onAccept?: (requestId: string) => Promise<void> | void;
-	readonly onReject?: (requestId: string) => Promise<void> | void;
+	readonly onReject?: (requestId: string, reason?: string) => Promise<void> | void;
 	readonly onViewStudents?: () => void;
 	readonly dashboardTitle?: string;
 	readonly pendingLabel?: string;
@@ -24,6 +24,12 @@ interface InstructorDashboardProps {
 	readonly instructorStats?: InstructorStats | undefined;
 	// Extra sections shown below the requests (upcoming lessons and the agenda)
 	readonly agenda?: ReactNode;
+	// Ask for a reason before rejecting (sent to the instructor by e-mail)
+	readonly requireRejectReason?: boolean;
+	// Total pending, when the list shows only a page of them
+	readonly pendingTotal?: number;
+	// Error from the last approve/reject, shown above the list
+	readonly actionError?: string | null;
 }
 
 export default function InstructorDashboard({
@@ -40,15 +46,21 @@ export default function InstructorDashboard({
 	adminStats,
 	instructorStats,
 	agenda,
+	requireRejectReason = false,
+	pendingTotal,
+	actionError = null,
 }: InstructorDashboardProps) {
 	const [processingId, setProcessingId] = useState<string | null>(null);
+	const [rejectingId, setRejectingId] = useState<string | null>(null);
+	const [rejectReason, setRejectReason] = useState("");
 
 	const titleName = instructorData?.name ?? "LinkAuto";
 	const rating = instructorData?.rating ?? 5;
 
 	const handleAction = async (
-		action: ((requestId: string) => Promise<void> | void) | undefined,
+		action: ((requestId: string, reason?: string) => Promise<void> | void) | undefined,
 		requestId: string,
+		reason?: string,
 	) => {
 		if (!action) {
 			return;
@@ -56,11 +68,13 @@ export default function InstructorDashboard({
 
 		setProcessingId(requestId);
 		try {
-			await action(requestId);
+			await action(requestId, reason);
 		} finally {
 			setProcessingId(null);
 		}
 	};
+
+	const MIN_REJECT_REASON = 3;
 
 	return (
 		<Stack
@@ -338,10 +352,27 @@ export default function InstructorDashboard({
 							fontSize="xs"
 							fontWeight="800"
 							letterSpacing="0.08em">
-							{requests.length} PENDENTES
+							{pendingTotal ?? requests.length} PENDENTES
 						</Text>
 					</Box>
 				</HStack>
+
+				{actionError && (
+					<HStack
+						p={4}
+						bg="red.50"
+						color="red.700"
+						borderRadius="xl"
+						border="1px solid"
+						borderColor="red.200"
+						gap={2}
+						role="alert">
+						<AlertTriangle size={18} aria-hidden="true" />
+						<Text fontSize="sm" fontWeight="600">
+							{actionError}
+						</Text>
+					</HStack>
+				)}
 
 				{requests.length > 0 ? (
 					requests.map((request) => {
@@ -380,8 +411,7 @@ export default function InstructorDashboard({
 												fontWeight="700"
 												color="text.muted"
 												textTransform="uppercase">
-												{request.neighborhood ??
-													request.city}
+												{request.neighborhood || request.city}
 											</Text>
 										</Stack>
 									</HStack>
@@ -430,7 +460,47 @@ export default function InstructorDashboard({
 										</HStack>
 									</HStack>
 
-									<HStack gap={3}>
+									{rejectingId === request.id ? (
+										<Stack gap={2}>
+											<Text asChild fontSize="xs" fontWeight="700" color="text.secondary">
+												<label htmlFor={`reject-reason-${request.id}`}>
+													Motivo da recusa (enviado ao instrutor)
+												</label>
+											</Text>
+											<Textarea
+												id={`reject-reason-${request.id}`}
+												value={rejectReason}
+												onChange={(e) => setRejectReason(e.target.value)}
+												maxLength={500}
+												placeholder="Ex.: a credencial DETRAN enviada está vencida."
+												bg="surface.canvas"
+												borderRadius="xl"
+											/>
+											<HStack gap={2} justify="flex-end">
+												<Button
+													size="sm"
+													variant="outline"
+													disabled={isProcessing}
+													onClick={() => setRejectingId(null)}>
+													Voltar
+												</Button>
+												<Button
+													size="sm"
+													colorPalette="red"
+													loading={isProcessing}
+													disabled={rejectReason.trim().length < MIN_REJECT_REASON}
+													onClick={() => {
+														void handleAction(onReject, request.id, rejectReason.trim()).then(
+															() => setRejectingId(null),
+														);
+													}}>
+													Confirmar recusa
+												</Button>
+											</HStack>
+										</Stack>
+									) : null}
+
+									<HStack gap={3} hidden={rejectingId === request.id}>
 										<Button
 											flex="1"
 											h="46px"
@@ -438,6 +508,11 @@ export default function InstructorDashboard({
 											borderColor="border.default"
 											color="text.secondary"
 											onClick={() => {
+												if (requireRejectReason) {
+													setRejectReason("");
+													setRejectingId(request.id);
+													return;
+												}
 												void handleAction(
 													onReject,
 													request.id,

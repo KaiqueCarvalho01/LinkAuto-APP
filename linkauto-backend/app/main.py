@@ -1,7 +1,7 @@
 """FastAPI application factory and ASGI entry point for the LinkAuto API."""
 
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -21,7 +21,22 @@ from app.core.rate_limit import limiter, trusted_proxy_middleware_hosts
 from app.schemas.common import error_response
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Sequence
+
+
+def _serializable_issues(errors: Sequence[Any]) -> list[dict[str, Any]]:
+    """Return validation errors as JSON-safe dicts.
+
+    Errors raised by custom validators carry the original exception in ``ctx``, which
+    can't be serialized; it is replaced by its message (otherwise the 422 becomes a 500).
+    """
+    issues = []
+    for error in errors:
+        issue = dict(error)
+        if "ctx" in issue:
+            issue["ctx"] = {key: str(value) for key, value in issue["ctx"].items()}
+        issues.append(issue)
+    return issues
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -84,7 +99,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             code="VALIDATION_ERROR",
             message="Request validation failed.",
             status_code=422,
-            meta={"issues": exc.errors()},
+            meta={"issues": _serializable_issues(exc.errors())},
         )
 
     @app.exception_handler(IntegrityError)

@@ -119,3 +119,38 @@ describe("sessionStore.signUp", () => {
 		});
 	});
 });
+
+describe("sessionStore.updateUser", () => {
+	beforeEach(() => {
+		vi.stubGlobal("localStorage", createMemoryStorage());
+		localStorage.setItem(
+			SESSION_STORAGE_KEY,
+			JSON.stringify({
+				accessToken: "access-token",
+				tokenType: "bearer",
+				user: { email: "ana@test.com", roles: ["ALUNO"], student_profile: { full_name: "Ana" } },
+			}),
+		);
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("updates the signed-in user in memory and in storage", () => {
+		const { result } = renderHook(() => useSessionStore(), { wrapper });
+		const edited = {
+			...(result.current.session?.user as NonNullable<typeof result.current.session>["user"]),
+			student_profile: { full_name: "Ana Souza" },
+		};
+
+		act(() => {
+			result.current.updateUser(edited);
+		});
+
+		expect(result.current.session?.user.student_profile?.full_name).toBe("Ana Souza");
+		expect(result.current.session?.accessToken).toBe("access-token");
+		const stored = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) ?? "{}");
+		expect(stored.user.student_profile.full_name).toBe("Ana Souza");
+	});
+});

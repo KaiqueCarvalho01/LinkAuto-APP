@@ -51,6 +51,44 @@ interface MenuItem {
   readonly action?: () => void;
 }
 
+type ProfileSide = "instructor" | "student";
+
+interface ProfileFormValues {
+  fullName: string;
+  phone: string;
+  city: string;
+  state: string;
+  licenseType: string;
+  bio: string;
+  pricePerHour: string;
+  actionRadiusKm: string;
+  specialtiesText: string;
+}
+
+// The stored values of one of the user's profiles, as form strings
+const formValuesFor = (user: UserAccount | undefined, side: ProfileSide): ProfileFormValues => {
+  const profile = side === "instructor" ? user?.instructor_profile : user?.student_profile;
+  const instructor = user?.instructor_profile;
+  return {
+    fullName: profile?.full_name ?? "",
+    phone: profile?.phone ?? "",
+    city: profile?.city ?? "",
+    state: profile?.state ?? "",
+    licenseType: (user?.student_profile?.license_type as string | undefined) ?? "NENHUMA",
+    bio: instructor?.bio ?? "",
+    pricePerHour: instructor?.price_per_hour?.toString() ?? "",
+    actionRadiusKm: instructor?.action_radius_km?.toString() ?? "",
+    specialtiesText: instructor?.specialties?.join(", ") ?? "",
+  };
+};
+
+const formatPrice = (value: string): string => {
+  const price = parseFloat(value);
+  return Number.isFinite(price)
+    ? price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    : "Não informado";
+};
+
 export default function Profile({
   session,
   token,
@@ -73,76 +111,68 @@ export default function Profile({
   const isAdmin = user?.roles.includes("ADMIN") ?? false;
   const navigate = useNavigate();
 
-  // Form State
+  // Which profile the card shows and edits; users with both roles can switch
+  const [side, setSide] = useState<ProfileSide>(isInstructor ? "instructor" : "student");
+  const editsInstructor = side === "instructor";
+  const hasBothProfiles = isInstructor && isStudent;
+  // What is stored: the read-only view always shows this, never unsaved form values
+  const saved = formValuesFor(user, side);
+
+  // Form State, (re)seeded from the stored profile whenever editing starts
   const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState<string>(
-    isInstructor
-      ? (user?.instructor_profile?.full_name as string ?? "")
-      : (user?.student_profile?.full_name as string ?? "")
-  );
-  const [phone, setPhone] = useState<string>(
-    isInstructor
-      ? (user?.instructor_profile?.phone as string ?? "")
-      : (user?.student_profile?.phone as string ?? "")
-  );
-  const [city, setCity] = useState<string>(
-    isInstructor
-      ? (user?.instructor_profile?.city as string ?? "")
-      : (user?.student_profile?.city as string ?? "")
-  );
-  const [state, setState] = useState<string>(
-    isInstructor
-      ? (user?.instructor_profile?.state as string ?? "")
-      : (user?.student_profile?.state as string ?? "")
-  );
-
+  const [fullName, setFullName] = useState<string>(saved.fullName);
+  const [phone, setPhone] = useState<string>(saved.phone);
+  const [city, setCity] = useState<string>(saved.city);
+  const [state, setState] = useState<string>(saved.state);
   // Student specific form state
-  const [licenseType, setLicenseType] = useState<string>(
-    user?.student_profile?.license_type as string ?? "NENHUMA"
-  );
-
+  const [licenseType, setLicenseType] = useState<string>(saved.licenseType);
   // Instructor specific form state
-  const [bio, setBio] = useState<string>(user?.instructor_profile?.bio as string ?? "");
-  const [pricePerHour, setPricePerHour] = useState<string>(
-    user?.instructor_profile?.price_per_hour?.toString() ?? "70"
-  );
-  const [actionRadiusKm, setActionRadiusKm] = useState<string>(
-    user?.instructor_profile?.action_radius_km?.toString() ?? "15"
-  );
-  const [specialtiesText, setSpecialtiesText] = useState<string>(
-    user?.instructor_profile?.specialties?.join(", ") ?? ""
-  );
+  const [bio, setBio] = useState<string>(saved.bio);
+  const [pricePerHour, setPricePerHour] = useState<string>(saved.pricePerHour);
+  const [actionRadiusKm, setActionRadiusKm] = useState<string>(saved.actionRadiusKm);
+  const [specialtiesText, setSpecialtiesText] = useState<string>(saved.specialtiesText);
+
+  const seedForm = (nextSide: ProfileSide) => {
+    const values = formValuesFor(user, nextSide);
+    setFullName(values.fullName);
+    setPhone(values.phone);
+    setCity(values.city);
+    setState(values.state);
+    setLicenseType(values.licenseType);
+    setBio(values.bio);
+    setPricePerHour(values.pricePerHour);
+    setActionRadiusKm(values.actionRadiusKm);
+    setSpecialtiesText(values.specialtiesText);
+  };
+
+  const startEditing = () => {
+    seedForm(side);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    setIsEditing(true);
+  };
+
+  const switchSide = (nextSide: ProfileSide) => {
+    setSide(nextSide);
+    if (isEditing) seedForm(nextSide);
+  };
 
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const calculateCompleteness = () => {
-    if (isInstructor) {
-      const profile = user?.instructor_profile;
-      const fields = [
-        fullName.trim(),
-        phone.trim(),
-        city.trim(),
-        state.trim(),
-        bio.trim(),
-        profile?.specialties && profile.specialties.length > 0 ? "yes" : "",
-        pricePerHour && parseFloat(pricePerHour) > 0 ? "yes" : "",
-        actionRadiusKm && parseInt(actionRadiusKm, 10) > 0 ? "yes" : "",
-      ];
-      const filled = fields.filter(Boolean).length;
-      return Math.round((filled / fields.length) * 100);
-    } else {
-      const fields = [
-        fullName.trim(),
-        phone.trim(),
-        city.trim(),
-        state.trim(),
-        licenseType && licenseType !== "NENHUMA" ? "yes" : "",
-      ];
-      const filled = fields.filter(Boolean).length;
-      return Math.round((filled / fields.length) * 100);
-    }
+    const common = [saved.fullName, saved.phone, saved.city, saved.state].map((v) => v.trim());
+    const fields = editsInstructor
+      ? [
+          ...common,
+          saved.bio.trim(),
+          saved.specialtiesText.trim(),
+          parseFloat(saved.pricePerHour) > 0 ? "yes" : "",
+          parseInt(saved.actionRadiusKm, 10) > 0 ? "yes" : "",
+        ]
+      : [...common, saved.licenseType !== "NENHUMA" ? "yes" : ""];
+    return Math.round((fields.filter(Boolean).length / fields.length) * 100);
   };
 
   const completeness = calculateCompleteness();
@@ -155,7 +185,7 @@ export default function Profile({
 
     try {
       let updatedUser: UserAccount;
-      if (isInstructor) {
+      if (editsInstructor) {
         updatedUser = await profileService.updateInstructorProfile(
           {
             fullName: fullName.trim() !== "" ? fullName : undefined,
@@ -298,7 +328,7 @@ export default function Profile({
               fontFamily="heading"
               fontSize={{ base: "xl", md: "2xl" }}
               fontWeight="800">
-              {fullName || user?.email.split("@")[0] || "Usuário"}
+              {saved.fullName || user?.email.split("@")[0] || "Usuário"}
             </Text>
             <Text color="text.muted" fontWeight="600" fontSize="sm">
               {user?.email}
@@ -402,11 +432,12 @@ export default function Profile({
               Informações do Perfil
             </Heading>
             {!isEditing ? (
-              <Button size="sm" onClick={() => setIsEditing(true)}>
+              <Button size="sm" onClick={startEditing}>
                 Editar Perfil
               </Button>
             ) : (
               <HStack gap={2}>
+                {/* Unsaved changes are dropped: the card shows the stored profile again */}
                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
                   Cancelar
                 </Button>
@@ -422,6 +453,22 @@ export default function Profile({
               </HStack>
             )}
           </HStack>
+
+          {hasBothProfiles && (
+            <HStack gap={2} role="group" aria-label="Perfil exibido">
+              {(["instructor", "student"] as const).map((option) => (
+                <Button
+                  key={option}
+                  size="xs"
+                  variant={side === option ? "solid" : "outline"}
+                  aria-pressed={side === option}
+                  disabled={saving}
+                  onClick={() => switchSide(option)}>
+                  {option === "instructor" ? "Perfil de instrutor" : "Perfil de aluno"}
+                </Button>
+              ))}
+            </HStack>
+          )}
 
           {isEditing ? (
             <Stack gap={3} pt={2}>
@@ -475,7 +522,7 @@ export default function Profile({
                 </Box>
               </SimpleGrid>
 
-              {!isInstructor ? (
+              {!editsInstructor ? (
                 <Box>
                   <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
                     Status de Habilitação
@@ -508,6 +555,9 @@ export default function Profile({
                     </Text>
                     <Input
                       type="number"
+                      min={0}
+                      max={99999.99}
+                      step="0.01"
                       value={pricePerHour}
                       onChange={(e) => setPricePerHour(e.target.value)}
                       placeholder="Valor por Hora"
@@ -520,6 +570,8 @@ export default function Profile({
                     </Text>
                     <Input
                       type="number"
+                      min={1}
+                      max={200}
                       value={actionRadiusKm}
                       onChange={(e) => setActionRadiusKm(e.target.value)}
                       placeholder="Raio de atuação em km"
@@ -563,32 +615,32 @@ export default function Profile({
             <Stack gap={2.5} pt={2} fontSize="sm" color="text.secondary" fontWeight="600">
               <HStack justify="space-between" borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
                 <Text color="text.muted">Nome</Text>
-                <Text color="text.primary">{fullName || "Não informado"}</Text>
+                <Text color="text.primary">{saved.fullName || "Não informado"}</Text>
               </HStack>
               <HStack justify="space-between" borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
                 <Text color="text.muted">Telefone</Text>
-                <Text color="text.primary">{phone || "Não informado"}</Text>
+                <Text color="text.primary">{saved.phone || "Não informado"}</Text>
               </HStack>
               <HStack justify="space-between" borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
                 <Text color="text.muted">Localização</Text>
                 <Text color="text.primary">
-                  {city && state ? `${city} - ${state}` : "Não informado"}
+                  {saved.city && saved.state ? `${saved.city} - ${saved.state}` : "Não informado"}
                 </Text>
               </HStack>
-              {!isInstructor ? (
+              {!editsInstructor ? (
                 <HStack justify="space-between" borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
                   <Text color="text.muted">Habilitação</Text>
-                  <Text color="text.primary">{licenseType || "NENHUMA"}</Text>
+                  <Text color="text.primary">{saved.licenseType}</Text>
                 </HStack>
               ) : (
                 <>
                   <HStack justify="space-between" borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
                     <Text color="text.muted">Valor por Hora</Text>
-                    <Text color="text.primary">R$ {pricePerHour},00</Text>
+                    <Text color="text.primary">{formatPrice(saved.pricePerHour)}</Text>
                   </HStack>
                   <HStack justify="space-between" borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
                     <Text color="text.muted">Raio de Atuação</Text>
-                    <Text color="text.primary">{actionRadiusKm} km</Text>
+                    <Text color="text.primary">{saved.actionRadiusKm ? `${saved.actionRadiusKm} km` : "Não informado"}</Text>
                   </HStack>
                   <Box borderBottom="1px solid" borderColor="border.subtle" pb={1.5}>
                     <Text color="text.muted" mb={1.5}>Especialidades</Text>
@@ -613,7 +665,7 @@ export default function Profile({
                       fontSize="xs"
                       color="text.primary"
                       fontWeight="500">
-                      {bio || "Nenhuma biografia informada."}
+                      {saved.bio || "Nenhuma biografia informada."}
                     </Text>
                   </Box>
                 </>

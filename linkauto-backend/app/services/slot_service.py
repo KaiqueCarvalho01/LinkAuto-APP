@@ -10,6 +10,7 @@ from sqlmodel import col, select
 
 from app.models.booking import BookingSlot
 from app.models.slot import Slot, SlotStatus
+from app.models.user import InstructorProfile
 from app.services.bookable_instructor import find_bookable_instructor
 
 if TYPE_CHECKING:
@@ -36,7 +37,16 @@ class SlotService:
         """Create a DISPONIVEL slot, raising ``SlotOverlapError`` if it overlaps an existing one.
 
         Removed (BLOQUEADO) slots don't count, so a removed hour can be opened again.
+
+        Slot creation is serialized per instructor: their profile row is locked first
+        (``SELECT ... FOR UPDATE`` on PostgreSQL), so two concurrent requests can't both pass
+        the overlap check and insert overlapping slots (RN03).
         """
+        self._db.exec(
+            select(InstructorProfile.user_id)
+            .where(col(InstructorProfile.user_id) == instructor_id)
+            .with_for_update()
+        ).first()
         overlap = self._db.exec(
             select(Slot).where(
                 and_(

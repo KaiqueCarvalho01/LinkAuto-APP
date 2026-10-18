@@ -182,6 +182,12 @@ uv run pytest
 uv run pytest -v
 ```
 
+Os testes de concorrência em `tests/postgres/` precisam de um PostgreSQL de verdade (no SQLite as escritas são serializadas e a corrida não acontece) e são pulados sem ele. As tabelas são criadas e apagadas pelo próprio teste, então use um banco descartável:
+
+```bash
+LINKAUTO_POSTGRES_TEST_URL=postgresql+psycopg://postgres:senha@localhost:5432/linkauto_test uv run pytest tests/postgres
+```
+
 ### Verificação de Qualidade, Linter e Tipos
 ```bash
 uv run ruff check .          # Lint (todas as regras do Ruff habilitadas)

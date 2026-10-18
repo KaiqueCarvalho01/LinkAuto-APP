@@ -9,6 +9,18 @@ from pydantic import BaseModel, ConfigDict
 
 from app.api.deps.types import CurrentUser, DbSession
 from app.schemas.common import success_response
+from app.schemas.fields import (
+    AvatarUrl,
+    FullName,
+    Latitude,
+    Longitude,
+    LongText,
+    Phone,
+    Place,
+    PricePerHour,
+    RadiusKm,
+    Specialties,
+)
 from app.services.dependencies import get_profile_service
 from app.services.profile_service import ProfileService
 
@@ -16,32 +28,39 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 class StudentProfilePatch(BaseModel):
-    """Partial update of the student profile; unknown fields are rejected."""
+    """Partial update of the student profile; unknown fields are rejected.
+
+    Lengths match the columns; ``avatar_url`` must be an https:// URL.
+    """
 
     model_config = ConfigDict(extra="forbid")
-    full_name: str | None = None
-    phone: str | None = None
-    city: str | None = None
-    state: str | None = None
+    full_name: FullName | None = None
+    phone: Phone | None = None
+    city: Place | None = None
+    state: Place | None = None
     license_type: str | None = None
-    avatar_url: str | None = None
+    avatar_url: AvatarUrl | None = None
 
 
 class InstructorProfilePatch(BaseModel):
-    """Partial update of the instructor profile; unknown fields are rejected."""
+    """Partial update of the instructor profile; unknown fields are rejected.
+
+    Lengths match the columns. The price is 0 to 99,999.99, the service radius 1 to 200 km,
+    coordinates within ±90/±180, up to 20 specialties, and ``avatar_url`` an https:// URL.
+    """
 
     model_config = ConfigDict(extra="forbid")
-    full_name: str | None = None
-    phone: str | None = None
-    city: str | None = None
-    state: str | None = None
-    bio: str | None = None
-    specialties: list[str] | None = None
-    price_per_hour: float | None = None
-    avatar_url: str | None = None
-    action_radius_km: int | None = None
-    latitude: float | None = None
-    longitude: float | None = None
+    full_name: FullName | None = None
+    phone: Phone | None = None
+    city: Place | None = None
+    state: Place | None = None
+    bio: LongText | None = None
+    specialties: Specialties | None = None
+    price_per_hour: PricePerHour | None = None
+    avatar_url: AvatarUrl | None = None
+    action_radius_km: RadiusKm | None = None
+    latitude: Latitude | None = None
+    longitude: Longitude | None = None
     is_active: bool | None = None
 
 
