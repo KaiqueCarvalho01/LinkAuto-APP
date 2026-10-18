@@ -191,58 +191,36 @@ function RegisterRoute() {
 
 function ProfileRoute() {
 	const navigate = useNavigate();
-	const { session, signOut } = useSessionStore();
-	const [profile, setProfile] = useState<UserAccount | null>(
-		session?.user ?? null,
-	);
+	const { session, signOut, updateUser } = useSessionStore();
+	const accessToken = session?.accessToken;
 
-	const applyProfile = useCallback((nextProfile: UserAccount) => {
-		setProfile(nextProfile);
-	}, []);
-
+	// Refresh the signed-in user once per visit; the session (navbar, sidebar, dashboard
+	// and the stored copy) is the single source of truth for the profile
 	useEffect(() => {
 		let active = true;
-
-		const syncProfile = async () => {
-			if (!session?.accessToken) {
-				return;
-			}
-
-			const payload = await httpClient.get<UserAccount>("/users/me", {
-				token: session.accessToken,
+		if (!accessToken) return;
+		httpClient
+			.get<UserAccount>("/users/me", { token: accessToken })
+			.then((payload) => {
+				if (active) updateUser(payload.data);
+			})
+			.catch((err) => {
+				console.error("Failed to refresh the profile:", err);
 			});
-			if (active) {
-				applyProfile(payload.data);
-			}
-		};
-
-		void syncProfile().catch(() => {
-			if (active) {
-				setProfile(session?.user ?? null);
-			}
-		});
-
 		return () => {
 			active = false;
 		};
-	}, [session?.accessToken, session?.user, applyProfile]);
-
-
-
-
-	const mergedSession = session ? { ...session, user: profile ?? session.user } : null;
+	}, [accessToken, updateUser]);
 
 	return (
 		<Profile
-			session={mergedSession}
-			token={session?.accessToken}
+			session={session}
+			token={accessToken}
 			onLogout={() => {
 				void signOut();
 				navigate("/login", { replace: true });
 			}}
-			onProfileUpdated={(updatedUser) => {
-				applyProfile(updatedUser);
-			}}
+			onProfileUpdated={updateUser}
 			onNavigateToSearch={() => navigate("/search")}
 			onNavigateToBookings={() => navigate("/my-lessons")}
 			onNavigateToVehicles={() => navigate("/profile")}

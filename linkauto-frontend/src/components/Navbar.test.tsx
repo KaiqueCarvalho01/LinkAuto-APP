@@ -26,6 +26,7 @@ describe("Navbar (Visitor State)", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(<Navbar />);
@@ -49,6 +50,7 @@ describe("Navbar (Visitor State)", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(<Navbar />);
@@ -85,6 +87,7 @@ describe("Navbar (Authenticated State)", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(<Navbar />);
@@ -103,6 +106,7 @@ describe("Navbar (Authenticated State)", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(<Navbar />);
@@ -138,6 +142,7 @@ describe("Navbar (Authenticated State)", () => {
 			signOut: signOutMock,
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(<Navbar />);
@@ -183,6 +188,7 @@ describe("Navbar (Authenticated State)", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(<Navbar />);

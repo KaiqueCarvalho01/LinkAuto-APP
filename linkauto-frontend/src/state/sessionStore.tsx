@@ -28,6 +28,8 @@ interface SessionContextValue {
 	signOut: () => Promise<void>;
 	clearSession: () => void;
 	refreshProfile: (token: string) => Promise<ApiSuccessEnvelope<UserAccount>>;
+	// Replace the signed-in user (e.g. after a profile edit), in memory and in storage
+	updateUser: (user: UserAccount) => void;
 }
 
 interface SessionProviderProps {
@@ -89,6 +91,15 @@ export function SessionProvider({ children }: SessionProviderProps) {
 	const clearSession = useCallback(() => {
 		setSession(null);
 		persistSession(null);
+	}, []);
+
+	const updateUser = useCallback((user: UserAccount) => {
+		setSession((prev) => {
+			if (!prev) return prev;
+			const next = { ...prev, user };
+			persistSession(next);
+			return next;
+		});
 	}, []);
 
 	const refreshProfile = useCallback(async (token: string) => {
@@ -174,8 +185,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
 			signOut,
 			clearSession,
 			refreshProfile,
+			updateUser,
 		}),
-		[session, signIn, signUp, signOut, clearSession, refreshProfile],
+		[session, signIn, signUp, signOut, clearSession, refreshProfile, updateUser],
 	);
 
 	return <SessionContext value={value}>{children}</SessionContext>;

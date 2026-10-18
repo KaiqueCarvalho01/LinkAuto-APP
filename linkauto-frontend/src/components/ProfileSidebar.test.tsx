@@ -41,6 +41,7 @@ describe("ProfileSidebar", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(
@@ -65,6 +66,7 @@ describe("ProfileSidebar", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(
@@ -103,6 +105,7 @@ describe("ProfileSidebar", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(
@@ -159,6 +162,7 @@ describe("ProfileSidebar", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(
@@ -190,6 +194,7 @@ describe("ProfileSidebar", () => {
 			signOut: signOutMock,
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(
@@ -219,6 +224,7 @@ describe("ProfileSidebar", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(
@@ -245,6 +251,7 @@ describe("ProfileSidebar", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		const { container } = renderWithProviders(
@@ -275,6 +282,7 @@ describe("ProfileSidebar", () => {
 			signOut: vi.fn(),
 			clearSession: vi.fn(),
 			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
 		});
 
 		renderWithProviders(
