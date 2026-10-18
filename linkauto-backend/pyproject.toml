@@ -14,7 +14,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
-    "python-jose[cryptography]>=3.5.0",
+    "pyjwt>=2.10",
     "python-multipart>=0.0.32",
     "slowapi>=0.1.10",
     "sqlalchemy>=2.1.3",
@@ -52,7 +52,7 @@ options = "format REVISION_SCRIPT_FILENAME"
 all = "error"
 # `x: Mapped[T] = mapped_column(...)` is SQLAlchemy's own idiom; mapped_column() is MappedColumn[Any]
 unsound-assignment = "ignore"
-# Returning values from untyped libraries (python-jose, boto3) and parsed JSON
+# Returning values from untyped libraries (boto3) and parsed JSON
 unsound-return-statement = "ignore"
 # slowapi's @limiter.limit is untyped
 dynamic-function-decorator-return = "ignore"

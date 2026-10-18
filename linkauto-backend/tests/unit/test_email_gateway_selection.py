@@ -20,13 +20,13 @@ if TYPE_CHECKING:
     import pytest
 
 # Settings outside development must not use the insecure defaults (#79)
-SECURE_SECRET = "secure-real-secret-12345"
+SECURE_SECRET = "secure-real-secret-0123456789abcdef"
 
 
 def _production(ses_from_email: str | None = None) -> Settings:
     return Settings(
         APP_ENV="production",
-        JWT_SECRET="s3cret",
+        JWT_SECRET=SECURE_SECRET,
         RESET_SQLITE_ON_STARTUP=False,
         SES_FROM_EMAIL=ses_from_email,
     )
