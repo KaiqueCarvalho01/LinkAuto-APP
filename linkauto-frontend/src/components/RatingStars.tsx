@@ -21,6 +21,17 @@ export function RatingStars({
 	const roundedRating = Math.round(rating);
 	const emptyStarColor = "var(--chakra-colors-border-default)";
 
+	if (reviewsCount === 0) {
+		return (
+			<Text
+				fontSize={size === "sm" ? "sm" : "md"}
+				color="text.muted"
+				fontWeight="600">
+				Sem avaliações
+			</Text>
+		);
+	}
+
 	return (
 		<HStack gap={2} align="center">
 			<HStack gap={1} aria-label={`Avaliacao ${rating.toFixed(1)}`}>
@@ -41,7 +52,7 @@ export function RatingStars({
 				fontSize={size === "sm" ? "sm" : "md"}
 				color="text.muted"
 				fontWeight="600">
-				{rating.toFixed(1)} ({reviewsCount} avaliacoes)
+				{rating.toFixed(1)} ({reviewsCount} avaliações)
 			</Text>
 		</HStack>
 	);

@@ -80,7 +80,7 @@ const mapBookingInstructor = (api: ApiBookingResource): InstructorSummary => {
     detranApproved: true,
     specialties: [],
     radiusKm: 0,
-    coordinates: { lat: 0.0, lng: 0.0 },
+    coordinates: null,
   };
 };
 

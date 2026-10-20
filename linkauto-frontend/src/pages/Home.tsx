@@ -19,7 +19,6 @@ import { Testimonials } from "../components/landing/Testimonials";
 import { FAQ } from "../components/landing/FAQ";
 import { instructorService } from "../services/instructorService";
 import type { InstructorSummary } from "../types/instructor";
-import { mockInstructors } from "../test/fixtures/mockData";
 
 interface HomeProps {
 	readonly isAuthenticated: boolean;
@@ -67,6 +66,9 @@ export default function Home({
 }: HomeProps) {
 	const [selectedId, setSelectedId] = useState<string | undefined>();
 	const [instructors, setInstructors] = useState<InstructorSummary[]>([]);
+	const [instructorsStatus, setInstructorsStatus] = useState<"loading" | "ready" | "error">(
+		"loading",
+	);
 
 	const [wordIndex, setWordIndex] = useState(0);
 	const [currentText, setCurrentText] = useState("");
@@ -103,9 +105,13 @@ export default function Home({
 		return () => clearTimeout(timer);
 	}, [currentText, isDeleting, wordIndex, typingSpeed]);
 
-	const isDemoMode = instructors.length === 0;
-	const displayInstructors = isDemoMode ? mockInstructors : instructors;
 	const isLastWord = words[wordIndex] === "LinkAuto.";
+	const mapNotice =
+		instructorsStatus === "error"
+			? "Não foi possível carregar os instrutores."
+			: instructorsStatus === "ready" && instructors.length === 0
+				? "Ainda não há instrutores disponíveis no mapa."
+				: null;
 
 	useEffect(() => {
 		let active = true;
@@ -113,10 +119,12 @@ export default function Home({
 			.then((data) => {
 				if (active) {
 					setInstructors(data);
+					setInstructorsStatus("ready");
 				}
 			})
 			.catch((err) => {
 				console.error("Error loading public instructors:", err);
+				if (active) setInstructorsStatus("error");
 			});
 		return () => {
 			active = false;
@@ -272,7 +280,7 @@ export default function Home({
 							border="8px solid"
 							borderColor="surface.panel">
 							<InstructorMap
-								instructors={displayInstructors}
+								instructors={instructors}
 								selectedInstructorId={selectedId}
 								onSelect={(id) => setSelectedId(id)}
 								onBook={() => {
@@ -281,24 +289,25 @@ export default function Home({
 								}}
 							/>
 
-							{isDemoMode && (
-								<Badge
+							{mapNotice && (
+								<Box
 									position="absolute"
 									top={4}
-									right={4}
+									left="50%"
+									transform="translateX(-50%)"
 									zIndex={10}
-									colorPalette="orange"
-									variant="solid"
+									bg="surface.panel"
+									border="1px solid"
+									borderColor="border.default"
 									borderRadius="full"
-									px={3}
-									py={1}
-									boxShadow="md"
-									fontWeight="bold">
-									Modo Demonstração
-								</Badge>
+									px={4}
+									py={2}
+									boxShadow="md">
+									<Text fontSize="sm" fontWeight="600" color="text.secondary">
+										{mapNotice}
+									</Text>
+								</Box>
 							)}
-
-							{/* Floating Overlay for Map Interaction Hint */}
 						</Box>
 					</Grid>
 				</Container>

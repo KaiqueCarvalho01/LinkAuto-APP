@@ -6,7 +6,8 @@ import type { AdminStats, DashboardRequest, InstructorStats } from "../types/ses
 
 interface InstructorData {
 	readonly name: string;
-	readonly rating: number;
+	// Left out on the admin panel
+	readonly rating?: { readonly average: number; readonly count: number };
 }
 
 interface InstructorDashboardProps {
@@ -53,7 +54,7 @@ export default function InstructorDashboard({
 	const [rejectReason, setRejectReason] = useState("");
 
 	const titleName = instructorData?.name ?? "LinkAuto";
-	const rating = instructorData?.rating ?? 5;
+	const rating = instructorData?.rating;
 
 	const handleAction = async (
 		action: ((requestId: string, reason?: string) => Promise<void> | void) | undefined,
@@ -115,19 +116,29 @@ export default function InstructorDashboard({
 								{titleName}
 							</Text>
 						</Stack>
-						<HStack
-							px={3}
-							py={2}
-							bg="whiteAlpha.200"
-							borderRadius="xl"
-							border="1px solid"
-							borderColor="border.default-subtle"
-							color="text.muted">
-							<Star size={16} fill="currentColor" />
-							<Text fontWeight="800" fontSize="sm">
-								{rating.toFixed(1)}
-							</Text>
-						</HStack>
+						{rating ? (
+							<HStack
+								px={3}
+								py={2}
+								bg="whiteAlpha.200"
+								borderRadius="xl"
+								border="1px solid"
+								borderColor="border.default-subtle"
+								color="text.muted">
+								{rating.count > 0 ? (
+									<>
+										<Star size={16} fill="currentColor" aria-hidden="true" />
+										<Text fontWeight="800" fontSize="sm">
+											{rating.average.toFixed(1)}
+										</Text>
+									</>
+								) : (
+									<Text fontWeight="700" fontSize="sm">
+										Sem avaliações
+									</Text>
+								)}
+							</HStack>
+						) : null}
 					</HStack>
 
 					<HStack

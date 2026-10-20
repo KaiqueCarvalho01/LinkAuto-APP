@@ -71,6 +71,29 @@ describe("Admin approval screen", () => {
 		expect(screen.queryByLabelText(/motivo da recusa/i)).not.toBeInTheDocument();
 	});
 
+	it("shows the instructor's real rating, or that there are no reviews yet", () => {
+		const { unmount } = renderWithProviders(
+			<InstructorDashboard instructorData={{ name: "Rafa", rating: { average: 4.75, count: 4 } }} />,
+		);
+		expect(screen.getByText("4.8")).toBeInTheDocument();
+		unmount();
+
+		renderWithProviders(
+			<InstructorDashboard instructorData={{ name: "Rafa", rating: { average: 0, count: 0 } }} />,
+		);
+		expect(screen.getByText("Sem avaliações")).toBeInTheDocument();
+		expect(screen.queryByText("5.0")).not.toBeInTheDocument();
+	});
+
+	it("shows no rating on the admin panel", () => {
+		renderWithProviders(
+			<InstructorDashboard instructorData={{ name: "admin@linkauto.app" }} isAdminDashboard />,
+		);
+
+		expect(screen.queryByText("5.0")).not.toBeInTheDocument();
+		expect(screen.queryByText("Sem avaliações")).not.toBeInTheDocument();
+	});
+
 	it("has no buttons for features that don't exist yet", () => {
 		renderWithProviders(<InstructorDashboard requests={[REQUEST]} />);
 

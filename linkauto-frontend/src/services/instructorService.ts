@@ -134,10 +134,10 @@ export const instructorService = {
       detranApproved: true,
       specialties: item.specialties || [],
       radiusKm: item.action_radius_km || 10,
-      coordinates: {
-        lat: item.latitude ?? 0.0,
-        lng: item.longitude ?? 0.0,
-      },
+      coordinates:
+        typeof item.latitude === "number" && typeof item.longitude === "number"
+          ? { lat: item.latitude, lng: item.longitude }
+          : null,
     }));
   },
 };

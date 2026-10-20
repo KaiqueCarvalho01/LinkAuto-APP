@@ -362,10 +362,7 @@ function AdminInstructorDashboardRoute() {
 	}, [loadPending, loadStats, applyPending]);
 
 	const instructorData = useMemo(
-		() => ({
-			name: session?.user?.email || "Admin LinkAuto",
-			rating: 5,
-		}),
+		() => ({ name: session?.user?.email || "Admin LinkAuto" }),
 		[session?.user?.email],
 	);
 
@@ -442,7 +439,10 @@ function InstructorDashboardRoute() {
 	const instructorData = useMemo(
 		() => ({
 			name: session?.user?.instructor_profile?.full_name || session?.user?.email || "Instrutor",
-			rating: session?.user?.instructor_profile?.rating_avg || 5.0,
+			rating: {
+				average: session?.user?.instructor_profile?.rating_avg ?? 0,
+				count: session?.user?.instructor_profile?.rating_count ?? 0,
+			},
 		}),
 		[session?.user]
 	);
