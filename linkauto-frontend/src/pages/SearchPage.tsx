@@ -260,6 +260,7 @@ export default function SearchPage({
             {/* Price Max Filter */}
             <Input
               placeholder="Preço máx. (R$/h)"
+              aria-label="Preço máximo (R$/h)"
               type="number"
               min={0}
               value={maxPrice}

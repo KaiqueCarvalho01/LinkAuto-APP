@@ -21,10 +21,11 @@ import {
   Text,
   Input,
   Textarea,
-  chakra,
+  NativeSelect,
   Heading,
   SimpleGrid,
   Badge,
+  Field,
 } from "@chakra-ui/react";
 
 import { apiErrorMessage } from "../services/apiErrorMessage";
@@ -451,46 +452,46 @@ export default function Profile({
 
           {isEditing ? (
             <Stack gap={3} pt={2}>
-              <Box>
-                <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+              <Field.Root>
+                <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                   Nome Completo
-                </Text>
+                </Field.Label>
                 <Input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Nome Completo"
                   color="text.primary"
                 />
-              </Box>
+              </Field.Root>
 
-              <Box>
-                <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+              <Field.Root>
+                <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                   Telefone
-                </Text>
+                </Field.Label>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Telefone"
                   color="text.primary"
                 />
-              </Box>
+              </Field.Root>
 
               <SimpleGrid columns={2} gap={3}>
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                <Field.Root>
+                  <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                     Cidade
-                  </Text>
+                  </Field.Label>
                   <Input
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Cidade"
                     color="text.primary"
                   />
-                </Box>
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                </Field.Root>
+                <Field.Root>
+                  <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                     Estado
-                  </Text>
+                  </Field.Label>
                   <Input
                     value={state}
                     onChange={(e) => setState(e.target.value)}
@@ -498,40 +499,38 @@ export default function Profile({
                     maxLength={2}
                     color="text.primary"
                   />
-                </Box>
+                </Field.Root>
               </SimpleGrid>
 
               {!editsInstructor ? (
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                <Field.Root>
+                  <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                     Status de Habilitação
-                  </Text>
-                  <chakra.select
-                    value={licenseType}
-                    onChange={(e) => setLicenseType(e.target.value)}
-                    h="40px"
-                    w="100%"
-                    borderRadius="md"
-                    border="1px solid"
-                    borderColor="border.default"
-                    bg="surface.panel"
-                    px={3}
-                    fontSize="sm"
-                    fontWeight="600"
-                    color="text.primary">
-                    <option value="NENHUMA">Não habilitado (Zero)</option>
-                    <option value="EM_PROCESSO">Primeira Habilitação (Autoescola)</option>
-                    <option value="A">Categoria A (Moto)</option>
-                    <option value="B">Categoria B (Carro)</option>
-                    <option value="AB">Categoria AB (Carro e Moto)</option>
-                  </chakra.select>
-                </Box>
+                  </Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={licenseType}
+                      onChange={(e) => setLicenseType(e.target.value)}
+                      borderColor="border.default"
+                      bg="surface.panel"
+                      fontSize="sm"
+                      fontWeight="600"
+                      color="text.primary">
+                      <option value="NENHUMA">Não habilitado (Zero)</option>
+                      <option value="EM_PROCESSO">Primeira Habilitação (Autoescola)</option>
+                      <option value="A">Categoria A (Moto)</option>
+                      <option value="B">Categoria B (Carro)</option>
+                      <option value="AB">Categoria AB (Carro e Moto)</option>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </Field.Root>
               ) : (
                 <Stack gap={3}>
-                  <Box>
-                    <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                  <Field.Root>
+                    <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                       Preço da Hora (R$)
-                    </Text>
+                    </Field.Label>
                     <Input
                       type="number"
                       min={0}
@@ -542,11 +541,11 @@ export default function Profile({
                       placeholder="Valor por Hora"
                       color="text.primary"
                     />
-                  </Box>
-                  <Box>
-                    <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                  </Field.Root>
+                  <Field.Root>
+                    <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                       Raio de Atuação (KM)
-                    </Text>
+                    </Field.Label>
                     <Input
                       type="number"
                       min={1}
@@ -556,11 +555,11 @@ export default function Profile({
                       placeholder="Raio de atuação em km"
                       color="text.primary"
                     />
-                  </Box>
-                  <Box>
-                    <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                  </Field.Root>
+                  <Field.Root>
+                    <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                       Especialidades (separadas por vírgula)
-                    </Text>
+                    </Field.Label>
                     <Input
                       value={specialtiesText}
                       onChange={(e) => setSpecialtiesText(e.target.value)}
@@ -574,11 +573,11 @@ export default function Profile({
                         </Badge>
                       ))}
                     </HStack>
-                  </Box>
-                  <Box>
-                    <Text fontSize="xs" fontWeight="700" mb={1} color="text.secondary">
+                  </Field.Root>
+                  <Field.Root>
+                    <Field.Label fontSize="xs" fontWeight="700" color="text.secondary">
                       Biografia Profissional
-                    </Text>
+                    </Field.Label>
                     <Textarea
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
@@ -586,7 +585,7 @@ export default function Profile({
                       color="text.primary"
                       rows={3}
                     />
-                  </Box>
+                  </Field.Root>
                 </Stack>
               )}
             </Stack>
