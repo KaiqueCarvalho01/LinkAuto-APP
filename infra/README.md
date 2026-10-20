@@ -29,7 +29,7 @@ O LinkAuto utiliza containers Docker para garantir que todos os serviços (Front
 │                                                             │
 │  ┌──────────────────────┐        ┌──────────────────────┐  │
 │  │   linkauto-frontend  │        │   linkauto-backend   │  │
-│  │     (Node.js 22)     │ ─────> │    (Python 3.14)     │  │
+│  │     (Node.js 26)     │ ─────> │    (Python 3.14)     │  │
 │  │  http://localhost:5173│        │ http://localhost:8000│  │
 │  └──────────────────────┘        └──────────┬───────────┘  │
 │                                             │               │
