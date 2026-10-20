@@ -184,7 +184,7 @@ uv run uvicorn app.main:app --reload --port 8000   # Starts development server w
 ```
 
 #### 2. Frontend (`linkauto-frontend`)
-Requires Node.js 22+:
+Requires Node.js 26+:
 
 ```bash
 cd linkauto-frontend

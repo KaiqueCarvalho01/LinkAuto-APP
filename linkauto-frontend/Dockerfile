@@ -1,4 +1,4 @@
-# Base Node.js image (Node 20 reached end of life; CI also uses 22)
+# Base Node.js image (same major version as CI)
 FROM node:26-alpine AS base
 
 WORKDIR /workspace
