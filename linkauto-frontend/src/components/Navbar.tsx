@@ -224,12 +224,17 @@ export function Navbar() {
 				<HStack gap={4} display={{ base: "none", lg: "flex" }}>
 					{isAuthenticated ? (
 						<HStack gap={4}>
-							<HStack
+							<Button
+								variant="ghost"
+								h="auto"
+								py={1}
+								px={2}
 								gap={3}
-								cursor="pointer"
+								borderRadius="full"
 								onClick={handleAvatarClick}
-								role="button"
-								aria-label="Menu de Perfil">
+								aria-haspopup="dialog"
+								aria-expanded={isProfileOpen}
+								aria-label={`Abrir menu de perfil (${displayName})`}>
 								<Box display={{ base: "none", xl: "block" }}>
 									<Text
 										fontWeight="bold"
@@ -252,7 +257,7 @@ export function Navbar() {
 									shadow="sm">
 									{displayName.charAt(0)}
 								</Flex>
-							</HStack>
+							</Button>
 							<IconButton
 								variant="ghost"
 								aria-label="Sair"

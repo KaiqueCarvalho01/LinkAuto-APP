@@ -159,7 +159,7 @@ describe("Navbar (Authenticated State)", () => {
 		}
 		expect(signOutMock).toHaveBeenCalled();
 
-		const avatar = screen.getByLabelText(/Menu de Perfil/i);
+		const avatar = screen.getByRole("button", { name: /^Abrir menu de perfil/, hidden: true });
 		await user.click(avatar);
 		
 		// ProfileSidebar should be visible
@@ -203,5 +203,49 @@ describe("Navbar (Authenticated State)", () => {
 		expect(
 			document.querySelector('a[href="/notifications"]'),
 		).toBeNull();
+	});
+});
+
+describe("Navbar profile menu (keyboard)", () => {
+	it("uses a real button for the profile menu, so keyboards can open it", async () => {
+		const user = userEvent.setup();
+		vi.mocked(sessionStore.useSessionStore).mockReturnValue({
+			isAuthenticated: true,
+			session: {
+				accessToken: "mock-token",
+				tokenType: "Bearer",
+				user: {
+					id: "1",
+					email: "test@example.com",
+					roles: ["student"],
+					is_active: true,
+					student_profile: { full_name: "João Silva" },
+					instructor_profile: null,
+					created_at: new Date().toISOString(),
+					updated_at: new Date().toISOString(),
+				},
+			},
+			roles: ["student"],
+			signIn: vi.fn(),
+			signUp: vi.fn(),
+			signOut: vi.fn(),
+			clearSession: vi.fn(),
+			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
+		});
+
+		renderWithProviders(<Navbar />);
+
+		const trigger = screen.getByRole("button", { name: /^Abrir menu de perfil/, hidden: true });
+		// A native <button> is focusable and opens with Enter and Space (it was a div with role="button")
+		expect(trigger.tagName).toBe("BUTTON");
+		expect(trigger).toHaveAttribute("type", "button");
+		expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+		expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+		await user.click(trigger);
+
+		expect(trigger).toHaveAttribute("aria-expanded", "true");
+		expect(await screen.findByText("test@example.com")).toBeInTheDocument();
 	});
 });
