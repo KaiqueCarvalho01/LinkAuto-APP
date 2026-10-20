@@ -38,7 +38,10 @@ jobs:
           if [ "$EVENT" = "workflow_dispatch" ] || [ -z "$BASE_SHA" ] \
             || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
             echo "backend=true" >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "$BASE_SHA" HEAD \
+          elif ! changed=$(git diff --name-only "$BASE_SHA" HEAD); then
+            # Can't compare (e.g. a force-push): check everything rather than nothing
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+          elif printf '%s\n' "$changed" \
             | grep -qE '^(linkauto-backend/|\.github/workflows/backend\.yml$)'; then
             echo "backend=true" >> "$GITHUB_OUTPUT"
           else
@@ -58,6 +61,11 @@ jobs:
           enable-cache: true
       - name: Install dependencies
         run: uv sync --locked
+      - name: Audit runtime dependencies
+        run: |
+          uv export --locked --no-dev --no-emit-project --no-hashes \
+            --format requirements-txt -o "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit --strict -r "$RUNNER_TEMP/requirements.txt"
       - name: Ruff lint
         run: uv run ruff check --output-format=github .
       - name: Ruff format

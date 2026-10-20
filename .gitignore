@@ -22,3 +22,7 @@ linkauto-backend/storage/
 linkauto-frontend/test-results/
 api-requests/
 linkauto-frontend/coverage/
+
+# Local editor/agent state
+.antigravitycli/
+.open

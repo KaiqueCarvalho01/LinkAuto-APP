@@ -320,7 +320,7 @@ export default function Profile({
             bg="whiteAlpha.250"
             border="1px solid"
             borderColor="text-foreground">
-            <UserIcon size={26} className="text-foreground" />
+            <UserIcon size={26} />
           </Box>
           <Stack gap={1} flex="1">
             <Text

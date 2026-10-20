@@ -25,7 +25,7 @@ As **Skills** são pacotes de especialização pré-configurados que estendem o 
 
 ### A. Design System & Fidelidade Visual
 *   **`@frontend-design` & `@web-design-guidelines`**
-    *   **Por que usar:** O LinkAuto exige um visual rico e premium (definido no [DESIGN.md](file:///home/gabrieldnsilva/projects/LinkAuto-APP/docs/DESIGN.md)), evitando layouts genéricos e cores sem harmonia.
+    *   **Por que usar:** O LinkAuto exige um visual rico e premium (definido no [DESIGN.md](DESIGN.md)), evitando layouts genéricos e cores sem harmonia.
     *   **Benefício técnico:** Garante a aplicação correta dos tokens semânticos do Chakra UI v3, responsividade mobile-first consistente e consistência visual geral sem a proliferação de classes ad-hoc do Tailwind.
 *   **`@design-spells`**
     *   **Por que usar:** Adiciona micro-interações, transições fluidas e estados interativos diferenciados nos agendamentos de slots e visualizações de mapas.

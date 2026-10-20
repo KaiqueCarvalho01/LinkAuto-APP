@@ -604,7 +604,7 @@ Princípio de isolamento de falhas. O scheduler é um job batch — falha parcia
 ## Decisões EXPLICITAMENTE NÃO TOMADAS (YAGNI)
 
 > [!NOTE]
-> As seguintes melhorias foram **avaliadas e explicitamente descartadas** para a V1 da aplicação baseando-se no princípio YAGNI, de modo a evitar carga cognitiva e infraestrutura adicionais agora. Suas razões técnicas, prós e contras foram documentados detalhadamente em [BACKEND_FUTURE_IMPROVEMENTS.md](file:///home/gabrieldnsilva/projects/LinkAuto-APP/docs/BACKEND_FUTURE_IMPROVEMENTS.md) para controle de backlog:
+> As seguintes melhorias foram **avaliadas e explicitamente descartadas** para a V1 da aplicação baseando-se no princípio YAGNI, de modo a evitar carga cognitiva e infraestrutura adicionais agora. Suas razões técnicas, prós e contras foram documentados detalhadamente em [BACKEND_FUTURE_IMPROVEMENTS.md](BACKEND_FUTURE_IMPROVEMENTS.md) para controle de backlog:
 
 1. **Refresh token denylist (server-side)**: Adiada (YAGNI). O mecanismo local de rotação contínua atende perfeitamente à V1, postergando a necessidade do Redis para a V2 do sistema.
 2. **Rate Limiting Distribuído**: Adiada (YAGNI). O rate limiting em memória do `slowapi` atende com folga ao perfil single-instance atual da V1.

@@ -131,7 +131,7 @@ Rastreamento incremental da implementação da feature `001-user-booking-domains
 ### Iteração 7 (US2 Backend Completo e Integração de Testes)
 
 - Concluída a implementação integral do backend para a US2 (Booking & Scheduling):
-  - Endpoints REST `/slots` e `/bookings` fully functional (`app/api/v1/slots.py`, `app/api/v1/bookings.py`).
+  - Endpoints REST `/instructors/me/slots`, `/instructors/{id}/slots` e `/bookings` fully functional (`app/api/v1/slots.py`, `app/api/v1/bookings.py`).
   - Geosearch de instrutores ativos e aprovados utilizando fórmula de Haversine (`app/api/v1/instructor_search.py`, `app/services/instructor_search_service.py`).
   - Tarefas de automação (timeout 24h e conclusão automática após +2h) com endpoints administrativos expostos (`app/jobs/booking_jobs.py`).
   - Handler global de erros traduzindo `IntegrityError` do SQLAlchemy em resposta estruturada de `409 Conflict`.

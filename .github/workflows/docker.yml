@@ -1,0 +1,135 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Decides whether the images or Compose files changed. The jobs below always report a
+  # status, so "Docker OK" can be a required check without blocking unrelated PRs.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docker: ${{ steps.filter.outputs.docker }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: filter
+        name: Detect Docker changes
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          paths='^(infra/|linkauto-backend/(Dockerfile|\.dockerignore|pyproject\.toml|uv\.lock|scripts/)|linkauto-frontend/(Dockerfile|nginx\.conf|\.dockerignore|package(-lock)?\.json)|\.github/workflows/docker\.yml$)'
+          if [ "$EVENT" = "workflow_dispatch" ] || [ -z "$BASE_SHA" ] \
+            || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "docker=true" >> "$GITHUB_OUTPUT"
+          elif ! changed=$(git diff --name-only "$BASE_SHA" HEAD); then
+            # Can't compare (e.g. a force-push): check everything rather than nothing
+            echo "docker=true" >> "$GITHUB_OUTPUT"
+          elif printf '%s\n' "$changed" | grep -qE "$paths"; then
+            echo "docker=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docker=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  compose:
+    name: Compose configuration
+    needs: changes
+    if: needs.changes.outputs.docker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate the default and postgres profiles
+        run: |
+          docker compose -f infra/docker-compose.yml config -q
+          docker compose -f infra/docker-compose.yml --profile postgres config -q
+
+  backend-image:
+    name: Backend production image
+    needs: changes
+    if: needs.changes.outputs.docker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build
+        run: docker build --target production -t linkauto-backend:ci linkauto-backend
+      - name: Refuses to start without a real JWT secret
+        run: |
+          if docker run --rm linkauto-backend:ci; then
+            echo "The image started with the placeholder secret" >&2
+            exit 1
+          fi
+      - name: Migrates, serves /health and runs the jobs
+        run: |
+          docker run -d --name api -p 8000:8000 \
+            -e JWT_SECRET="$(openssl rand -hex 32)" \
+            -e DATABASE_URL=sqlite:////app/storage/app.db \
+            -e CORS_ORIGINS=https://app.example \
+            linkauto-backend:ci \
+            sh -c 'alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000'
+          for _ in $(seq 1 30); do curl -fs http://localhost:8000/health && break; sleep 2; done
+          curl -fs http://localhost:8000/health
+          docker exec api python -m app.jobs run all
+          test "$(docker exec api id -un)" = appuser
+      - name: Logs
+        if: failure()
+        run: docker logs api || true
+
+  frontend-image:
+    name: Frontend production image
+    needs: changes
+    if: needs.changes.outputs.docker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Refuses to build without the API URL
+        run: |
+          if docker build --target production linkauto-frontend; then
+            echo "The image built without VITE_API_BASE_URL" >&2
+            exit 1
+          fi
+      - name: Build
+        run: |
+          docker build --target production \
+            --build-arg VITE_API_BASE_URL=https://api.example/api/v1 \
+            -t linkauto-frontend:ci linkauto-frontend
+      - name: Serves the SPA, its client routes and /health
+        run: |
+          docker run -d --name web -p 8080:8080 linkauto-frontend:ci
+          for _ in $(seq 1 15); do curl -fs http://localhost:8080/health && break; sleep 1; done
+          for path in / /my-lessons "/password-reset/confirm?token=abc"; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$path")
+            echo "$path -> $code"
+            test "$code" = 200
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/assets/missing.js)" = 404
+      - name: Logs
+        if: failure()
+        run: docker logs web || true
+
+  # Single stable check to mark as required on `main`.
+  docker-ok:
+    name: Docker OK
+    needs: [changes, compose, backend-image, frontend-image]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if a Docker job failed or was cancelled
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          case " $RESULTS " in
+            *" failure "*|*" cancelled "*) exit 1 ;;
+          esac

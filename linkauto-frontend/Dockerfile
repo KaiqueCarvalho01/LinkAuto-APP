@@ -1,5 +1,5 @@
-# Base Node.js image
-FROM node:20-alpine AS base
+# Base Node.js image (Node 20 reached end of life; CI also uses 22)
+FROM node:22-alpine AS base
 
 WORKDIR /workspace
 
@@ -7,7 +7,8 @@ WORKDIR /workspace
 FROM base AS development
 
 COPY package*.json ./
-RUN npm install
+# Reproducible installs from the lockfile
+RUN npm ci
 
 COPY . .
 

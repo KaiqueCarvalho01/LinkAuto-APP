@@ -12,3 +12,7 @@ htmlcov
 *.egg-info
 app.db
 storage
+# Local env files would be baked into the dev image by COPY . . (keep the example)
+.env
+.env.*
+!.env.example
