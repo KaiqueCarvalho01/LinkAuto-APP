@@ -38,7 +38,7 @@ export default function InstructorDashboard({
 	onAccept,
 	onReject,
 	dashboardTitle = "Painel do Instrutor",
-	pendingLabel = "Solicitacoes",
+	pendingLabel = "Solicitações",
 	isAdminDashboard = false,
 	pendingInstructors = 0,
 	approvedInstructors = 0,
@@ -561,7 +561,7 @@ export default function InstructorDashboard({
 						px={6}
 						textAlign="center">
 						<Text color="text.secondary" fontWeight="700">
-							Nenhuma solicitacao pendente no momento.
+							Nenhuma solicitação pendente no momento.
 						</Text>
 					</Box>
 				)}

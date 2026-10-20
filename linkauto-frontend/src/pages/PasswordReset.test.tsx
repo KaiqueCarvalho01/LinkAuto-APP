@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import PasswordReset from "./PasswordReset";
 import { renderWithProviders } from "../test/renderWithProviders";
 import { httpClient } from "../services/httpClient";
+import { apiError } from "../test/apiError";
 
 describe("PasswordReset Page", () => {
 	it("renders password reset form correctly", () => {
@@ -38,7 +39,9 @@ describe("PasswordReset Page", () => {
 
 	it("displays server error message on failure", async () => {
 		const user = userEvent.setup();
-		vi.spyOn(httpClient, "post").mockRejectedValue(new Error("Erro de rate limit"));
+		vi.spyOn(httpClient, "post").mockRejectedValue(
+			apiError(429, "RATE_LIMIT_EXCEEDED", "Too many requests. Please try again later."),
+		);
 
 		renderWithProviders(<PasswordReset />);
 
@@ -48,7 +51,11 @@ describe("PasswordReset Page", () => {
 		await user.type(emailInput, "test@exemplo.com");
 		await user.click(submitBtn);
 
-		expect(await screen.findByText("Erro de rate limit")).toBeInTheDocument();
+		expect(
+			await screen.findByText(
+				"Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
+			),
+		).toBeInTheDocument();
 		expect(emailInput).toBeInTheDocument();
 	});
 });

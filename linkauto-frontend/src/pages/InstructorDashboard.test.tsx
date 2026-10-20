@@ -94,6 +94,13 @@ describe("Admin approval screen", () => {
 		expect(screen.queryByText("Sem avaliações")).not.toBeInTheDocument();
 	});
 
+	it("labels the instructor's requests in Portuguese, with accents", () => {
+		renderWithProviders(<InstructorDashboard requests={[]} />);
+
+		expect(screen.getByText("Solicitações")).toBeInTheDocument();
+		expect(screen.getByText("Nenhuma solicitação pendente no momento.")).toBeInTheDocument();
+	});
+
 	it("has no buttons for features that don't exist yet", () => {
 		renderWithProviders(<InstructorDashboard requests={[REQUEST]} />);
 

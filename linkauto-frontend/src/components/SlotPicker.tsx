@@ -112,7 +112,7 @@ export function SlotPicker({
 			<Box>
 				{selectedIds.length === 0 ? (
 					<Text fontSize="sm" color="text.muted" fontWeight="500">
-						Selecione no minimo 2 slots consecutivos no mesmo dia.
+						Selecione no mínimo 2 slots consecutivos no mesmo dia.
 					</Text>
 				) : null}
 
@@ -128,7 +128,7 @@ export function SlotPicker({
 							fontSize="sm"
 							color="state.warning.fg"
 							fontWeight="700">
-							A reserva exige no minimo 2 horas consecutivas.
+							A reserva exige no mínimo 2 horas consecutivas.
 						</Text>
 					</HStack>
 				) : null}
@@ -145,7 +145,7 @@ export function SlotPicker({
 							fontSize="sm"
 							color="state.success.fg"
 							fontWeight="700">
-							Selecao valida para solicitar o agendamento.
+							Seleção válida para solicitar o agendamento.
 						</Text>
 					</HStack>
 				) : null}

@@ -17,6 +17,7 @@ import { BookingStatusTimeline } from "../components/BookingStatusTimeline";
 import { RatingStars } from "../components/RatingStars";
 import { SlotPicker } from "../components/SlotPicker";
 import { bookingSelectionIsValid } from "../features/bookings/bookingRules";
+import { apiErrorMessage } from "../services/apiErrorMessage";
 import { slotService } from "../services/slotService";
 import { bookingService } from "../services/bookingService";
 import { profileService } from "../services/profileService";
@@ -115,15 +116,8 @@ export default function LessonDetails({
       
       onBookingCreated();
     } catch (err: unknown) {
-      const error = err as { status?: number; payload?: { error?: { code?: string } }; message?: string };
-      console.error("Error creating booking:", error);
-      if (error.status === 403 && error.payload?.error?.code === "STUDENT_PENALIZED") {
-        setErrorMessage("Sua conta está penalizada e temporariamente impedida de agendar novas aulas.");
-      } else if (error.status === 422 && error.payload?.error?.code === "SLOT_VALIDATION") {
-        setErrorMessage("Os horários selecionados são inválidos ou não são consecutivos.");
-      } else {
-        setErrorMessage(error.message || "Erro ao solicitar agendamento. Tente novamente.");
-      }
+      console.error("Error creating booking:", err);
+      setErrorMessage(apiErrorMessage(err, "Erro ao solicitar agendamento. Tente novamente."));
     } finally {
       setIsSubmitting(false);
     }

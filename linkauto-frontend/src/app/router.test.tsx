@@ -4,7 +4,13 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { LoginRoute, ProtectedRoute } from "./router";
+import {
+	AdminInstructorDashboardRoute,
+	ColorModeToggle,
+	InstructorDashboardRoute,
+	LoginRoute,
+	ProtectedRoute,
+} from "./router";
 import { appSystem } from "../theme/system";
 
 const session = vi.hoisted(() => ({
@@ -100,5 +106,36 @@ describe("login redirects", () => {
 		renderAt({ pathname: "/login", state: { from: { pathname: "/my-lessons" } } });
 
 		expect(await screen.findByText(/Minhas aulas/)).toBeInTheDocument();
+	});
+});
+
+describe("panel and theme labels", () => {
+	const renderPlain = (ui: React.ReactElement) =>
+		render(
+			<ChakraProvider value={appSystem}>
+				<MemoryRouter>{ui}</MemoryRouter>
+			</ChakraProvider>,
+		);
+
+	it("titles the admin panel in Portuguese", () => {
+		renderPlain(<AdminInstructorDashboardRoute />);
+
+		expect(screen.getByText("Painel Administrativo")).toBeInTheDocument();
+		expect(screen.getAllByText("Instrutores Pendentes").length).toBeGreaterThan(0);
+	});
+
+	it("titles the instructor panel in Portuguese", () => {
+		renderPlain(<InstructorDashboardRoute />);
+
+		expect(screen.getByText("Painel do Instrutor")).toBeInTheDocument();
+	});
+
+	it("labels the theme switch in Portuguese", async () => {
+		globalThis.localStorage.setItem("linkauto-color-mode", "light");
+		renderPlain(<ColorModeToggle />);
+
+		await userEvent.click(screen.getByRole("button", { name: "Mudar para o tema escuro" }));
+
+		expect(screen.getByRole("button", { name: "Mudar para o tema claro" })).toBeInTheDocument();
 	});
 });

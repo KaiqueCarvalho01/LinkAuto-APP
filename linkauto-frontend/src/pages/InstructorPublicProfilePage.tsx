@@ -7,7 +7,6 @@ import {
   MapPin,
   MessageSquare,
   ShieldCheck,
-  Star,
   User,
 } from "lucide-react";
 import {
@@ -25,6 +24,7 @@ import {
 } from "@chakra-ui/react";
 
 import { RatingStars } from "../components/RatingStars";
+import { ReviewStars } from "../components/ReviewStars";
 import { profileService } from "../services/profileService";
 import { useSessionStore } from "../state/sessionStore";
 import type { ApiPublicInstructorProfile } from "../types/api.types";
@@ -410,15 +410,7 @@ export default function InstructorPublicProfilePage() {
                       </RouterLink>
                     </HStack>
 
-                    <HStack gap={1} color="yellow.500">
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          fill={i < rev.rating ? "currentColor" : "none"}
-                        />
-                      ))}
-                    </HStack>
+                    <ReviewStars rating={rev.rating} />
                   </HStack>
 
                   {rev.comment && (

@@ -40,6 +40,17 @@ describe("SearchPage", () => {
 		expect(search).toHaveBeenCalledTimes(2);
 	});
 
+	it("labels every filter", () => {
+		vi.spyOn(instructorService, "searchInstructors").mockResolvedValue([]);
+
+		renderSearch();
+
+		for (const name of ["Cidade", "Especialidade", "Raio de Busca (km)", "Ordenar por"]) {
+			expect(screen.getByRole("combobox", { name })).toBeInTheDocument();
+		}
+		expect(screen.getByRole("spinbutton", { name: "Preço máximo (R$/h)" })).toBeInTheDocument();
+	});
+
 	it("suggests widening the filters when nothing matches", async () => {
 		vi.spyOn(instructorService, "searchInstructors").mockResolvedValue([]);
 

@@ -15,6 +15,7 @@ import {
 
 import { BookingStatusBadge } from "../components/BookingStatusBadge";
 import { BookingStatusTimeline } from "../components/BookingStatusTimeline";
+import { apiErrorMessage } from "../services/apiErrorMessage";
 import { bookingService } from "../services/bookingService";
 import type { BookingPreview } from "../types/booking";
 
@@ -84,8 +85,11 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
       await loadBookings();
     } catch (err: unknown) {
       console.error("Error cancelling booking:", err);
-      const msg = err instanceof Error ? err.message : "Erro ao cancelar aula. Tente novamente.";
-      setErrorMessage(msg);
+      setErrorMessage(
+        apiErrorMessage(err, "Erro ao cancelar aula. Tente novamente.", {
+          INVALID_TRANSITION: "Esta aula não pode mais ser cancelada. Atualize a página.",
+        })
+      );
     } finally {
       setCancellingId(null);
     }

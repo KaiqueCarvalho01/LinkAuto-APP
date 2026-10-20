@@ -7,6 +7,7 @@ import MyLessons from "./MyLessons";
 import { mockBookings } from "../test/fixtures/mockData";
 import { renderWithProviders } from "../test/renderWithProviders";
 import { bookingService } from "../services/bookingService";
+import { apiError } from "../test/apiError";
 
 describe("MyLessons - Cancelamento", () => {
 	it("exibe confirmacao inline ao tentar cancelar aula e executa com sucesso", async () => {
@@ -59,7 +60,9 @@ describe("MyLessons - Cancelamento", () => {
 			{ ...mockBookings[0], id: "booking-2", status: "PENDENTE" as const },
 		] as any[];
 		vi.spyOn(bookingService, "getMyBookings").mockResolvedValue(initialBookings);
-		vi.spyOn(bookingService, "cancelBooking").mockRejectedValue(new Error("Erro de rede no cancelamento"));
+		vi.spyOn(bookingService, "cancelBooking").mockRejectedValue(
+			apiError(422, "INVALID_TRANSITION", "Cannot transition from CONCLUIDA to CANCELADA"),
+		);
 
 		renderWithProviders(
 			<MyLessons token="mock-token" onNewBooking={onNewBooking} />
@@ -72,7 +75,7 @@ describe("MyLessons - Cancelamento", () => {
 		await user.click(confirmBtn);
 
 		// Espera a mensagem de erro aparecer na tela
-		await screen.findByText("Erro de rede no cancelamento");
+		await screen.findByText("Esta aula não pode mais ser cancelada. Atualize a página.");
 
 		// O botão "Sim, cancelar" deve continuar na tela e não estar em loading após a falha
 		expect(screen.getByRole("button", { name: /sim, cancelar/i })).toBeInTheDocument();

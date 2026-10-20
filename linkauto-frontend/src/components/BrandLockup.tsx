@@ -69,7 +69,7 @@ export function BrandLockup({
 							fontSize="xs"
 							fontWeight="600"
 							color={subtitleColor}>
-							Mobilidade, confianca e escala.
+							Mobilidade, confiança e escala.
 						</Text>
 					)}
 				</VStack>

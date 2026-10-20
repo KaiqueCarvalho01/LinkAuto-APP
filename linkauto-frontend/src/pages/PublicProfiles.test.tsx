@@ -83,6 +83,7 @@ describe("InstructorPublicProfilePage", () => {
     expect(screen.getByText("Especialista em alunos com fobia de volante.")).toBeInTheDocument();
     expect(screen.getByText("Camila Rocha")).toBeInTheDocument();
     expect(screen.getByText(/"Excelente paciência e didática!"/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "5 de 5 estrelas" })).toBeInTheDocument();
     expect(screen.getByText("Agendar Aula com este Instrutor")).toBeInTheDocument();
   });
 
@@ -191,5 +192,6 @@ describe("StudentPublicProfilePage", () => {
     expect(screen.getByText("6")).toBeInTheDocument();
     expect(screen.getByText("Carlos Instrutor")).toBeInTheDocument();
     expect(screen.getByText(/"Aluna muito atenta às regras de trânsito."/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "5 de 5 estrelas" })).toBeInTheDocument();
   });
 });

@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { CheckCircle, AlertTriangle } from "lucide-react";
+import { apiErrorMessage } from "../services/apiErrorMessage";
 import { httpClient } from "../services/httpClient";
 
 export default function PasswordReset() {
@@ -36,8 +37,11 @@ export default function PasswordReset() {
 			setEmail("");
 		} catch (err: unknown) {
 			console.error("Error requesting password reset:", err);
-			const msg = err instanceof Error ? err.message : "Erro ao solicitar recuperação de senha. Tente novamente.";
-			setErrorMsg(msg);
+			setErrorMsg(
+				apiErrorMessage(err, "Erro ao solicitar recuperação de senha. Tente novamente.", {
+					VALIDATION_ERROR: "Informe um e-mail válido.",
+				}),
+			);
 		} finally {
 			setSubmitting(false);
 		}

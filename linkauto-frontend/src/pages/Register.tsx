@@ -15,7 +15,11 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 
+import { apiErrorMessage } from "../services/apiErrorMessage";
+
 type PreferredRole = "student" | "instructor";
+
+const MIN_PASSWORD_LENGTH = 8;
 
 interface RegisterProps {
 	readonly onRegister: (payload: {
@@ -42,6 +46,11 @@ export default function Register({ onRegister, initialRole = "student" }: Regist
 			return;
 		}
 
+		if (password.length < MIN_PASSWORD_LENGTH) {
+			setErrorMessage(`A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+			return;
+		}
+
 		if (password !== confirmPassword) {
 			setErrorMessage("As senhas não coincidem.");
 			return;
@@ -52,12 +61,13 @@ export default function Register({ onRegister, initialRole = "student" }: Regist
 		try {
 			await onRegister({ name, email, password, preferredRole });
 		} catch (error) {
-			const fallback = "Não foi possível criar sua conta.";
-			if (error instanceof Error) {
-				setErrorMessage(error.message || fallback);
-			} else {
-				setErrorMessage(fallback);
-			}
+			setErrorMessage(
+				apiErrorMessage(error, "Não foi possível criar sua conta. Tente novamente.", {
+					// Also a duplicate e-mail, deliberately not told apart (docs/ROLLOUT.md)
+					VALIDATION_ERROR:
+						"Não foi possível criar a conta. Confira os dados ou use outro e-mail.",
+				}),
+			);
 		} finally {
 			setSubmitting(false);
 		}
@@ -241,6 +251,8 @@ export default function Register({ onRegister, initialRole = "student" }: Regist
 								</Field.Label>
 								<Input
 									type="password"
+									autoComplete="new-password"
+									minLength={MIN_PASSWORD_LENGTH}
 									value={password}
 									onChange={(e) =>
 										setPassword(e.target.value)

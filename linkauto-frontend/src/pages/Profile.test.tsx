@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import Profile from "./Profile";
 import { profileService } from "../services/profileService";
 import { appSystem } from "../theme/system";
+import { apiError } from "../test/apiError";
 import type { SessionData, UserAccount } from "../types/session";
 
 function CurrentPath() {
@@ -76,6 +77,33 @@ describe("Profile public profile link", () => {
 		expect(
 			screen.queryByRole("button", { name: /visualizar meu perfil público/i }),
 		).not.toBeInTheDocument();
+	});
+});
+
+describe("Profile edit form", () => {
+	it("labels every instructor field for screen readers", async () => {
+		const user = userEvent.setup();
+		renderProfile(instructor());
+
+		await user.click(screen.getByRole("button", { name: /editar perfil/i }));
+
+		expect(screen.getByLabelText("Nome Completo")).toHaveValue("Rafael Lima");
+		expect(screen.getByLabelText("Telefone")).toBeInTheDocument();
+		expect(screen.getByLabelText("Cidade")).toHaveValue("Campinas");
+		expect(screen.getByLabelText("Estado")).toHaveValue("SP");
+		expect(screen.getByLabelText("Preço da Hora (R$)")).toHaveValue(70.5);
+		expect(screen.getByLabelText("Raio de Atuação (KM)")).toHaveValue(15);
+		expect(screen.getByLabelText("Especialidades (separadas por vírgula)")).toBeInTheDocument();
+		expect(screen.getByLabelText("Biografia Profissional")).toBeInTheDocument();
+	});
+
+	it("labels the student's license select", async () => {
+		const user = userEvent.setup();
+		renderProfile(student("ana-1"));
+
+		await user.click(screen.getByRole("button", { name: /editar perfil/i }));
+
+		expect(screen.getByRole("combobox", { name: "Status de Habilitação" })).toBeInTheDocument();
 	});
 });
 
@@ -171,5 +199,23 @@ describe("Profile editing (#89)", () => {
 			expect(saveStudent).toHaveBeenCalled();
 		});
 		expect(saveInstructor).not.toHaveBeenCalled();
+	});
+
+	it("explains a rejected save in Portuguese", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(profileService, "updateInstructorProfile").mockRejectedValue(
+			apiError(422, "VALIDATION_ERROR", "Request validation failed."),
+		);
+		renderProfile(instructor());
+
+		await user.click(screen.getByRole("button", { name: /editar perfil/i }));
+		await user.click(screen.getByRole("button", { name: /salvar/i }));
+
+		expect(
+			await screen.findByText(
+				"Algum campo do perfil tem um valor fora do permitido. Confira e tente novamente.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Request validation failed.")).not.toBeInTheDocument();
 	});
 });
