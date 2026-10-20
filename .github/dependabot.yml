@@ -1,0 +1,32 @@
+# Weekly dependency updates. Minor and patch updates of each ecosystem come grouped in one
+# PR; majors arrive on their own, since they may need code changes.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /linkauto-frontend
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: uv
+    directory: /linkauto-backend
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories: [/linkauto-backend, /linkauto-frontend]
+    schedule:
+      interval: weekly

@@ -36,7 +36,10 @@ jobs:
           if [ "$EVENT" = "workflow_dispatch" ] || [ -z "$BASE_SHA" ] \
             || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
             echo "frontend=true" >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "$BASE_SHA" HEAD \
+          elif ! changed=$(git diff --name-only "$BASE_SHA" HEAD); then
+            # Can't compare (e.g. a force-push): check everything rather than nothing
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+          elif printf '%s\n' "$changed" \
             | grep -qE '^(linkauto-frontend/|\.github/workflows/frontend\.yml$)'; then
             echo "frontend=true" >> "$GITHUB_OUTPUT"
           else
@@ -57,12 +60,14 @@ jobs:
           cache-dependency-path: linkauto-frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
       - name: ESLint
         run: npm run lint
       - name: TypeScript
         run: npm run typecheck
-      - name: Vitest
-        run: npm test
+      - name: Vitest (with the coverage thresholds)
+        run: npm run test:coverage
       - name: Build
         run: npm run build
 

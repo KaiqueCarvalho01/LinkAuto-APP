@@ -222,10 +222,12 @@ npm run test                 # Execução dos 102 testes automatizados com Vites
 ### Integração Contínua (GitHub Actions)
 Cada pull request e cada push em `main` executam os workflows em [`.github/workflows/`](.github/workflows/):
 
-- **Backend** (`backend.yml`): `uv sync --locked`, Ruff (lint e formatação), ty, pytest, `alembic upgrade head` + `alembic check` em um SQLite novo, e um job que aplica, verifica e reverte as migrações em um container `postgis/postgis:16-3.4-alpine`.
-- **Frontend** (`frontend.yml`): `npm ci`, ESLint, TypeScript, Vitest e build do Vite.
+- **Backend** (`backend.yml`): `uv sync --locked`, `pip-audit` das dependências de runtime, Ruff (lint e formatação), ty, pytest, `alembic upgrade head` + `alembic check` em um SQLite novo, e um job que aplica, verifica e reverte as migrações em um container `postgis/postgis:16-3.4-alpine`.
+- **Frontend** (`frontend.yml`): `npm ci`, `npm audit --omit=dev --audit-level=high`, ESLint, TypeScript, Vitest com os limites de cobertura e build do Vite.
+- **Docker** (`docker.yml`): valida o Compose (perfis padrão e `postgres`), constrói as imagens de produção e testa cada uma rodando: o backend recusa subir sem `JWT_SECRET`, migra e responde `/health`; o frontend exige `VITE_API_BASE_URL` e serve as rotas do SPA. Roda quando mudam `infra/`, Dockerfiles, `.dockerignore`, `nginx.conf` ou manifestos de dependências.
+- **Dependabot** (`.github/dependabot.yml`): atualizações semanais de npm, uv, GitHub Actions e imagens Docker.
 
-Os jobs só rodam quando o respectivo app muda, mas os checks agregadores **`Backend OK`** e **`Frontend OK`** sempre reportam um status. Configure esses dois como *required status checks* na proteção da branch `main` (Settings → Branches); em PRs empilhados cada camada roda os checks contra a sua base.
+Os jobs só rodam quando o respectivo app muda (ou sempre, se não for possível comparar com a base, como após um *force-push*), mas os checks agregadores **`Backend OK`**, **`Frontend OK`** e **`Docker OK`** sempre reportam um status. Configure esses três como *required status checks* na proteção da branch `main` (Settings → Branches); em PRs empilhados cada camada roda os checks contra a sua base.
 
 ### Testes E2E e Validação Visual
 Os testes de interface e jornada do usuário são conduzidos nativamente através do **Chrome DevTools MCP** (`@browser-testing-with-devtools`), permitindo capturas em alta resolução, inspeção de DOM e validação de contratos em tempo de execução.

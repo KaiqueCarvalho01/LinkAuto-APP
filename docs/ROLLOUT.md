@@ -38,7 +38,7 @@ Este documento registra decisões tomadas durante o desenvolvimento, para que po
 ## 2. Checklist de Rollout
 
 ### GitHub (requer permissão de admin no repositório)
-- [ ] Tornar **Backend OK** e **Frontend OK** status checks obrigatórios em `main` (Settings → Branches).
+- [ ] Tornar **Backend OK**, **Frontend OK** e **Docker OK** status checks obrigatórios em `main` (Settings → Branches).
 
 ### Produção
 - [ ] Rodar `scripts/migrate.sh` como passo de pré-deploy no pipeline (ver [`infra/README.md`](../infra/README.md#-migrações-no-deploy-produção)). A pilha #50–#57 adicionou a migração `0004` (`password_reset_tokens`); a `0005` libera os horários de agendamentos já cancelados (#69); a `0006` grava os slugs públicos que faltam (#72).
