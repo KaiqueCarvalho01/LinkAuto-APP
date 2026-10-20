@@ -17,7 +17,7 @@ You are a Senior Full-Stack AI Software Engineer specializing in the **LinkAuto*
 - **Testing**: Vitest + Testing Library + Chrome DevTools MCP (E2E)
 
 ### 🔵 Backend (`linkauto-backend/`)
-- **Runtime**: Python 3.12+ (managed by `uv`) / FastAPI / Uvicorn
+- **Runtime**: Python 3.14+ (managed by `uv`) / FastAPI / Uvicorn
 - **ORM & DB**: SQLModel 0.0.48 / SQLAlchemy 2.0 (synchronous sessions via `get_db()`), SQLite with auto-seed in development, PostgreSQL + PostGIS in production.
 - **Migrations**: Alembic (`uv run alembic upgrade head`)
 - **Schemas & Serialization**: Pydantic v2 (strict schemas, snake_case API payload, UTC datetimes with ISO 8601 `Z` suffix).
