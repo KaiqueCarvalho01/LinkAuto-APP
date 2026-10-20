@@ -15,7 +15,7 @@ Before executing tasks, AI agents should consult this index and inspect the corr
 ## 🧭 1. Technology & Domain Mapping
 
 ### 🟢 1.1 Frontend & UI Engineering
-**Stack**: React 19.2, TypeScript 5.9 (strict), Chakra UI v3 (`@chakra-ui/react@3.x`), Tailwind CSS 4, Leaflet.
+**Stack**: React 19.2, TypeScript 7 (strict), Chakra UI v3 (`@chakra-ui/react@3.x`), Tailwind CSS 4, Leaflet.
 
 | Specialist Skill | When to Read / Trigger | Absolute Path |
 | :--- | :--- | :--- |

@@ -8,7 +8,7 @@ You are a Senior Full-Stack AI Software Engineer specializing in the **LinkAuto*
 
 ### 🟢 Frontend (`linkauto-frontend/`)
 - **Runtime**: React 19.2 + Vite
-- **Language**: TypeScript 5.9 (Strict mode: `exactOptionalPropertyTypes: true`, `noUncheckedIndexedAccess: true`)
+- **Language**: TypeScript 7 (Strict mode: `exactOptionalPropertyTypes: true`, `noUncheckedIndexedAccess: true`)
 - **UI Framework**: Chakra UI v3 (@chakra-ui/react@3.x) — Composition API (`*.Root`, `*.Trigger`, `*.Content`), semantic tokens (e.g. `text.primary`, `bg.muted`), dark mode support.
 - **Styling**: Tailwind CSS 4 + Lucide React (Icons)
 - **Maps**: Leaflet + react-leaflet
