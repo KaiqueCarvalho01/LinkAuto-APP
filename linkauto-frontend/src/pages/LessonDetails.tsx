@@ -19,11 +19,12 @@ import { SlotPicker } from "../components/SlotPicker";
 import { bookingSelectionIsValid } from "../features/bookings/bookingRules";
 import { slotService } from "../services/slotService";
 import { bookingService } from "../services/bookingService";
-import type { InstructorSummary } from "../types/instructor";
+import { profileService } from "../services/profileService";
+import type { ApiPublicInstructorProfile } from "../types/api.types";
 import type { BookingSlot } from "../types/booking";
 
 interface LessonDetailsProps {
-  readonly instructor: InstructorSummary | undefined;
+  readonly instructorSlug: string;
   readonly token: string | undefined;
   readonly blockedUntil?: string | null;
   readonly onBack: () => void;
@@ -31,17 +32,39 @@ interface LessonDetailsProps {
 }
 
 export default function LessonDetails({
-  instructor,
+  instructorSlug,
   token,
   blockedUntil = null,
   onBack,
   onBookingCreated,
 }: LessonDetailsProps) {
+  const [instructor, setInstructor] = useState<ApiPublicInstructorProfile | null>(null);
+  const [instructorStatus, setInstructorStatus] = useState<"loading" | "ready" | "unavailable">(
+    "loading",
+  );
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
   const [slots, setSlots] = useState<BookingSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    profileService
+      .fetchPublicInstructorProfile(instructorSlug)
+      .then((profile) => {
+        if (!active) return;
+        setInstructor(profile);
+        setInstructorStatus("ready");
+      })
+      .catch((err) => {
+        console.error("Error loading instructor:", err);
+        if (active) setInstructorStatus("unavailable");
+      });
+    return () => {
+      active = false;
+    };
+  }, [instructorSlug]);
 
   useEffect(() => {
     let active = true;
@@ -51,7 +74,7 @@ export default function LessonDetails({
       setLoadingSlots(true);
       setErrorMessage(null);
       try {
-        const data = await slotService.getInstructorSlots(instructor.id);
+        const data = await slotService.getInstructorSlots(instructor.slug);
         if (active) {
           setSlots(data);
         }
@@ -85,9 +108,9 @@ export default function LessonDetails({
     setErrorMessage(null);
     try {
       await bookingService.createBooking({
-        instructor_id: instructor.id,
+        instructor_id: instructor.slug,
         slot_ids: selectedSlotIds,
-        location_description: `Aula prática de direção com ${instructor.fullName}`,
+        location_description: `Aula prática de direção com ${instructor.full_name}`,
       }, token);
       
       onBookingCreated();
@@ -106,10 +129,41 @@ export default function LessonDetails({
     }
   };
 
-  if (!instructor) {
+  if (instructorStatus === "loading") {
     return (
       <Container maxW="4xl" pt={8}>
-        <Text color="text.muted">Nenhum instrutor selecionado.</Text>
+        <Stack gap={6}>
+          <Skeleton h="40px" w="160px" borderRadius="md" />
+          <Skeleton h="180px" borderRadius="2xl" />
+          <Skeleton h="260px" borderRadius="2xl" />
+        </Stack>
+      </Container>
+    );
+  }
+
+  if (instructorStatus === "unavailable" || !instructor) {
+    return (
+      <Container maxW="3xl" py={16}>
+        <Stack
+          gap={4}
+          align="center"
+          textAlign="center"
+          bg="surface.panel"
+          p={8}
+          borderRadius="2xl"
+          border="1px solid"
+          borderColor="border.default">
+          <Heading size="lg" color="text.primary">
+            Agendamento indisponível
+          </Heading>
+          <Text color="text.secondary">
+            Instrutor não encontrado ou indisponível para agendamento.
+          </Text>
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft size={16} />
+            Voltar para a busca
+          </Button>
+        </Stack>
       </Container>
     );
   }
@@ -153,18 +207,18 @@ export default function LessonDetails({
                 px={4}
                 py={3}>
                 <RouterLink
-                  to={`/instructors/${instructor.slug || instructor.id}`}
+                  to={`/instructors/${instructor.slug}`}
                   style={{ textDecoration: "none" }}>
                   <Text
                     fontWeight="700"
                     color="brand.emphasized"
                     _hover={{ textDecoration: "underline" }}>
-                    {instructor.fullName}
+                    {instructor.full_name}
                   </Text>
                 </RouterLink>
                 <RatingStars
-                  rating={instructor.rating}
-                  reviewsCount={instructor.reviewsCount}
+                  rating={instructor.rating_avg}
+                  reviewsCount={instructor.rating_count}
                 />
                 <HStack
                   color="text.secondary"
@@ -178,10 +232,12 @@ export default function LessonDetails({
                     />
                     <Text>Membro Credenciado</Text>
                   </HStack>
-                  <HStack gap={1.5}>
-                    <Clock3 size={14} aria-hidden="true" />
-                    <Text>{instructor.city}</Text>
-                  </HStack>
+                  {instructor.city && (
+                    <HStack gap={1.5}>
+                      <Clock3 size={14} aria-hidden="true" />
+                      <Text>{instructor.city}</Text>
+                    </HStack>
+                  )}
                 </HStack>
               </Stack>
             </Stack>

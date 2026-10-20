@@ -14,6 +14,7 @@ import {
 	Routes,
 	useLocation,
 	useNavigate,
+	useParams,
 	Outlet,
 } from "react-router-dom";
 
@@ -51,7 +52,6 @@ import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
 import { homePathFor } from "./homePath";
 import { returnToFrom } from "./returnTo";
-import type { InstructorSummary } from "../types/instructor";
 import type {
 	AdminStats,
 	DashboardRequest,
@@ -253,7 +253,7 @@ function SearchRoute() {
 				}
 			}}
 			onStartBooking={(instructor) =>
-				navigate("/bookings/new", { state: { instructor } })
+				navigate(`/bookings/new/${instructor.slug || instructor.id}`)
 			}
 		/>
 	);
@@ -261,13 +261,13 @@ function SearchRoute() {
 
 function BookingDetailsRoute() {
 	const navigate = useNavigate();
-	const location = useLocation();
-	const state = location.state as { instructor?: InstructorSummary } | null;
+	const { slug = "" } = useParams<{ slug: string }>();
 	const { session } = useSessionStore();
 
 	return (
 		<LessonDetails
-			instructor={state?.instructor}
+			key={slug}
+			instructorSlug={slug}
 			token={session?.accessToken}
 			onBack={() => navigate("/search")}
 			onBookingCreated={() => {
@@ -674,7 +674,7 @@ export default function AppRouter() {
 					/>
 
 					<Route
-						path="/bookings/new"
+						path="/bookings/new/:slug"
 						element={
 							<ProtectedRoute>
 								<BookingDetailsRoute />

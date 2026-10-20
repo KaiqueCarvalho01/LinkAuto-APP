@@ -103,14 +103,8 @@ describe("InstructorPublicProfilePage", () => {
     });
 
     function LoginProbe() {
-      const state = useLocation().state as {
-        from?: { pathname: string; state?: { instructor?: { slug: string } } };
-      } | null;
-      return (
-        <p>
-          Login para {state?.from?.pathname} {state?.from?.state?.instructor?.slug}
-        </p>
-      );
+      const state = useLocation().state as { from?: { pathname: string } } | null;
+      return <p>Login para {state?.from?.pathname}</p>;
     }
 
     renderWithProviders(
@@ -125,7 +119,7 @@ describe("InstructorPublicProfilePage", () => {
     await userEvent.click(await screen.findByText("Agendar Aula com este Instrutor"));
 
     expect(
-      screen.getByText("Login para /bookings/new marcos-lima-mogi-mirim-4a9b")
+      screen.getByText("Login para /bookings/new/marcos-lima-mogi-mirim-4a9b")
     ).toBeInTheDocument();
   });
 
