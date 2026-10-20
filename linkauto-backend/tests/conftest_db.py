@@ -14,7 +14,7 @@ from app.services.dependencies import get_document_storage
 from app.services.document_storage import InMemoryDocumentStorage
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator, Iterator
 
 
 def create_test_engine() -> Engine:
@@ -39,7 +39,7 @@ def create_test_engine() -> Engine:
 
 
 @contextmanager
-def isolated_session(engine: Engine) -> Iterator[Session]:
+def isolated_session(engine: Engine) -> Generator[Session]:
     """Yield a session whose work is always rolled back, even if it commits or rolls back."""
     connection = engine.connect()
     transaction = connection.begin()

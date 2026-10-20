@@ -56,6 +56,8 @@ unsound-assignment = "ignore"
 unsound-return-statement = "ignore"
 # slowapi's @limiter.limit is untyped
 dynamic-function-decorator-return = "ignore"
+# `if not token:` deliberately treats "" like None (unset env vars, empty form fields)
+truthiness-test-of-none-union = "ignore"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
