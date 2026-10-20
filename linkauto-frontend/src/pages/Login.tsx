@@ -11,8 +11,6 @@ import {
 	Stack,
 	Text,
 	Separator,
-	Checkbox,
-	CheckboxHiddenInput,
 	Field,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
@@ -224,22 +222,10 @@ export default function Login({ onAuthenticate }: LoginProps) {
 							/>
 						</Field.Root>
 
-						{/* Manter conectado e Esqueci a senha */}
-						<HStack justify="space-between" mt={1}>
-							<Checkbox.Root
-								colorPalette="brand"
-								size="md"
-								value="remember-me">
-								<CheckboxHiddenInput />
-								<Checkbox.Control />
-								<Checkbox.Label
-									color="text.secondary"
-									fontSize="sm">
-									Manter conectado
-								</Checkbox.Label>
-							</Checkbox.Root>
+						{/* Esqueci a senha */}
+						<HStack justify="flex-end" mt={1}>
 							<Link asChild>
-								<RouterLink to="#">
+								<RouterLink to="/password-reset">
 									<Text
 										as="span"
 										fontSize="sm"

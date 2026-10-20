@@ -369,7 +369,7 @@ const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png
 
 ### Penalidade de Cancelamento
 
-Banner de alerta dentro de `/bookings/new` quando `student.is_blocked = true`:
+Banner de alerta dentro de `/bookings/new/:slug` quando `student.is_blocked = true`:
 
 ```
 ⚠️  Sua conta está com reservas bloqueadas até [data].

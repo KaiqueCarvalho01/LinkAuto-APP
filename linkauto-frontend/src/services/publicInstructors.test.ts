@@ -55,6 +55,35 @@ describe("instructorService.getPublicInstructors", () => {
 			coordinates: { lat: -22.43, lng: -46.95 },
 		});
 	});
+
+	it("leaves out coordinates the instructor never set, instead of placing them at (0, 0)", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue(
+				jsonResponse({
+					data: [
+						{
+							id: "sem-mapa",
+							slug: "sem-mapa",
+							full_name: "Sem Mapa",
+							specialties: [],
+							rating_avg: 0,
+							rating_count: 0,
+							latitude: null,
+							longitude: null,
+							action_radius_km: 10,
+						},
+					],
+					error: null,
+					meta: { total: 1 },
+				}),
+			),
+		);
+
+		const [instructor] = await instructorService.getPublicInstructors();
+
+		expect(instructor?.coordinates).toBeNull();
+	});
 });
 
 describe("mapApiBookingToPreview", () => {

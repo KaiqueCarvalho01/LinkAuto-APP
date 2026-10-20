@@ -194,7 +194,7 @@ export function InfoSections() {
 									size="lg"
 									rounded="full"
 									w="fit-content">
-									<RouterLink to="/instructors/register">
+									<RouterLink to="/register?role=instructor">
 										Seja Instrutor
 									</RouterLink>
 								</Button>

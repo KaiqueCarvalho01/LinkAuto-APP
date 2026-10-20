@@ -11,10 +11,11 @@ export interface InstructorSummary {
   detranApproved: boolean;
   specialties: string[];
   radiusKm: number;
+  // null when the instructor hasn't set a location
   coordinates: {
     lat: number;
     lng: number;
-  };
+  } | null;
 }
 
 export interface InstructorSearchParams {

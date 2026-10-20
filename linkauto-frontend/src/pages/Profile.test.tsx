@@ -30,7 +30,6 @@ const profileTree = (user: UserAccount) => {
 									onProfileUpdated={vi.fn()}
 									onNavigateToSearch={vi.fn()}
 									onNavigateToBookings={vi.fn()}
-									onNavigateToVehicles={vi.fn()}
 								/>
 								<CurrentPath />
 							</>
@@ -74,6 +73,20 @@ describe("Profile public profile link", () => {
 		renderProfile(student());
 
 		expect(screen.queryByRole("button", { name: /ver perfil público/i })).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /visualizar meu perfil público/i }),
+		).not.toBeInTheDocument();
+	});
+});
+
+describe("Profile menu", () => {
+	it("only offers entries that lead somewhere", () => {
+		renderProfile(instructor());
+
+		for (const label of [/meus veículos/i, /notificações/i, /planos e assinaturas/i]) {
+			expect(screen.queryByRole("button", { name: label })).not.toBeInTheDocument();
+		}
+		expect(screen.getByRole("button", { name: /segurança e senha/i })).toBeInTheDocument();
 	});
 });
 

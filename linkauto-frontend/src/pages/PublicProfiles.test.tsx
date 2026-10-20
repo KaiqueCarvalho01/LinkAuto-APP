@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 
 import InstructorPublicProfilePage from "./InstructorPublicProfilePage";
@@ -83,6 +84,43 @@ describe("InstructorPublicProfilePage", () => {
     expect(screen.getByText("Camila Rocha")).toBeInTheDocument();
     expect(screen.getByText(/"Excelente paciência e didática!"/)).toBeInTheDocument();
     expect(screen.getByText("Agendar Aula com este Instrutor")).toBeInTheDocument();
+  });
+
+  it("sends anonymous visitors to login, to come back to the booking page", async () => {
+    vi.mocked(profileService.fetchPublicInstructorProfile).mockResolvedValueOnce({
+      id: "marcos-lima-mogi-mirim-4a9b",
+      slug: "marcos-lima-mogi-mirim-4a9b",
+      full_name: "Marcos Lima",
+      city: "Mogi Mirim",
+      state: "SP",
+      bio: null,
+      specialties: [],
+      price_per_hour: 90,
+      rating_avg: 4.9,
+      rating_count: 8,
+      detran_approved: true,
+      reviews: [],
+    });
+
+    function LoginProbe() {
+      const state = useLocation().state as { from?: { pathname: string } } | null;
+      return <p>Login para {state?.from?.pathname}</p>;
+    }
+
+    renderWithProviders(
+      <MemoryRouter initialEntries={["/instructors/marcos-lima-mogi-mirim-4a9b"]}>
+        <Routes>
+          <Route path="/instructors/:id" element={<InstructorPublicProfilePage />} />
+          <Route path="/login" element={<LoginProbe />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await userEvent.click(await screen.findByText("Agendar Aula com este Instrutor"));
+
+    expect(
+      screen.getByText("Login para /bookings/new/marcos-lima-mogi-mirim-4a9b")
+    ).toBeInTheDocument();
   });
 
   it("renders friendly error state when instructor slug is not found", async () => {

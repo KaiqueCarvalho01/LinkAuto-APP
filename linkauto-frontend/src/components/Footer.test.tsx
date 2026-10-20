@@ -42,13 +42,24 @@ describe("Footer", () => {
 		renderWithProviders(<Footer />);
 		expect(
 			screen.getByRole("link", { name: /Cadastrar como Instrutor/i }),
-		).toHaveAttribute("href", "/register");
+		).toHaveAttribute("href", "/register?role=instructor");
 		expect(
 			screen.getByRole("link", { name: /Painel do Instrutor/i }),
 		).toHaveAttribute("href", "/instructor/dashboard");
+		// There is no vehicles page; the link only reopened the profile
 		expect(
-			screen.getByRole("link", { name: /Meus Veículos/i }),
-		).toHaveAttribute("href", "/profile");
+			screen.queryByRole("link", { name: /Meus Veículos/i }),
+		).not.toBeInTheDocument();
+	});
+
+	it("has no placeholder links", () => {
+		renderWithProviders(<Footer />);
+		for (const link of screen.getAllByRole("link")) {
+			expect(link.getAttribute("href")).not.toMatch(/^#?$/);
+		}
+		expect(
+			screen.getByRole("link", { name: "E-mail de contato" }),
+		).toHaveAttribute("href", "mailto:contato@linkauto.com.br");
 	});
 
 	it("should have the correct links under the Institucional column", () => {

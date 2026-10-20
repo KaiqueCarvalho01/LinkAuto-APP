@@ -8,7 +8,6 @@ import Contact from "./Contact";
 import Help from "./Help";
 import Home from "./Home";
 import InstructorDashboard from "./InstructorDashboard";
-import LessonDetails from "./LessonDetails";
 import MyLessons from "./MyLessons";
 import Profile from "./Profile";
 import SearchPage from "./SearchPage";
@@ -80,33 +79,6 @@ describe("Scaffold Pages", () => {
 		expect(screen.getByText(/Painel do Instrutor/i)).toBeInTheDocument();
 	});
 
-	it("renders LessonDetails page", () => {
-		renderWithProviders(
-			<LessonDetails
-				instructor={{
-					id: "1",
-					fullName: "Teste",
-					rating: 5,
-					hourlyRate: 80,
-					specialties: [],
-					city: "",
-					neighborhood: "",
-					reviewsCount: 0,
-					distanceKm: 0,
-					detranApproved: true,
-					radiusKm: 5,
-					coordinates: { lat: 0, lng: 0 },
-				}}
-				token="test"
-				onBack={vi.fn()}
-				onBookingCreated={vi.fn()}
-			/>,
-		);
-		expect(
-			screen.getAllByText(/Solicitar agendamento/i).length,
-		).toBeGreaterThanOrEqual(1);
-	});
-
 	it("renders MyLessons page", () => {
 		renderWithProviders(<MyLessons token="test" onNewBooking={vi.fn()} />);
 		expect(screen.getByText(/Meus agendamentos/i)).toBeInTheDocument();
@@ -121,7 +93,6 @@ describe("Scaffold Pages", () => {
 				onProfileUpdated={vi.fn()}
 				onNavigateToSearch={vi.fn()}
 				onNavigateToBookings={vi.fn()}
-				onNavigateToVehicles={vi.fn()}
 			/>,
 		);
 		expect(screen.getByText(/Conta Aluno/i)).toBeInTheDocument();

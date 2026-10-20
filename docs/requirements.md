@@ -55,7 +55,7 @@ O produto oferece funcionalidades de busca geolocalizada, agendamento, avaliaç�
 - Dados visíveis antes do agendamento: foto, bio, especialidades, região, preço/hora, avaliação média e total de avaliações.
 - Exibir badge de credenciamento DETRAN Validado (RN01) — instrutores pendentes ou rejeitados retornam estritamente 404 Not Found.
 - Histórico de avaliações mútuas recebidas de alunos reais.
-- Botão principal "Agendar Aula" que direciona de forma segura para o fluxo de reserva (`/bookings/new`) com contexto do instrutor ou solicita autenticação prévia (`/login`), sem expor a grade de slots diretamente para visitantes não autenticados.
+- Botão principal "Agendar Aula" que direciona de forma segura para o fluxo de reserva (`/bookings/new/:slug`, que carrega o instrutor pelo slug e funciona ao recarregar a página) ou solicita autenticação prévia (`/login`, voltando à reserva depois), sem expor a grade de slots diretamente para visitantes não autenticados.
 
 ### RF04 — Gestão de Agenda
 

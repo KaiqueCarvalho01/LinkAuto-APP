@@ -41,12 +41,21 @@ const markerIcon = (name: string, active: boolean): DivIcon => {
 	});
 };
 
+type MappedInstructor = InstructorSummary & {
+	readonly coordinates: NonNullable<InstructorSummary["coordinates"]>;
+};
+
+const hasCoordinates = (instructor: InstructorSummary): instructor is MappedInstructor =>
+	instructor.coordinates !== null;
+
 export function InstructorMap({
-	instructors,
+	instructors: allInstructors,
 	selectedInstructorId,
 	onSelect,
 	onBook,
 }: InstructorMapProps) {
+	// Instructors without a location can't be placed on the map
+	const instructors = allInstructors.filter(hasCoordinates);
 	const firstInstructor = instructors[0];
 	const selectedInstructor =
 		instructors.find((item) => item.id === selectedInstructorId) ??

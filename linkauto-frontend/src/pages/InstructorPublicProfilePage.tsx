@@ -28,7 +28,6 @@ import { RatingStars } from "../components/RatingStars";
 import { profileService } from "../services/profileService";
 import { useSessionStore } from "../state/sessionStore";
 import type { ApiPublicInstructorProfile } from "../types/api.types";
-import type { InstructorSummary } from "../types/instructor";
 
 const initialsFromName = (name: string): string => {
   const parts = name
@@ -80,33 +79,13 @@ export default function InstructorPublicProfilePage() {
   const handleStartBooking = () => {
     if (!instructor) return;
 
-    const summary: InstructorSummary = {
-      id: instructor.id,
-      slug: instructor.slug,
-      fullName: instructor.full_name,
-      city: instructor.city ?? "Mogi Mirim",
-      neighborhood: instructor.state ?? "SP",
-      rating: instructor.rating_avg,
-      reviewsCount: instructor.rating_count,
-      distanceKm: 0,
-      hourlyRate: instructor.price_per_hour ?? 70,
-      detranApproved: instructor.detran_approved,
-      specialties: instructor.specialties,
-      radiusKm: 15,
-      coordinates: { lat: -22.4319, lng: -46.9578 },
-    };
-
+    const bookingPath = `/bookings/new/${instructor.slug}`;
     if (!isAuthenticated) {
-      navigate("/login", {
-        state: {
-          returnUrl: `/bookings/new`,
-          instructor: summary,
-        },
-      });
+      navigate("/login", { state: { from: { pathname: bookingPath } } });
       return;
     }
 
-    navigate("/bookings/new", { state: { instructor: summary } });
+    navigate(bookingPath);
   };
 
   if (loading) {

@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Bell,
-  Car,
   Compass,
   ChevronRight,
-  CreditCard,
   CalendarClock,
   LogOut,
   Shield,
@@ -40,7 +37,6 @@ interface ProfileProps {
   readonly onProfileUpdated: (updatedUser: UserAccount) => void;
   readonly onNavigateToSearch: () => void;
   readonly onNavigateToBookings: () => void;
-  readonly onNavigateToVehicles: () => void;
 }
 
 interface MenuItem {
@@ -48,7 +44,7 @@ interface MenuItem {
   readonly icon: LucideIcon;
   readonly label: string;
   readonly iconColor: string;
-  readonly action?: () => void;
+  readonly action: () => void;
 }
 
 type ProfileSide = "instructor" | "student";
@@ -96,7 +92,6 @@ export default function Profile({
   onProfileUpdated,
   onNavigateToSearch,
   onNavigateToBookings,
-  onNavigateToVehicles,
 }: ProfileProps) {
   const user = session?.user;
   const isInstructor = user?.roles.includes("INSTRUTOR") ?? false;
@@ -245,44 +240,23 @@ export default function Profile({
           },
         ]
       : []),
-    ...(isInstructor
+    ...(publicProfilePath
       ? [
           {
-            id: "vehicles",
-            icon: Car,
-            label: "Meus Veículos",
-            iconColor: "accent.600",
-            action: onNavigateToVehicles,
+            id: "public-profile",
+            icon: ExternalLink,
+            label: "Visualizar meu perfil público",
+            iconColor: "brand.solid",
+            action: () => navigate(publicProfilePath),
           },
         ]
       : []),
-    {
-      id: "public-profile",
-      icon: ExternalLink,
-      label: "Visualizar meu perfil público",
-      iconColor: "brand.solid",
-      action: () => {
-        if (publicProfilePath) navigate(publicProfilePath);
-      },
-    },
-    {
-      id: "notifications",
-      icon: Bell,
-      label: "Notificações (Em breve)",
-      iconColor: "laBlue.600",
-    },
     {
       id: "security",
       icon: Shield,
       label: "Segurança e senha",
       iconColor: "laBlue.700",
       action: () => navigate("/password-reset"),
-    },
-    {
-      id: "plans",
-      icon: CreditCard,
-      label: "Planos e assinaturas",
-      iconColor: "text.secondary",
     },
   ];
 

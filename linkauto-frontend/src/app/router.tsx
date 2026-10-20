@@ -14,6 +14,8 @@ import {
 	Routes,
 	useLocation,
 	useNavigate,
+	useParams,
+	useSearchParams,
 	Outlet,
 } from "react-router-dom";
 
@@ -50,7 +52,7 @@ import { bookingService } from "../services/bookingService";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
 import { homePathFor } from "./homePath";
-import type { InstructorSummary } from "../types/instructor";
+import { returnToFrom } from "./returnTo";
 import type {
 	AdminStats,
 	DashboardRequest,
@@ -97,10 +99,11 @@ const applyColorMode = (mode: ThemeMode) => {
 
 
 
-function ProtectedRoute({ children }: RouteGuardProps) {
+export function ProtectedRoute({ children }: RouteGuardProps) {
+	const location = useLocation();
 	const { isAuthenticated } = useSessionStore();
 	if (!isAuthenticated) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to="/login" replace state={{ from: location }} />;
 	}
 
 	return children;
@@ -135,12 +138,18 @@ function HomeRoute() {
 	);
 }
 
-function LoginRoute() {
+export function LoginRoute() {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { isAuthenticated, roles, signIn } = useSessionStore();
+	const returnTo = returnToFrom(location.state);
 
 	if (isAuthenticated) {
-		return <Navigate to={homePathFor(roles)} replace />;
+		return returnTo ? (
+			<Navigate to={returnTo.path} state={returnTo.state} replace />
+		) : (
+			<Navigate to={homePathFor(roles)} replace />
+		);
 	}
 
 	const handleAuthenticate = async ({
@@ -153,6 +162,10 @@ function LoginRoute() {
 		preferredRole: "student" | "instructor";
 	}) => {
 		const session = await signIn({ email, password });
+		if (returnTo) {
+			navigate(returnTo.path, { replace: true, state: returnTo.state });
+			return;
+		}
 		navigate(homePathFor(session.user.roles, preferredRole), { replace: true });
 	};
 
@@ -161,7 +174,9 @@ function LoginRoute() {
 
 function RegisterRoute() {
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
 	const { signUp, isAuthenticated } = useSessionStore();
+	const initialRole = searchParams.get("role") === "instructor" ? "instructor" : "student";
 
 	if (isAuthenticated) {
 		return <Navigate to="/search" replace />;
@@ -184,7 +199,7 @@ function RegisterRoute() {
 		navigate("/login", { replace: true });
 	};
 
-	return <Register onRegister={handleRegister} />;
+	return <Register onRegister={handleRegister} initialRole={initialRole} />;
 }
 
 function ProfileRoute() {
@@ -221,7 +236,6 @@ function ProfileRoute() {
 			onProfileUpdated={updateUser}
 			onNavigateToSearch={() => navigate("/search")}
 			onNavigateToBookings={() => navigate("/my-lessons")}
-			onNavigateToVehicles={() => navigate("/profile")}
 		/>
 	);
 }
@@ -241,7 +255,7 @@ function SearchRoute() {
 				}
 			}}
 			onStartBooking={(instructor) =>
-				navigate("/bookings/new", { state: { instructor } })
+				navigate(`/bookings/new/${instructor.slug || instructor.id}`)
 			}
 		/>
 	);
@@ -249,13 +263,13 @@ function SearchRoute() {
 
 function BookingDetailsRoute() {
 	const navigate = useNavigate();
-	const location = useLocation();
-	const state = location.state as { instructor?: InstructorSummary } | null;
+	const { slug = "" } = useParams<{ slug: string }>();
 	const { session } = useSessionStore();
 
 	return (
 		<LessonDetails
-			instructor={state?.instructor}
+			key={slug}
+			instructorSlug={slug}
 			token={session?.accessToken}
 			onBack={() => navigate("/search")}
 			onBookingCreated={() => {
@@ -348,10 +362,7 @@ function AdminInstructorDashboardRoute() {
 	}, [loadPending, loadStats, applyPending]);
 
 	const instructorData = useMemo(
-		() => ({
-			name: session?.user?.email || "Admin LinkAuto",
-			rating: 5,
-		}),
+		() => ({ name: session?.user?.email || "Admin LinkAuto" }),
 		[session?.user?.email],
 	);
 
@@ -401,7 +412,6 @@ function AdminInstructorDashboardRoute() {
 			requests={requests}
 			onAccept={approve}
 			onReject={reject}
-			onViewStudents={() => undefined}
 			dashboardTitle="Administrative Panel"
 			pendingLabel="Pending Instructors"
 			isAdminDashboard={true}
@@ -429,7 +439,10 @@ function InstructorDashboardRoute() {
 	const instructorData = useMemo(
 		() => ({
 			name: session?.user?.instructor_profile?.full_name || session?.user?.email || "Instrutor",
-			rating: session?.user?.instructor_profile?.rating_avg || 5.0,
+			rating: {
+				average: session?.user?.instructor_profile?.rating_avg ?? 0,
+				count: session?.user?.instructor_profile?.rating_count ?? 0,
+			},
 		}),
 		[session?.user]
 	);
@@ -662,7 +675,7 @@ export default function AppRouter() {
 					/>
 
 					<Route
-						path="/bookings/new"
+						path="/bookings/new/:slug"
 						element={
 							<ProtectedRoute>
 								<BookingDetailsRoute />

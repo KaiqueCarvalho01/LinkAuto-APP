@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from "react";
-import { AlertTriangle, Award, Calendar, Check, Clock, Star, Users, X } from "lucide-react";
+import { AlertTriangle, Calendar, Check, Clock, Star, X } from "lucide-react";
 import { Box, Button, HStack, Stack, Text, Textarea, Badge } from "@chakra-ui/react";
 
 import type { AdminStats, DashboardRequest, InstructorStats } from "../types/session";
 
 interface InstructorData {
 	readonly name: string;
-	readonly rating: number;
+	// Left out on the admin panel
+	readonly rating?: { readonly average: number; readonly count: number };
 }
 
 interface InstructorDashboardProps {
@@ -14,7 +15,6 @@ interface InstructorDashboardProps {
 	readonly requests?: DashboardRequest[];
 	readonly onAccept?: (requestId: string) => Promise<void> | void;
 	readonly onReject?: (requestId: string, reason?: string) => Promise<void> | void;
-	readonly onViewStudents?: () => void;
 	readonly dashboardTitle?: string;
 	readonly pendingLabel?: string;
 	readonly isAdminDashboard?: boolean;
@@ -37,7 +37,6 @@ export default function InstructorDashboard({
 	requests = [],
 	onAccept,
 	onReject,
-	onViewStudents,
 	dashboardTitle = "Painel do Instrutor",
 	pendingLabel = "Solicitacoes",
 	isAdminDashboard = false,
@@ -55,7 +54,7 @@ export default function InstructorDashboard({
 	const [rejectReason, setRejectReason] = useState("");
 
 	const titleName = instructorData?.name ?? "LinkAuto";
-	const rating = instructorData?.rating ?? 5;
+	const rating = instructorData?.rating;
 
 	const handleAction = async (
 		action: ((requestId: string, reason?: string) => Promise<void> | void) | undefined,
@@ -117,19 +116,29 @@ export default function InstructorDashboard({
 								{titleName}
 							</Text>
 						</Stack>
-						<HStack
-							px={3}
-							py={2}
-							bg="whiteAlpha.200"
-							borderRadius="xl"
-							border="1px solid"
-							borderColor="border.default-subtle"
-							color="text.muted">
-							<Star size={16} fill="currentColor" />
-							<Text fontWeight="800" fontSize="sm">
-								{rating.toFixed(1)}
-							</Text>
-						</HStack>
+						{rating ? (
+							<HStack
+								px={3}
+								py={2}
+								bg="whiteAlpha.200"
+								borderRadius="xl"
+								border="1px solid"
+								borderColor="border.default-subtle"
+								color="text.muted">
+								{rating.count > 0 ? (
+									<>
+										<Star size={16} fill="currentColor" aria-hidden="true" />
+										<Text fontWeight="800" fontSize="sm">
+											{rating.average.toFixed(1)}
+										</Text>
+									</>
+								) : (
+									<Text fontWeight="700" fontSize="sm">
+										Sem avaliações
+									</Text>
+								)}
+							</HStack>
+						) : null}
 					</HStack>
 
 					<HStack
@@ -559,35 +568,6 @@ export default function InstructorDashboard({
 			</Stack>
 
 			{agenda}
-
-			<HStack
-				gap={3}
-				align="stretch"
-				flexWrap={{ base: "wrap", md: "nowrap" }}>
-				<Button
-					flex="1"
-					h={{ base: "52px", md: "58px" }}
-					variant="outline"
-					borderColor="border.default"
-					bg="surface.panel"
-					color="text.secondary"
-					onClick={onViewStudents}
-					_hover={{ bg: "bg.emphasized" }}>
-					<Users size={18} />
-					Meus alunos
-				</Button>
-				<Button
-					flex="1"
-					h={{ base: "52px", md: "58px" }}
-					variant="outline"
-					borderColor="border.default"
-					bg="surface.panel"
-					color="text.secondary"
-					disabled>
-					<Award size={18} />
-					Conquistas
-				</Button>
-			</HStack>
 		</Stack>
 	);
 }

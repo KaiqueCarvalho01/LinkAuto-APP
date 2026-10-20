@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, RotateCcw } from "lucide-react";
 import {
   Box,
   Button,
@@ -56,6 +56,7 @@ export default function SearchPage({
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [searchingManually, setSearchingManually] = useState(false);
   const [instructors, setInstructors] = useState<InstructorSummary[]>([]);
+  const [searchFailed, setSearchFailed] = useState(false);
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>();
   const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -110,7 +111,14 @@ export default function SearchPage({
 
   const showResults = useCallback((results: InstructorSummary[]) => {
     setInstructors(results);
+    setSearchFailed(false);
     setSelectedInstructorId((current) => current ?? results[0]?.id);
+  }, []);
+
+  const showFailure = useCallback((err: unknown) => {
+    console.error("Error searching instructors:", err);
+    setInstructors([]);
+    setSearchFailed(true);
   }, []);
 
   const loadInstructors = async () => {
@@ -118,8 +126,7 @@ export default function SearchPage({
     try {
       showResults(await instructorService.searchInstructors(searchParams, token));
     } catch (err) {
-      console.error("Error searching instructors:", err);
-      setInstructors([]);
+      showFailure(err);
     } finally {
       setSearchingManually(false);
     }
@@ -133,8 +140,7 @@ export default function SearchPage({
         if (isMounted) showResults(results);
       })
       .catch((err) => {
-        console.error("Error searching instructors:", err);
-        if (isMounted) setInstructors([]);
+        if (isMounted) showFailure(err);
       })
       .finally(() => {
         if (isMounted) setLoadedKey(searchKey);
@@ -143,7 +149,7 @@ export default function SearchPage({
     return () => {
       isMounted = false;
     };
-  }, [searchParams, searchKey, token, showResults]);
+  }, [searchParams, searchKey, token, showResults, showFailure]);
 
   const selectedInstructor =
     instructors.find((item) => item.id === selectedInstructorId) ??
@@ -317,7 +323,36 @@ export default function SearchPage({
                   ))
                 : null}
 
-              {!loading && instructors.length === 0 ? (
+              {!loading && searchFailed ? (
+                <Box
+                  role="alert"
+                  py={16}
+                  px={6}
+                  textAlign="center"
+                  bg="state.danger.bg"
+                  border="1px solid"
+                  borderColor="state.danger.border"
+                  borderRadius="2xl">
+                  <Text fontWeight="700" color="state.danger.fg">
+                    Não foi possível buscar instrutores.
+                  </Text>
+                  <Text mt={1.5} color="text.muted" fontSize="sm">
+                    Verifique sua conexão e tente novamente.
+                  </Text>
+                  <Button
+                    mt={4}
+                    variant="outline"
+                    borderColor="border.default"
+                    onClick={() => {
+                      void loadInstructors();
+                    }}>
+                    <RotateCcw size={16} />
+                    Tentar novamente
+                  </Button>
+                </Box>
+              ) : null}
+
+              {!loading && !searchFailed && instructors.length === 0 ? (
                 <Box
                   py={16}
                   px={6}

@@ -92,6 +92,29 @@ describe("Register", () => {
 		});
 	});
 
+	it("starts with the role it was opened for (e.g. from 'Seja Instrutor')", async () => {
+		const user = userEvent.setup();
+		const onRegisterMock = vi.fn().mockResolvedValue(undefined);
+		renderWithProviders(
+			<Register onRegister={onRegisterMock} initialRole="instructor" />,
+		);
+
+		await user.type(screen.getByLabelText(/Nome Completo/i), "Maria Souza");
+		await user.type(screen.getByLabelText(/E-mail/i), "maria@example.com");
+		const [mainPasswordField] = screen.getAllByLabelText(/Senha/i);
+		if (mainPasswordField) {
+			await user.type(mainPasswordField, "SenhaForte123");
+		}
+		await user.type(screen.getByLabelText(/Confirmar Senha/i), "SenhaForte123");
+		await user.click(
+			screen.getByRole("button", { name: /Criar Conta/i, hidden: true }),
+		);
+
+		expect(onRegisterMock).toHaveBeenCalledWith(
+			expect.objectContaining({ preferredRole: "instructor" }),
+		);
+	});
+
 	it("displays server error message on failure", async () => {
 		const user = userEvent.setup();
 		const errorMsg = "E-mail já está em uso.";

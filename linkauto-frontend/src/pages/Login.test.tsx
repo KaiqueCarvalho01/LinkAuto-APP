@@ -26,4 +26,15 @@ describe("Login", () => {
 			preferredRole: "instructor",
 		});
 	});
+
+	it("links 'Esqueceu a senha?' to password recovery and has no dead controls", () => {
+		renderWithProviders(<Login onAuthenticate={vi.fn()} />);
+
+		expect(screen.getByRole("link", { name: "Esqueceu a senha?" })).toHaveAttribute(
+			"href",
+			"/password-reset",
+		);
+		// "Manter conectado" did nothing: the session is always kept
+		expect(screen.queryByText("Manter conectado")).not.toBeInTheDocument();
+	});
 });

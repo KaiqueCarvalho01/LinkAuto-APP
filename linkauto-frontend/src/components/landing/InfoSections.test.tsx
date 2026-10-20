@@ -21,6 +21,15 @@ describe("InfoSections", () => {
 		expect(screen.getByText(/Para Instrutores/i)).toBeInTheDocument();
 	});
 
+	it("sends 'Seja Instrutor' to sign-up with the instructor role selected", () => {
+		renderWithProviders(<InfoSections />);
+
+		expect(screen.getByRole("link", { name: "Seja Instrutor" })).toHaveAttribute(
+			"href",
+			"/register?role=instructor",
+		);
+	});
+
 	it("renders 'Estatísticas' section", () => {
 		renderWithProviders(<InfoSections />);
 
