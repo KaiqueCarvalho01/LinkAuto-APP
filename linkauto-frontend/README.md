@@ -1,6 +1,6 @@
 # LinkAuto Frontend 🚗⚡
 
-Interface web moderna, responsiva e *mobile-first* desenvolvida com **React 19**, **Chakra UI v3**, **Tailwind CSS 4** e **TypeScript 5.9 (Strict)** para a plataforma **LinkAuto**, especializada no agendamento e conexão de instrutores autônomos de trânsito credenciados com alunos.
+Interface web moderna, responsiva e *mobile-first* desenvolvida com **React 19**, **Chakra UI v3**, **Tailwind CSS 4** e **TypeScript 7 (Strict)** para a plataforma **LinkAuto**, especializada no agendamento e conexão de instrutores autônomos de trânsito credenciados com alunos.
 
 ---
 
@@ -116,6 +116,8 @@ npm run test:coverage
 ```bash
 npm run typecheck
 ```
+
+O `tsc` é o TypeScript 7 (pacote `@typescript/native`). O pacote `typescript` é um alias para `@typescript/typescript6`, porque o typescript-eslint ainda precisa da API do compilador, que o TypeScript 7.0 não tem (prevista para o 7.1). Quando o typescript-eslint suportar o TypeScript 7, volte a usar só o pacote `typescript`.
 
 ### 3. Análise Estática de Código (ESLint)
 ```bash
