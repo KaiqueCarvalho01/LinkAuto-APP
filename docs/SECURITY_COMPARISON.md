@@ -1,6 +1,6 @@
 # Relatório de Evolução de Segurança: Passado vs. Presente
 
-Este documento apresenta um comparativo técnico e evolutivo detalhado do nível de maturidade em segurança do **LinkAuto**, confrontando o estado fundacional (US1 baseline) descrito no [SECURITY_TECHNIQUES.md](file:///home/gabrieldnsilva/projects/LinkAuto-APP/docs/SECURITY_TECHNIQUES.md) com o estado atual polido e blindado (Phase 6 completo).
+Este documento apresenta um comparativo técnico e evolutivo detalhado do nível de maturidade em segurança do **LinkAuto**, confrontando o estado fundacional (US1 baseline) descrito no [SECURITY_TECHNIQUES.md](SECURITY_TECHNIQUES.md) com o estado atual polido e blindado (Phase 6 completo).
 
 ---
 

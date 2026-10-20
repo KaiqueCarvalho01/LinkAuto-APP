@@ -440,7 +440,7 @@ Banner de alerta dentro de `/bookings/new` quando `student.is_blocked = true`:
 
 ### Governança de Skills, Agentes & MCP Tools Recomendadas
 
-Consulte o documento completo [FRONTEND_RECOMMENDATIONS.md](file:///home/gabrieldnsilva/projects/LinkAuto-APP/docs/FRONTEND_RECOMMENDATIONS.md) para detalhes de instalação e uso no LinkAuto.
+Consulte o documento completo [FRONTEND_RECOMMENDATIONS.md](FRONTEND_RECOMMENDATIONS.md) para detalhes de instalação e uso no LinkAuto.
 
 | Recurso | Tipo | Função no LinkAuto |
 | :--- | :--- | :--- |

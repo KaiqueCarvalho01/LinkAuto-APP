@@ -12,7 +12,7 @@ Bem-vindo ao guia de infraestrutura do **LinkAuto**! Este documento foi elaborad
 4. [Tabela de Comandos Essenciais](#4-tabela-de-comandos-essenciais)
 5. [Executando Testes via Docker](#5-executando-testes-via-docker)
 6. [Banco de Dados & Perfis Opcionais (PostgreSQL + PostGIS)](#6-banco-de-dados--perfis-opcionais)
-7. [Guia Passo a Passo para Não-Técnicos (Docker Desktop)](#7-guia-para-não-técnicos)
+7. [Guia Passo a Passo para Não-Técnicos (Docker Desktop)](#7-guia-passo-a-passo-para-não-técnicos)
 8. [Troubleshooting & Problemas Frequentes](#8-troubleshooting--problemas-frequentes)
 
 ---

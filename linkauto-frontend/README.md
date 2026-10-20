@@ -23,10 +23,10 @@ linkauto-frontend/
 │   ├── test/            # Setup de testes do Vitest, fixtures e helpers de renderização
 │   ├── theme/           # Sistema de design tokens, cores semânticas e configuração do Chakra v3
 │   └── types/           # Interfaces TypeScript estritas (api.types, instructor, booking, session)
-├── scripts/             # Scripts utilitários de manutenção
 ├── package.json         # Scripts npm e dependências do projeto
 ├── tsconfig.json        # Configuração estrita do compilador TypeScript (exactOptionalPropertyTypes)
-└── vite.config.ts       # Configuração do Vite e Vitest
+├── vite.config.ts       # Configuração do Vite
+└── vitest.config.ts     # Configuração do Vitest (testes e cobertura)
 ```
 
 ---
