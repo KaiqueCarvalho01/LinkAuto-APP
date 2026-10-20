@@ -33,7 +33,7 @@ def search_instructors(
             "city": p.city,
             "state": p.state,
             "specialties": p.specialties,
-            "price_per_hour": float(p.price_per_hour) if p.price_per_hour else None,
+            "price_per_hour": float(p.price_per_hour) if p.price_per_hour is not None else None,
             "rating_avg": p.rating_avg,
             "rating_count": p.rating_count,
             "latitude": p.latitude,

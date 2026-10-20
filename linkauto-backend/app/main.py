@@ -21,7 +21,7 @@ from app.core.rate_limit import limiter, trusted_proxy_middleware_hosts
 from app.schemas.common import error_response
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Sequence
+    from collections.abc import AsyncGenerator, Sequence
 
 
 def _serializable_issues(errors: Sequence[Any]) -> list[dict[str, Any]]:
@@ -50,7 +50,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
 
     @asynccontextmanager
-    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
         initialize_sqlite_dev_database(settings)
         yield
 

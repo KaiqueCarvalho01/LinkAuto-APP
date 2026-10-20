@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from app.models.user import DetranStatus, InstructorProfile, User, UserRole
@@ -79,3 +80,17 @@ class TestInstructorSearchAdvancedContract:
         data = resp.json()["data"]
         assert len(data) >= 1
         assert "user_id" not in data[0]
+
+    def test_zero_price_is_returned_as_zero(self, client: TestClient, db_session: Session) -> None:
+        _seed_contract_instructors(db_session)
+        profile = db_session.get(InstructorProfile, "c-inst-3")
+        assert profile is not None
+        profile.price_per_hour = Decimal(0)
+        db_session.commit()
+
+        resp = client.get(
+            "/api/v1/instructors/search?latitude=-22.4319&longitude=-46.9578&radius_km=30"
+        )
+        assert resp.status_code == 200
+        marcos = next(i for i in resp.json()["data"] if i["full_name"] == "Marcos Geral")
+        assert marcos["price_per_hour"] == 0
