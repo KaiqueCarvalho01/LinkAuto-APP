@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { AlertTriangle, Award, Calendar, Check, Clock, Star, Users, X } from "lucide-react";
+import { AlertTriangle, Calendar, Check, Clock, Star, X } from "lucide-react";
 import { Box, Button, HStack, Stack, Text, Textarea, Badge } from "@chakra-ui/react";
 
 import type { AdminStats, DashboardRequest, InstructorStats } from "../types/session";
@@ -14,7 +14,6 @@ interface InstructorDashboardProps {
 	readonly requests?: DashboardRequest[];
 	readonly onAccept?: (requestId: string) => Promise<void> | void;
 	readonly onReject?: (requestId: string, reason?: string) => Promise<void> | void;
-	readonly onViewStudents?: () => void;
 	readonly dashboardTitle?: string;
 	readonly pendingLabel?: string;
 	readonly isAdminDashboard?: boolean;
@@ -37,7 +36,6 @@ export default function InstructorDashboard({
 	requests = [],
 	onAccept,
 	onReject,
-	onViewStudents,
 	dashboardTitle = "Painel do Instrutor",
 	pendingLabel = "Solicitacoes",
 	isAdminDashboard = false,
@@ -559,35 +557,6 @@ export default function InstructorDashboard({
 			</Stack>
 
 			{agenda}
-
-			<HStack
-				gap={3}
-				align="stretch"
-				flexWrap={{ base: "wrap", md: "nowrap" }}>
-				<Button
-					flex="1"
-					h={{ base: "52px", md: "58px" }}
-					variant="outline"
-					borderColor="border.default"
-					bg="surface.panel"
-					color="text.secondary"
-					onClick={onViewStudents}
-					_hover={{ bg: "bg.emphasized" }}>
-					<Users size={18} />
-					Meus alunos
-				</Button>
-				<Button
-					flex="1"
-					h={{ base: "52px", md: "58px" }}
-					variant="outline"
-					borderColor="border.default"
-					bg="surface.panel"
-					color="text.secondary"
-					disabled>
-					<Award size={18} />
-					Conquistas
-				</Button>
-			</HStack>
 		</Stack>
 	);
 }

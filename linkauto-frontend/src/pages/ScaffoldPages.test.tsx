@@ -93,7 +93,6 @@ describe("Scaffold Pages", () => {
 				onProfileUpdated={vi.fn()}
 				onNavigateToSearch={vi.fn()}
 				onNavigateToBookings={vi.fn()}
-				onNavigateToVehicles={vi.fn()}
 			/>,
 		);
 		expect(screen.getByText(/Conta Aluno/i)).toBeInTheDocument();

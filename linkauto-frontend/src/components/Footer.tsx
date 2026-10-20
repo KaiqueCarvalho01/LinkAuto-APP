@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { BrandLockup } from "./BrandLockup";
-import { Share2, Globe, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 
 const ListHeader = ({ children }: { children: React.ReactNode }) => {
 	return (
@@ -77,14 +77,10 @@ export function Footer() {
 							com total segurança e transparência.
 						</Text>
 						<HStack gap={4}>
-							<SocialButton label="Website Oficial" href="#">
-								<Globe size={18} />
-							</SocialButton>
-							<SocialButton label="E-mail de Contato" href="#">
+							<SocialButton
+								label="E-mail de contato"
+								href="mailto:contato@linkauto.com.br">
 								<Mail size={18} />
-							</SocialButton>
-							<SocialButton label="Compartilhar" href="#">
-								<Share2 size={18} />
 							</SocialButton>
 						</HStack>
 					</Stack>
@@ -127,7 +123,7 @@ export function Footer() {
 							variant="plain"
 							color="inherit"
 							_hover={{ color: "brand.500", fontWeight: "600" }}>
-							<RouterLink to="/register">
+							<RouterLink to="/register?role=instructor">
 								Cadastrar como Instrutor
 							</RouterLink>
 						</Link>
@@ -138,15 +134,6 @@ export function Footer() {
 							_hover={{ color: "brand.500", fontWeight: "600" }}>
 							<RouterLink to="/instructor/dashboard">
 								Painel do Instrutor
-							</RouterLink>
-						</Link>
-						<Link
-							asChild
-							variant="plain"
-							color="inherit"
-							_hover={{ color: "brand.500", fontWeight: "600" }}>
-							<RouterLink to="/profile">
-								Meus Veículos
 							</RouterLink>
 						</Link>
 					</Stack>

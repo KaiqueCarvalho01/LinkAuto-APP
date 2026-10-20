@@ -15,6 +15,7 @@ import {
 	useLocation,
 	useNavigate,
 	useParams,
+	useSearchParams,
 	Outlet,
 } from "react-router-dom";
 
@@ -173,7 +174,9 @@ export function LoginRoute() {
 
 function RegisterRoute() {
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
 	const { signUp, isAuthenticated } = useSessionStore();
+	const initialRole = searchParams.get("role") === "instructor" ? "instructor" : "student";
 
 	if (isAuthenticated) {
 		return <Navigate to="/search" replace />;
@@ -196,7 +199,7 @@ function RegisterRoute() {
 		navigate("/login", { replace: true });
 	};
 
-	return <Register onRegister={handleRegister} />;
+	return <Register onRegister={handleRegister} initialRole={initialRole} />;
 }
 
 function ProfileRoute() {
@@ -233,7 +236,6 @@ function ProfileRoute() {
 			onProfileUpdated={updateUser}
 			onNavigateToSearch={() => navigate("/search")}
 			onNavigateToBookings={() => navigate("/my-lessons")}
-			onNavigateToVehicles={() => navigate("/profile")}
 		/>
 	);
 }
@@ -413,7 +415,6 @@ function AdminInstructorDashboardRoute() {
 			requests={requests}
 			onAccept={approve}
 			onReject={reject}
-			onViewStudents={() => undefined}
 			dashboardTitle="Administrative Panel"
 			pendingLabel="Pending Instructors"
 			isAdminDashboard={true}

@@ -24,11 +24,12 @@ interface RegisterProps {
 		password: string;
 		preferredRole: PreferredRole;
 	}) => Promise<void>;
+	readonly initialRole?: PreferredRole;
 }
 
-export default function Register({ onRegister }: RegisterProps) {
+export default function Register({ onRegister, initialRole = "student" }: RegisterProps) {
 	const [preferredRole, setPreferredRole] =
-		useState<PreferredRole>("student");
+		useState<PreferredRole>(initialRole);
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");

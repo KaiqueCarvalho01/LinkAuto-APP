@@ -70,6 +70,13 @@ describe("Admin approval screen", () => {
 		expect(onReject).toHaveBeenCalledWith("inst-1", undefined);
 		expect(screen.queryByLabelText(/motivo da recusa/i)).not.toBeInTheDocument();
 	});
+
+	it("has no buttons for features that don't exist yet", () => {
+		renderWithProviders(<InstructorDashboard requests={[REQUEST]} />);
+
+		expect(screen.queryByRole("button", { name: /meus alunos/i })).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: /conquistas/i })).not.toBeInTheDocument();
+	});
 });
 
 describe("adminService", () => {
