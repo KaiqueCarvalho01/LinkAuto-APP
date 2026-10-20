@@ -9,6 +9,11 @@ describe("Footer", () => {
 		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
 	});
 
+	it("shows the brand tagline with its accents", () => {
+		renderWithProviders(<Footer />);
+		expect(screen.getByText("Mobilidade, confiança e escala.")).toBeInTheDocument();
+	});
+
 	it("should display the copyright text", () => {
 		renderWithProviders(<Footer />);
 		expect(
