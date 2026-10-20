@@ -50,6 +50,7 @@ import { bookingService } from "../services/bookingService";
 import { httpClient } from "../services/httpClient";
 import { useSessionStore } from "../state/sessionStore";
 import { homePathFor } from "./homePath";
+import { returnToFrom } from "./returnTo";
 import type { InstructorSummary } from "../types/instructor";
 import type {
 	AdminStats,
@@ -97,10 +98,11 @@ const applyColorMode = (mode: ThemeMode) => {
 
 
 
-function ProtectedRoute({ children }: RouteGuardProps) {
+export function ProtectedRoute({ children }: RouteGuardProps) {
+	const location = useLocation();
 	const { isAuthenticated } = useSessionStore();
 	if (!isAuthenticated) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to="/login" replace state={{ from: location }} />;
 	}
 
 	return children;
@@ -135,12 +137,18 @@ function HomeRoute() {
 	);
 }
 
-function LoginRoute() {
+export function LoginRoute() {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { isAuthenticated, roles, signIn } = useSessionStore();
+	const returnTo = returnToFrom(location.state);
 
 	if (isAuthenticated) {
-		return <Navigate to={homePathFor(roles)} replace />;
+		return returnTo ? (
+			<Navigate to={returnTo.path} state={returnTo.state} replace />
+		) : (
+			<Navigate to={homePathFor(roles)} replace />
+		);
 	}
 
 	const handleAuthenticate = async ({
@@ -153,6 +161,10 @@ function LoginRoute() {
 		preferredRole: "student" | "instructor";
 	}) => {
 		const session = await signIn({ email, password });
+		if (returnTo) {
+			navigate(returnTo.path, { replace: true, state: returnTo.state });
+			return;
+		}
 		navigate(homePathFor(session.user.roles, preferredRole), { replace: true });
 	};
 

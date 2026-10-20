@@ -96,17 +96,13 @@ export default function InstructorPublicProfilePage() {
       coordinates: { lat: -22.4319, lng: -46.9578 },
     };
 
+    const bookingPage = { pathname: "/bookings/new", state: { instructor: summary } };
     if (!isAuthenticated) {
-      navigate("/login", {
-        state: {
-          returnUrl: `/bookings/new`,
-          instructor: summary,
-        },
-      });
+      navigate("/login", { state: { from: bookingPage } });
       return;
     }
 
-    navigate("/bookings/new", { state: { instructor: summary } });
+    navigate(bookingPage.pathname, { state: bookingPage.state });
   };
 
   if (loading) {
