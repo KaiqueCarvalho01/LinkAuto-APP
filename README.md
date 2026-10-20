@@ -187,7 +187,7 @@ uv run uvicorn app.main:app --reload --port 8000   # Inicia a API com hot-reload
 ```
 
 #### 2. Frontend (`linkauto-frontend`)
-Requer Node.js 20+:
+Requer Node.js 22+:
 
 ```bash
 cd linkauto-frontend

@@ -29,7 +29,7 @@ O LinkAuto utiliza containers Docker para garantir que todos os serviços (Front
 │                                                             │
 │  ┌──────────────────────┐        ┌──────────────────────┐  │
 │  │   linkauto-frontend  │        │   linkauto-backend   │  │
-│  │     (Node.js 20)     │ ─────> │    (Python 3.14)     │  │
+│  │     (Node.js 22)     │ ─────> │    (Python 3.14)     │  │
 │  │  http://localhost:5173│        │ http://localhost:8000│  │
 │  └──────────────────────┘        └──────────┬───────────┘  │
 │                                             │               │
@@ -76,7 +76,7 @@ Todos os comandos devem ser executados a partir da raiz do repositório:
 | Ação Desejada | Comando Docker | Descrição |
 | :--- | :--- | :--- |
 | **Subir serviços em segundo plano** | `docker compose -f infra/docker-compose.yml up -d` | Inicia o backend e o frontend sem travar o terminal. |
-| **Subir com reconstrução de imagens** | `docker compose -f infra/docker-compose.yml up -d --build` | Use sempre que novas dependências forem adicionadas ao `package.json` ou `pyproject.toml`. |
+| **Subir com reconstrução de imagens** | `docker compose -f infra/docker-compose.yml up -d --build -V` | Use sempre que novas dependências forem adicionadas ao `package.json` ou `pyproject.toml`. O `-V` (`--renew-anon-volumes`) recria os volumes de `node_modules` e `.venv`; sem ele, os containers continuam com os pacotes antigos. |
 | **Ver logs de todos os serviços** | `docker compose -f infra/docker-compose.yml logs -f` | Acompanha os logs em tempo real (Ctrl+C para sair). |
 | **Ver logs apenas do Backend** | `docker compose -f infra/docker-compose.yml logs -f backend` | Filtra logs de requisições, erros e seeds da API. |
 | **Ver logs apenas do Frontend** | `docker compose -f infra/docker-compose.yml logs -f frontend` | Filtra logs de compilação e HMR do Vite. |
@@ -226,9 +226,9 @@ docker stop $(docker ps -q)
 ```
 
 ### ❓ Erro de dependência desatualizada após um `git pull`
-**Solução:** Reconstrua as imagens para atualizar pacotes do Node e Python:
+**Solução:** Reconstrua as imagens e recrie os volumes de dependências (`-V`), senão os volumes anônimos de `node_modules` e `.venv` continuam escondendo os pacotes novos da imagem:
 ```bash
-docker compose -f infra/docker-compose.yml up -d --build
+docker compose -f infra/docker-compose.yml up -d --build -V
 ```
 
 ### ❓ Como resetar o banco de dados de desenvolvimento?
