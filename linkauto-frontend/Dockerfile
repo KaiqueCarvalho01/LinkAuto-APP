@@ -1,5 +1,5 @@
 # Base Node.js image (Node 20 reached end of life; CI also uses 22)
-FROM node:22-alpine AS base
+FROM node:26-alpine AS base
 
 WORKDIR /workspace
 
