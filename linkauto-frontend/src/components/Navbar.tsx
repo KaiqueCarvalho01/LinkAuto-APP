@@ -290,7 +290,7 @@ export function Navbar() {
 						<IconButton
 							display={{ base: "flex", lg: "none" }}
 							variant="ghost"
-							aria-label="Open menu"
+							aria-label="Abrir menu"
 							color="text.primary">
 							<Menu />
 						</IconButton>

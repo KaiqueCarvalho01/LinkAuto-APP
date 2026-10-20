@@ -48,14 +48,18 @@ describe("SlotPicker", () => {
 		const user = userEvent.setup();
 		renderWithProviders(<SlotPickerHarness />);
 
+		expect(
+			screen.getByText("Selecione no mínimo 2 slots consecutivos no mesmo dia."),
+		).toBeInTheDocument();
+
 		await user.click(screen.getByTestId("slot-slot-1"));
 		expect(
-			screen.getByText("A reserva exige no minimo 2 horas consecutivas."),
+			screen.getByText("A reserva exige no mínimo 2 horas consecutivas."),
 		).toBeInTheDocument();
 
 		await user.click(screen.getByTestId("slot-slot-2"));
 		expect(
-			screen.getByText("Selecao valida para solicitar o agendamento."),
+			screen.getByText("Seleção válida para solicitar o agendamento."),
 		).toBeInTheDocument();
 	});
 

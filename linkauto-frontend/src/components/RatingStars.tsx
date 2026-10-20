@@ -34,7 +34,7 @@ export function RatingStars({
 
 	return (
 		<HStack gap={2} align="center">
-			<HStack gap={1} aria-label={`Avaliacao ${rating.toFixed(1)}`}>
+			<HStack gap={1} aria-label={`Avaliação ${rating.toFixed(1)}`}>
 				{[1, 2, 3, 4, 5].map((step) => {
 					const filled = step <= roundedRating;
 					return (

@@ -286,7 +286,7 @@ function MyLessonsRoute() {
 	return <MyLessons token={session?.accessToken} onNewBooking={() => navigate("/search")} />;
 }
 
-function AdminInstructorDashboardRoute() {
+export function AdminInstructorDashboardRoute() {
 	const { session } = useSessionStore();
 	const token = session?.accessToken;
 	const [requests, setRequests] = useState<DashboardRequest[]>([]);
@@ -412,8 +412,8 @@ function AdminInstructorDashboardRoute() {
 			requests={requests}
 			onAccept={approve}
 			onReject={reject}
-			dashboardTitle="Administrative Panel"
-			pendingLabel="Pending Instructors"
+			dashboardTitle="Painel Administrativo"
+			pendingLabel="Instrutores Pendentes"
 			isAdminDashboard={true}
 			requireRejectReason={true}
 			pendingTotal={pendingTotal}
@@ -425,7 +425,7 @@ function AdminInstructorDashboardRoute() {
 	);
 }
 
-function InstructorDashboardRoute() {
+export function InstructorDashboardRoute() {
 	const { session } = useSessionStore();
 	const token = session?.accessToken;
 	const [instructorStats, setInstructorStats] = useState<InstructorStats | undefined>();
@@ -541,7 +541,6 @@ function InstructorDashboardRoute() {
 					/>
 				</>
 			}
-			dashboardTitle="Instructor Panel"
 			pendingLabel="Minhas Reservas"
 			instructorStats={instructorStats}
 		/>
@@ -557,7 +556,7 @@ function RootRedirect() {
 	return <Navigate to={homePathFor(roles)} replace />;
 }
 
-function ColorModeToggle() {
+export function ColorModeToggle() {
 	const [mode, setMode] = useState<ThemeMode>(() =>
 		resolvePreferredColorMode(),
 	);
@@ -577,10 +576,10 @@ function ColorModeToggle() {
 			zIndex={60}>
 			<IconButton
 				aria-label={
-					isDark ? "Switch to light theme" : "Switch to dark theme"
+					isDark ? "Mudar para o tema claro" : "Mudar para o tema escuro"
 				}
 				title={
-					isDark ? "Switch to light theme" : "Switch to dark theme"
+					isDark ? "Mudar para o tema claro" : "Mudar para o tema escuro"
 				}
 				onClick={() => {
 					setMode((current) =>

@@ -55,7 +55,7 @@ describe("Navbar (Visitor State)", () => {
 
 		renderWithProviders(<Navbar />);
 
-		const openMenuButton = screen.getByRole("button", { name: /Open menu/i });
+		const openMenuButton = screen.getByRole("button", { name: "Abrir menu" });
 		await user.click(openMenuButton);
 
 		// Verify trigger state
@@ -197,7 +197,7 @@ describe("Navbar (Authenticated State)", () => {
 		renderWithProviders(<Navbar />);
 
 		// Open the mobile drawer too, which also linked to /notifications
-		await user.click(screen.getByRole("button", { name: /open menu/i, hidden: true }));
+		await user.click(screen.getByRole("button", { name: "Abrir menu", hidden: true }));
 
 		expect(screen.queryByText(/Sua aula com Marcos/i)).not.toBeInTheDocument();
 		expect(
