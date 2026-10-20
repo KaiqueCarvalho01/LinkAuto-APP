@@ -18,3 +18,16 @@ describe("RatingStars", () => {
 		expect(screen.queryByText(/0\.0/)).not.toBeInTheDocument();
 	});
 });
+
+describe("RatingStars for screen readers", () => {
+	it("hides the decorative stars, since the text already says the rating", () => {
+		const { container } = renderWithProviders(<RatingStars rating={4} reviewsCount={3} />);
+
+		for (const icon of container.querySelectorAll("svg")) {
+			expect(icon.closest("[aria-hidden='true']")).not.toBeNull();
+		}
+		expect(screen.getByText("4.0 (3 avaliações)")).toBeInTheDocument();
+		// aria-label on a plain div is ignored by screen readers (and not allowed by ARIA)
+		expect(container.querySelector("div[aria-label]:not([role])")).toBeNull();
+	});
+});

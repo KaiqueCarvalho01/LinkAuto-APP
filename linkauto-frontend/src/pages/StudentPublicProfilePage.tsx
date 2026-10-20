@@ -23,6 +23,7 @@ import {
 } from "@chakra-ui/react";
 
 import { RatingStars } from "../components/RatingStars";
+import { ReviewStars } from "../components/ReviewStars";
 import { profileService } from "../services/profileService";
 import type { ApiPublicStudentProfile } from "../types/api.types";
 
@@ -230,7 +231,7 @@ export default function StudentPublicProfilePage() {
             borderColor="border.default"
             textAlign="center">
             <HStack justify="center" color="yellow.500" mb={1}>
-              <Star size={20} fill="currentColor" />
+              <Star size={20} fill="currentColor" aria-hidden="true" />
             </HStack>
             <Text fontSize="xs" color="text.muted" textTransform="uppercase" fontWeight="700">
               Nota Média
@@ -319,15 +320,7 @@ export default function StudentPublicProfilePage() {
                       </RouterLink>
                     </HStack>
 
-                    <HStack gap={1} color="yellow.500">
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          fill={i < rev.rating ? "currentColor" : "none"}
-                        />
-                      ))}
-                    </HStack>
+                    <ReviewStars rating={rev.rating} />
                   </HStack>
 
                   {rev.comment && (
