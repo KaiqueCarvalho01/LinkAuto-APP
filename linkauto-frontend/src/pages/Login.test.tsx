@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import Login from "./Login";
 import { renderWithProviders } from "../test/renderWithProviders";
+import { apiError } from "../test/apiError";
 
 describe("Login", () => {
 	it("submits authentication payload with selected role", async () => {
@@ -25,6 +26,28 @@ describe("Login", () => {
 			password: "SenhaForte123",
 			preferredRole: "instructor",
 		});
+	});
+
+	it.each([
+		[401, "UNAUTHORIZED", "Invalid credentials.", "E-mail ou senha incorretos."],
+		[
+			429,
+			"RATE_LIMIT_EXCEEDED",
+			"Too many requests. Please try again later.",
+			"Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
+		],
+	])("shows %i %s in Portuguese", async (status, code, english, portuguese) => {
+		const user = userEvent.setup();
+		renderWithProviders(
+			<Login onAuthenticate={vi.fn().mockRejectedValue(apiError(status, code, english))} />,
+		);
+
+		await user.type(screen.getByLabelText("E-mail"), "camila@linkauto.app");
+		await user.type(screen.getByLabelText("Senha"), "SenhaErrada1");
+		await user.click(screen.getByRole("button", { name: "Entrar no LinkAuto" }));
+
+		expect(await screen.findByText(portuguese)).toBeInTheDocument();
+		expect(screen.queryByText(english)).not.toBeInTheDocument();
 	});
 
 	it("links 'Esqueceu a senha?' to password recovery and has no dead controls", () => {

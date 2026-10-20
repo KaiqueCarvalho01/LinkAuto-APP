@@ -27,6 +27,7 @@ import {
   Badge,
 } from "@chakra-ui/react";
 
+import { apiErrorMessage } from "../services/apiErrorMessage";
 import { profileService } from "../services/profileService";
 import type { SessionData, UserAccount } from "../types/session";
 
@@ -212,8 +213,12 @@ export default function Profile({
       setIsEditing(false);
     } catch (err: unknown) {
       console.error("Error saving profile:", err);
-      const msg = err instanceof Error ? err.message : "Erro ao salvar perfil. Tente novamente.";
-      setErrorMsg(msg);
+      setErrorMsg(
+        apiErrorMessage(err, "Erro ao salvar perfil. Tente novamente.", {
+          VALIDATION_ERROR:
+            "Algum campo do perfil tem um valor fora do permitido. Confira e tente novamente.",
+        })
+      );
     } finally {
       setSaving(false);
     }

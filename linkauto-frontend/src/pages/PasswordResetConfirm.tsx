@@ -115,6 +115,7 @@ export default function PasswordResetConfirm() {
 									type="password"
 									autoComplete="new-password"
 									required
+									minLength={MIN_PASSWORD_LENGTH}
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
 									color="text.primary"

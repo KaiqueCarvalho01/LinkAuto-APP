@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import LessonDetails from "./LessonDetails";
 import { getMockSlotsByInstructor } from "../test/fixtures/mockData";
 import { renderWithProviders } from "../test/renderWithProviders";
+import { apiError } from "../test/apiError";
 import { slotService } from "../services/slotService";
 import { bookingService } from "../services/bookingService";
 import { profileService } from "../services/profileService";
@@ -75,6 +76,45 @@ describe("LessonDetails", () => {
 			expect.objectContaining({ instructor_id: SLUG }),
 			"mock-token",
 		);
+	});
+
+	it("explains a refused booking in Portuguese", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(profileService, "fetchPublicInstructorProfile").mockResolvedValue({
+			id: SLUG,
+			slug: SLUG,
+			full_name: "Marcos Lima",
+			specialties: [],
+			rating_avg: 0,
+			rating_count: 0,
+			detran_approved: true,
+			reviews: [],
+		});
+		vi.spyOn(slotService, "getInstructorSlots").mockResolvedValue(
+			getMockSlotsByInstructor("instr-001"),
+		);
+		vi.spyOn(bookingService, "createBooking").mockRejectedValue(
+			apiError(403, "STUDENT_PENALIZED", "Student is penalized until 2026-10-27"),
+		);
+
+		renderWithProviders(
+			<LessonDetails
+				instructorSlug={SLUG}
+				onBack={vi.fn()}
+				onBookingCreated={vi.fn()}
+				token="mock-token"
+			/>,
+		);
+
+		await user.click(await screen.findByTestId("slot-instr-001-slot-0"));
+		await user.click(screen.getByTestId("slot-instr-001-slot-1"));
+		await user.click(screen.getByRole("button", { name: "Solicitar agendamento" }));
+
+		expect(
+			await screen.findByText(
+				"Sua conta está penalizada e temporariamente impedida de agendar novas aulas.",
+			),
+		).toBeInTheDocument();
 	});
 
 	it("explains when the instructor can't be booked and offers a way back", async () => {

@@ -15,6 +15,8 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 
+import { apiErrorMessage } from "../services/apiErrorMessage";
+
 type PreferredRole = "student" | "instructor";
 
 interface LoginProps {
@@ -43,12 +45,12 @@ export default function Login({ onAuthenticate }: LoginProps) {
 		try {
 			await onAuthenticate({ email, password, preferredRole });
 		} catch (error) {
-			const fallback = "Não foi possível autenticar sua conta.";
-			if (error instanceof Error) {
-				setErrorMessage(error.message || fallback);
-			} else {
-				setErrorMessage(fallback);
-			}
+			setErrorMessage(
+				apiErrorMessage(error, "Não foi possível entrar. Tente novamente.", {
+					UNAUTHORIZED: "E-mail ou senha incorretos.",
+					VALIDATION_ERROR: "Informe um e-mail válido e a senha.",
+				}),
+			);
 		} finally {
 			setSubmitting(false);
 		}

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import Register from "./Register";
 import { renderWithProviders } from "../test/renderWithProviders";
+import { apiError } from "../test/apiError";
 
 describe("Register", () => {
 	it("renders registration form with required fields", () => {
@@ -115,10 +116,36 @@ describe("Register", () => {
 		);
 	});
 
-	it("displays server error message on failure", async () => {
+	it("asks for at least 8 characters before sending the password", async () => {
 		const user = userEvent.setup();
-		const errorMsg = "E-mail já está em uso.";
-		const onRegisterMock = vi.fn().mockRejectedValue(new Error(errorMsg));
+		const onRegisterMock = vi.fn();
+		renderWithProviders(<Register onRegister={onRegisterMock} />);
+
+		await user.type(screen.getByLabelText(/Nome Completo/i), "João Silva");
+		await user.type(screen.getByLabelText(/E-mail/i), "joao@example.com");
+		const [mainPasswordField] = screen.getAllByLabelText(/Senha/i);
+		if (mainPasswordField) {
+			await user.type(mainPasswordField, "Curta12");
+			expect(mainPasswordField).toHaveAttribute("minLength", "8");
+		}
+		await user.type(screen.getByLabelText(/Confirmar Senha/i), "Curta12");
+		await user.click(
+			screen.getByRole("button", { name: /Criar Conta/i, hidden: true }),
+		);
+
+		expect(
+			screen.getByText("A senha deve ter pelo menos 8 caracteres."),
+		).toBeInTheDocument();
+		expect(onRegisterMock).not.toHaveBeenCalled();
+	});
+
+	it("shows a Portuguese message when the server refuses the sign-up", async () => {
+		const user = userEvent.setup();
+		const errorMsg =
+			"Não foi possível criar a conta. Confira os dados ou use outro e-mail.";
+		const onRegisterMock = vi
+			.fn()
+			.mockRejectedValue(apiError(400, "VALIDATION_ERROR", "Email already registered"));
 		renderWithProviders(<Register onRegister={onRegisterMock} />);
 
 		await user.type(screen.getByLabelText(/Nome Completo/i), "João Silva");
@@ -139,5 +166,6 @@ describe("Register", () => {
 		);
 
 		expect(await screen.findByText(errorMsg)).toBeInTheDocument();
+		expect(screen.queryByText("Email already registered")).not.toBeInTheDocument();
 	});
 });

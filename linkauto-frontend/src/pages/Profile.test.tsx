@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import Profile from "./Profile";
 import { profileService } from "../services/profileService";
 import { appSystem } from "../theme/system";
+import { apiError } from "../test/apiError";
 import type { SessionData, UserAccount } from "../types/session";
 
 function CurrentPath() {
@@ -171,5 +172,23 @@ describe("Profile editing (#89)", () => {
 			expect(saveStudent).toHaveBeenCalled();
 		});
 		expect(saveInstructor).not.toHaveBeenCalled();
+	});
+
+	it("explains a rejected save in Portuguese", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(profileService, "updateInstructorProfile").mockRejectedValue(
+			apiError(422, "VALIDATION_ERROR", "Request validation failed."),
+		);
+		renderProfile(instructor());
+
+		await user.click(screen.getByRole("button", { name: /editar perfil/i }));
+		await user.click(screen.getByRole("button", { name: /salvar/i }));
+
+		expect(
+			await screen.findByText(
+				"Algum campo do perfil tem um valor fora do permitido. Confira e tente novamente.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Request validation failed.")).not.toBeInTheDocument();
 	});
 });
