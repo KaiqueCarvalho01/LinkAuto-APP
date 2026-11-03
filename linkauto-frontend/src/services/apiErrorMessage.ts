@@ -1,4 +1,4 @@
-import { HttpClientError } from "./httpClient";
+import { HttpClientError, NetworkError } from "./httpClient";
 
 // The API's error messages are in English and meant for developers: users see these
 // instead, by error code. Screens can say what a code means in their context.
@@ -33,7 +33,6 @@ export const apiErrorMessage = (
 		if (code) return overrides[code] ?? MESSAGES[code] ?? fallback;
 		return err.status >= 500 ? SERVER_UNAVAILABLE : fallback;
 	}
-	// fetch rejects with a TypeError when the request never reaches the server
-	if (err instanceof TypeError) return CONNECTION_FAILED;
+	if (err instanceof NetworkError) return CONNECTION_FAILED;
 	return fallback;
 };
