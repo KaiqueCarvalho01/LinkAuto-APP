@@ -236,9 +236,15 @@ export default function StudentPublicProfilePage() {
             <Text fontSize="xs" color="text.muted" textTransform="uppercase" fontWeight="700">
               Nota Média
             </Text>
-            <Text fontSize="2xl" fontWeight="900" color="text.primary">
-              {student.rating_avg.toFixed(1)}
-            </Text>
+            {student.rating_count > 0 ? (
+              <Text fontSize="2xl" fontWeight="900" color="text.primary">
+                {student.rating_avg.toFixed(1)}
+              </Text>
+            ) : (
+              <Text fontSize="lg" fontWeight="800" color="text.muted" mt={1}>
+                Sem avaliações
+              </Text>
+            )}
           </Box>
 
           <Box

@@ -191,7 +191,7 @@ class PublicProfileService:
         total_rating = sum(item.rating for item in review_items)
 
         rating_count = len(review_items)
-        rating_avg = round(total_rating / rating_count, 1) if rating_count > 0 else 5.0
+        rating_avg = round(total_rating / rating_count, 1) if rating_count > 0 else 0.0
 
         return PublicStudentProfileResponse(
             id=slug,

@@ -194,4 +194,35 @@ describe("StudentPublicProfilePage", () => {
     expect(screen.getByText(/"Aluna muito atenta às regras de trânsito."/)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "5 de 5 estrelas" })).toBeInTheDocument();
   });
+
+  it("shows no average rating for a student without reviews", async () => {
+    vi.mocked(profileService.fetchPublicStudentProfile).mockResolvedValueOnce({
+      id: "pedro-lima-mogi-mirim-2e3f",
+      slug: "pedro-lima-mogi-mirim-2e3f",
+      full_name: "Pedro Lima",
+      city: "Mogi Mirim",
+      state: "SP",
+      license_type: "B",
+      rating_avg: 0,
+      rating_count: 0,
+      completed_lessons_count: 0,
+      reviews: [],
+    });
+
+    renderWithProviders(
+      <MemoryRouter initialEntries={["/students/pedro-lima-mogi-mirim-2e3f"]}>
+        <Routes>
+          <Route path="/students/:id" element={<StudentPublicProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Pedro Lima")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("0.0")).not.toBeInTheDocument();
+    expect(screen.queryByText("5.0")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Sem avaliações").length).toBeGreaterThan(0);
+  });
 });

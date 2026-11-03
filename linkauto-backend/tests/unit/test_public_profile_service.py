@@ -207,6 +207,16 @@ class TestPublicProfileService:
         assert profile.reviews[0].reviewer.slug == "carlos-silva-mogi-mirim-8f2a"
         assert profile.reviews[0].reviewer.full_name == "Carlos Silva Instrutor"
 
+    def test_get_public_student_without_reviews_has_zero_rating(self, db_session: Session) -> None:
+        _seed_public_profiles_data(db_session)
+        service = PublicProfileService(db_session)
+
+        profile = service.get_public_student("bruno-aluno-mogi-mirim-7a9f")
+
+        assert profile.rating_count == 0
+        assert profile.rating_avg == 0.0
+        assert profile.reviews == []
+
     def test_get_public_student_non_existent_raises_value_error(self, db_session: Session) -> None:
         _seed_public_profiles_data(db_session)
         service = PublicProfileService(db_session)
