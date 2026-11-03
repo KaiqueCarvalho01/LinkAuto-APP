@@ -26,6 +26,25 @@ export class HttpClientError extends Error {
 	}
 }
 
+// The request never reached the server (offline, DNS, CORS...): fetch rejected
+export class NetworkError extends Error {
+	constructor(cause: unknown) {
+		super("Network request failed", { cause });
+		this.name = "NetworkError";
+	}
+}
+
+const isAbort = (err: unknown) => err instanceof DOMException && err.name === "AbortError";
+
+const send = async (url: string, init: RequestInit): Promise<Response> => {
+	try {
+		return await fetch(url, init);
+	} catch (err) {
+		if (isAbort(err)) throw err;
+		throw new NetworkError(err);
+	}
+};
+
 type TokenRefreshedCallback = (newAccessToken: string) => void;
 type AuthFailureCallback = () => void;
 
@@ -112,7 +131,7 @@ const request = async <TData>(
 		requestInit.body = requestBody;
 	}
 
-	const response = await fetch(buildUrl(path), requestInit);
+	const response = await send(buildUrl(path), requestInit);
 
 	const payload = await parseResponse(response);
 	if (!response.ok) {
@@ -127,7 +146,7 @@ const request = async <TData>(
 				headers: { ...requestInit.headers, Authorization: `Bearer ${newAccessToken}` },
 			};
 			// Network errors on the retry propagate as-is: they don't end the session
-			const nextResponse = await fetch(buildUrl(path), nextInit);
+			const nextResponse = await send(buildUrl(path), nextInit);
 			const nextPayload = await parseResponse(nextResponse);
 			if (!nextResponse.ok) {
 				throw toHttpClientError(nextResponse.status, nextPayload);

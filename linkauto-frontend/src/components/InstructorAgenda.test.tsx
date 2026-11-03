@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InstructorAgenda, buildSlotTimes } from "./InstructorAgenda";
-import { HttpClientError } from "../services/httpClient";
 import { slotService } from "../services/slotService";
+import { apiError } from "../test/apiError";
 import { renderWithProviders } from "../test/renderWithProviders";
 import type { BookingSlot } from "../types/booking";
 
@@ -72,20 +72,26 @@ describe("InstructorAgenda", () => {
 		});
 	});
 
-	it("explains an overlap", async () => {
+	it.each([
+		[apiError(409, "SLOT_OVERLAP", "Slot overlaps"), "Já existe um horário seu nesse período."],
+		[
+			apiError(422, "VALIDATION_ERROR", "Request validation failed."),
+			"Escolha um horário no futuro.",
+		],
+		[
+			apiError(409, "CONFLICT", "Something else"),
+			"Os dados mudaram enquanto isso. Atualize a página e tente novamente.",
+		],
+	])("explains a failed slot by its error code (%#)", async (error, message) => {
 		const user = userEvent.setup();
 		vi.spyOn(slotService, "getMySlots").mockResolvedValue([]);
-		vi.spyOn(slotService, "createSlot").mockRejectedValue(
-			new HttpClientError("overlap", 409, null),
-		);
+		vi.spyOn(slotService, "createSlot").mockRejectedValue(error);
 		renderWithProviders(<InstructorAgenda token="t" />);
 
 		fireEvent.change(screen.getByLabelText("Dia"), { target: { value: "2099-01-05" } });
 		await user.click(screen.getByRole("button", { name: /abrir horários/i }));
 
-		expect(await screen.findByRole("alert")).toHaveTextContent(
-			"Já existe um horário seu nesse período.",
-		);
+		expect(await screen.findByRole("alert")).toHaveTextContent(message);
 	});
 
 	it("removes a free slot", async () => {

@@ -3,7 +3,7 @@ import { Box, Button, HStack, Input, Stack, Text, chakra } from "@chakra-ui/reac
 import { AlertTriangle, CalendarPlus, Info, Trash2 } from "lucide-react";
 
 import { formatDateLabel } from "../services/bookingService";
-import { HttpClientError } from "../services/httpClient";
+import { apiErrorMessage } from "../services/apiErrorMessage";
 import { slotService } from "../services/slotService";
 import type { BookingSlot } from "../types/booking";
 
@@ -35,13 +35,12 @@ export const buildSlotTimes = (date: string, startHour: number, hours: number) =
 		};
 	});
 
-const describeError = (err: unknown): string => {
-	if (err instanceof HttpClientError) {
-		if (err.status === 409) return "Já existe um horário seu nesse período.";
-		if (err.status === 422) return "Escolha um horário no futuro.";
-	}
-	return "Não foi possível salvar o horário. Tente novamente.";
-};
+const describeError = (err: unknown): string =>
+	apiErrorMessage(err, "Não foi possível salvar o horário. Tente novamente.", {
+		SLOT_OVERLAP: "Já existe um horário seu nesse período.",
+		// The only invalid input the form can produce is a slot in the past
+		VALIDATION_ERROR: "Escolha um horário no futuro.",
+	});
 
 const STATUS_LABELS: Record<string, string> = {
 	DISPONIVEL: "Disponível",

@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { HttpClientError, httpClient, setOnAuthFailure, setOnTokenRefreshed } from "./httpClient";
+import {
+	HttpClientError,
+	NetworkError,
+	httpClient,
+	setOnAuthFailure,
+	setOnTokenRefreshed,
+} from "./httpClient";
 
 const json = (status: number, body: unknown) =>
 	new Response(JSON.stringify(body), {
@@ -114,9 +120,32 @@ describe("httpClient token refresh", () => {
 			},
 		});
 
-		await expect(httpClient.get("/users/me", { token: "old" })).rejects.toThrow(
-			"Failed to fetch",
+		await expect(httpClient.get("/users/me", { token: "old" })).rejects.toBeInstanceOf(
+			NetworkError,
 		);
 		expect(onAuthFailure).not.toHaveBeenCalled();
+	});
+});
+
+describe("httpClient network failures", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("marks a request that never reached the server as a NetworkError", async () => {
+		const cause = new TypeError("Failed to fetch");
+		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(cause));
+
+		const error = await httpClient.get("/instructors").catch((e: unknown) => e);
+
+		expect(error).toBeInstanceOf(NetworkError);
+		expect((error as NetworkError).cause).toBe(cause);
+	});
+
+	it("lets an aborted request reject as an abort", async () => {
+		const abort = new DOMException("The operation was aborted.", "AbortError");
+		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abort));
+
+		await expect(httpClient.get("/instructors")).rejects.toBe(abort);
 	});
 });

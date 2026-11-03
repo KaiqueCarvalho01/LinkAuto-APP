@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { apiErrorMessage } from "./apiErrorMessage";
-import { HttpClientError } from "./httpClient";
+import { HttpClientError, NetworkError } from "./httpClient";
 import { apiError as makeApiError } from "../test/apiError";
 
 const apiError = (status: number, code: string, message = "Request validation failed.") =>
@@ -49,8 +49,14 @@ describe("apiErrorMessage", () => {
 		expect(apiErrorMessage(new HttpClientError("HTTP 502", 502, null), FALLBACK)).toBe(
 			"O servidor está indisponível no momento. Tente novamente em instantes.",
 		);
-		expect(apiErrorMessage(new TypeError("Failed to fetch"), FALLBACK)).toBe(
+		expect(apiErrorMessage(new NetworkError(new TypeError("Failed to fetch")), FALLBACK)).toBe(
 			"Não foi possível conectar ao servidor. Verifique sua conexão.",
+		);
+	});
+
+	it("doesn't blame the connection for a programming error", () => {
+		expect(apiErrorMessage(new TypeError("Cannot read properties of undefined"), FALLBACK)).toBe(
+			FALLBACK,
 		);
 	});
 
