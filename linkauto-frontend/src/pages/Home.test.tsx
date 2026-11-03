@@ -1,13 +1,40 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "./Home";
+import type { InstructorSummary } from "../types/instructor";
 import { instructorService } from "../services/instructorService";
+import { mockInstructors } from "../test/fixtures/mockData";
 import { renderWithProviders } from "../test/renderWithProviders";
 
-const renderHome = () =>
+vi.mock("../components/InstructorMap", () => ({
+	InstructorMap: ({
+		instructors,
+		onBook,
+	}: {
+		instructors: InstructorSummary[];
+		onBook: (instructor: InstructorSummary) => void;
+	}) => (
+		<div>
+			{instructors.map((instructor) => (
+				<button key={instructor.id} type="button" onClick={() => onBook(instructor)}>
+					Agendar {instructor.fullName}
+				</button>
+			))}
+		</div>
+	),
+}));
+
+const renderHome = (props: Partial<React.ComponentProps<typeof Home>> = {}) =>
 	renderWithProviders(
-		<Home isAuthenticated={false} onOpenLogin={vi.fn()} onOpenSearch={vi.fn()} />,
+		<Home
+			isAuthenticated={false}
+			onOpenLogin={vi.fn()}
+			onOpenSearch={vi.fn()}
+			onBookInstructor={vi.fn()}
+			{...props}
+		/>,
 	);
 
 describe("Home instructor map", () => {
@@ -37,5 +64,20 @@ describe("Home instructor map", () => {
 			await screen.findByText("Não foi possível carregar os instrutores."),
 		).toBeInTheDocument();
 		expect(screen.queryByText("Modo Demonstração")).not.toBeInTheDocument();
+	});
+
+	it("books the instructor picked on the map instead of opening the search", async () => {
+		const [instructor] = mockInstructors;
+		vi.spyOn(instructorService, "getPublicInstructors").mockResolvedValue([instructor!]);
+		const onOpenSearch = vi.fn();
+		const onBookInstructor = vi.fn();
+
+		renderHome({ onOpenSearch, onBookInstructor });
+		await userEvent.click(
+			await screen.findByRole("button", { name: `Agendar ${instructor!.fullName}` }),
+		);
+
+		expect(onBookInstructor).toHaveBeenCalledWith(instructor);
+		expect(onOpenSearch).not.toHaveBeenCalled();
 	});
 });

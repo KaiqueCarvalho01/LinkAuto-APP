@@ -59,22 +59,26 @@ export default function SearchPage({
   const [searchFailed, setSearchFailed] = useState(false);
   const [selectedInstructorId, setSelectedInstructorId] = useState<string>();
   const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [geoMessage, setGeoMessage] = useState("");
 
   const handleCityChange = (cityName: string) => {
     setSelectedCity(cityName);
     if (citiesCoords[cityName]) {
       setCoords(citiesCoords[cityName]);
       setGeoStatus("idle");
+      setGeoMessage("");
     }
   };
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocalização não é suportada pelo seu navegador.");
+      setGeoStatus("error");
+      setGeoMessage(`Seu navegador não permite obter a localização. Mostrando ${selectedCity}.`);
       return;
     }
 
     setGeoStatus("loading");
+    setGeoMessage("");
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setCoords({
@@ -87,7 +91,7 @@ export default function SearchPage({
       (error) => {
         console.error("Error getting location:", error);
         setGeoStatus("error");
-        alert("Não foi possível obter sua localização. Usando Mogi Mirim como padrão.");
+        setGeoMessage("Não foi possível obter sua localização. Mostrando Mogi Mirim.");
         setCoords(citiesCoords["Mogi Mirim"] ?? { lat: -22.4319, lng: -46.9578 });
         setSelectedCity("Mogi Mirim");
       }
@@ -173,14 +177,54 @@ export default function SearchPage({
             </Text>
           </Stack>
 
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 6 }} gap={3} alignItems="center">
-            {/* City Dropdown */}
-            <Box>
-              <chakra.select
-                value={selectedCity}
-                onChange={(event) => handleCityChange(event.target.value)}
+          <Stack gap={2}>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 6 }} gap={3} alignItems="center">
+              {/* City Dropdown */}
+              <Box>
+                <chakra.select
+                  value={selectedCity}
+                  onChange={(event) => handleCityChange(event.target.value)}
+                  h="46px"
+                  w="100%"
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor="border.default"
+                  bg="surface.panel"
+                  px={3}
+                  fontSize="sm"
+                  fontWeight="600"
+                  color="text.primary"
+                  aria-label="Cidade">
+                  {Object.keys(citiesCoords).map((cityOption) => (
+                    <option key={cityOption} value={cityOption}>
+                      {cityOption}
+                    </option>
+                  ))}
+                  {selectedCity === "Localização Atual" && (
+                    <option value="Localização Atual">Localização Atual</option>
+                  )}
+                </chakra.select>
+              </Box>
+
+              {/* Geolocation Button */}
+              <Button
+                onClick={handleGetLocation}
                 h="46px"
-                w="100%"
+                variant="outline"
+                borderColor="border.default"
+                bg="surface.panel"
+                color="text.primary"
+                loading={geoStatus === "loading"}
+                _hover={{ bg: "surface.muted" }}>
+                <MapPin size={16} />
+                GPS
+              </Button>
+
+              {/* Specialty Filter */}
+              <chakra.select
+                value={specialty}
+                onChange={(event) => setSpecialty(event.target.value)}
+                h="46px"
                 borderRadius="md"
                 border="1px solid"
                 borderColor="border.default"
@@ -189,122 +233,88 @@ export default function SearchPage({
                 fontSize="sm"
                 fontWeight="600"
                 color="text.primary"
-                aria-label="Cidade">
-                {Object.keys(citiesCoords).map((cityOption) => (
-                  <option key={cityOption} value={cityOption}>
-                    {cityOption}
+                aria-label="Especialidade">
+                {specialties.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
                   </option>
                 ))}
-                {selectedCity === "Localização Atual" && (
-                  <option value="Localização Atual">Localização Atual</option>
-                )}
               </chakra.select>
-            </Box>
 
-            {/* Geolocation Button */}
-            <Button
-              onClick={handleGetLocation}
-              h="46px"
-              variant="outline"
-              borderColor="border.default"
-              bg="surface.panel"
-              color="text.primary"
-              loading={geoStatus === "loading"}
-              _hover={{ bg: "surface.muted" }}>
-              <MapPin size={16} />
-              GPS
-            </Button>
+              {/* Radius Filter */}
+              <chakra.select
+                value={radiusKm}
+                onChange={(event) => setRadiusKm(parseInt(event.target.value, 10))}
+                h="46px"
+                borderRadius="md"
+                border="1px solid"
+                borderColor="border.default"
+                bg="surface.panel"
+                px={3}
+                fontSize="sm"
+                fontWeight="600"
+                color="text.primary"
+                aria-label="Raio de Busca (km)">
+                <option value="5">Até 5 km</option>
+                <option value="10">Até 10 km</option>
+                <option value="15">Até 15 km</option>
+                <option value="20">Até 20 km</option>
+                <option value="50">Até 50 km</option>
+              </chakra.select>
 
-            {/* Specialty Filter */}
-            <chakra.select
-              value={specialty}
-              onChange={(event) => setSpecialty(event.target.value)}
-              h="46px"
-              borderRadius="md"
-              border="1px solid"
-              borderColor="border.default"
-              bg="surface.panel"
-              px={3}
-              fontSize="sm"
-              fontWeight="600"
-              color="text.primary"
-              aria-label="Especialidade">
-              {specialties.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </chakra.select>
+              {/* Price Max Filter */}
+              <Input
+                placeholder="Preço máx. (R$/h)"
+                aria-label="Preço máximo (R$/h)"
+                type="number"
+                min={0}
+                value={maxPrice}
+                onChange={(event) => setMaxPrice(event.target.value)}
+                h="46px"
+                bg="surface.panel"
+                borderColor="border.default"
+                color="text.primary"
+              />
 
-            {/* Radius Filter */}
-            <chakra.select
-              value={radiusKm}
-              onChange={(event) => setRadiusKm(parseInt(event.target.value, 10))}
-              h="46px"
-              borderRadius="md"
-              border="1px solid"
-              borderColor="border.default"
-              bg="surface.panel"
-              px={3}
-              fontSize="sm"
-              fontWeight="600"
-              color="text.primary"
-              aria-label="Raio de Busca (km)">
-              <option value="5">Até 5 km</option>
-              <option value="10">Até 10 km</option>
-              <option value="15">Até 15 km</option>
-              <option value="20">Até 20 km</option>
-              <option value="50">Até 50 km</option>
-            </chakra.select>
+              {/* Sort Filter */}
+              <chakra.select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as "distance" | "rating" | "price_asc" | "price_desc")}
+                h="46px"
+                borderRadius="md"
+                border="1px solid"
+                borderColor="border.default"
+                bg="surface.panel"
+                px={3}
+                fontSize="sm"
+                fontWeight="600"
+                color="text.primary"
+                aria-label="Ordenar por">
+                <option value="distance">Mais Próximos</option>
+                <option value="rating">Melhor Avaliados</option>
+                <option value="price_asc">Menor Preço</option>
+                <option value="price_desc">Maior Preço</option>
+              </chakra.select>
 
-            {/* Price Max Filter */}
-            <Input
-              placeholder="Preço máx. (R$/h)"
-              aria-label="Preço máximo (R$/h)"
-              type="number"
-              min={0}
-              value={maxPrice}
-              onChange={(event) => setMaxPrice(event.target.value)}
-              h="46px"
-              bg="surface.panel"
-              borderColor="border.default"
-              color="text.primary"
-            />
+              {/* Search Trigger Button */}
+              <Button
+                h="46px"
+                bg="brand.solid"
+                color="text.inverse"
+                onClick={() => {
+                  void loadInstructors();
+                }}
+                loading={loading}
+                _hover={{ bg: "brand.emphasized" }}>
+                <Search size={16} />
+                Buscar
+              </Button>
+            </SimpleGrid>
 
-            {/* Sort Filter */}
-            <chakra.select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value as "distance" | "rating" | "price_asc" | "price_desc")}
-              h="46px"
-              borderRadius="md"
-              border="1px solid"
-              borderColor="border.default"
-              bg="surface.panel"
-              px={3}
-              fontSize="sm"
-              fontWeight="600"
-              color="text.primary"
-              aria-label="Ordenar por">
-              <option value="distance">Mais Próximos</option>
-              <option value="rating">Melhor Avaliados</option>
-              <option value="price_asc">Menor Preço</option>
-              <option value="price_desc">Maior Preço</option>
-            </chakra.select>
-
-            {/* Search Trigger Button */}
-            <Button
-              h="46px"
-              bg="brand.solid"
-              color="text.inverse"
-              onClick={() => {
-                void loadInstructors();
-              }}
-              loading={loading}
-              _hover={{ bg: "brand.emphasized" }}>
-              <Search size={16} />
-              Buscar
-            </Button>
-          </SimpleGrid>
+            <Text role="status" fontSize="sm" color="text.muted">
+              {geoMessage}
+            </Text>
+          </Stack>
 
           <Grid
             templateColumns={{ base: "1fr", lg: "1.05fr 0.95fr" }}

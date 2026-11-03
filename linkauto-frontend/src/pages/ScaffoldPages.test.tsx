@@ -69,6 +69,7 @@ describe("Scaffold Pages", () => {
 				isAuthenticated={false}
 				onOpenLogin={vi.fn()}
 				onOpenSearch={vi.fn()}
+				onBookInstructor={vi.fn()}
 			/>,
 		);
 		expect(screen.getByText(/A liberdade de dirigir/i)).toBeInTheDocument();
