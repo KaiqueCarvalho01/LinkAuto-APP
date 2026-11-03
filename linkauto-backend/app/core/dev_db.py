@@ -27,6 +27,7 @@ from app.models import (
     User,
     UserRole,
 )
+from app.services.review_service import refresh_instructor_rating
 
 if TYPE_CHECKING:
     from app.core.config import Settings
@@ -70,8 +71,6 @@ DEV_INSTRUCTORS: list[tuple[str, dict[str, Any], list[int]]] = [
             "action_radius_km": 15,
             "latitude": -22.4319,
             "longitude": -46.9578,
-            "rating_avg": 4.8,
-            "rating_count": 5,
         },
         [8, 9, 10, 11, 14, 15, 16],
     ),
@@ -91,8 +90,6 @@ DEV_INSTRUCTORS: list[tuple[str, dict[str, Any], list[int]]] = [
             "action_radius_km": 10,
             "latitude": -22.3708,
             "longitude": -46.9428,
-            "rating_avg": 4.5,
-            "rating_count": 2,
         },
         [9, 10, 11, 13, 14, 15],
     ),
@@ -112,8 +109,6 @@ DEV_INSTRUCTORS: list[tuple[str, dict[str, Any], list[int]]] = [
             "action_radius_km": 20,
             "latitude": -22.2842,
             "longitude": -46.9692,
-            "rating_avg": 5.0,
-            "rating_count": 1,
         },
         [10, 11, 14, 15, 16, 17],
     ),
@@ -304,6 +299,11 @@ def seed_dev_data(session: Session) -> None:
         session.flush()
         _seed_pending_booking(session, student.id, rafael.id, now)
         _seed_completed_booking_with_review(session, student.id, fernanda.id, now)
+        session.flush()
+
+    # Cached ratings always come from the seeded reviews
+    for instructor, _ in instructors:
+        refresh_instructor_rating(session, instructor.id)
 
     session.commit()
 
