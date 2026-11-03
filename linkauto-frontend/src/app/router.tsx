@@ -172,8 +172,9 @@ export function LoginRoute() {
 	return <Login onAuthenticate={handleAuthenticate} />;
 }
 
-function RegisterRoute() {
+export function RegisterRoute() {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [searchParams] = useSearchParams();
 	const { signUp, isAuthenticated } = useSessionStore();
 	const initialRole = searchParams.get("role") === "instructor" ? "instructor" : "student";
@@ -195,8 +196,8 @@ function RegisterRoute() {
 	}) => {
 		const roles = preferredRole === "student" ? ["ALUNO"] : ["INSTRUTOR"];
 		await signUp({ email, password, roles, fullName: name });
-		// After successful registration, redirect to login
-		navigate("/login", { replace: true });
+		// Keep `state.from` so login still returns to the page the visitor wanted
+		navigate("/login", { replace: true, state: location.state });
 	};
 
 	return <Register onRegister={handleRegister} initialRole={initialRole} />;
