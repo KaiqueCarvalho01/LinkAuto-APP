@@ -13,7 +13,7 @@ import {
 	Separator,
 	Field,
 } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 
 import { apiErrorMessage } from "../services/apiErrorMessage";
 
@@ -32,6 +32,7 @@ interface RegisterProps {
 }
 
 export default function Register({ onRegister, initialRole = "student" }: RegisterProps) {
+	const location = useLocation();
 	const [preferredRole, setPreferredRole] =
 		useState<PreferredRole>(initialRole);
 	const [name, setName] = useState("");
@@ -341,7 +342,9 @@ export default function Register({ onRegister, initialRole = "student" }: Regist
 								fontWeight="bold"
 								cursor="pointer">
 								<Link asChild colorPalette="brand">
-									<RouterLink to="/login">Entrar</RouterLink>
+									<RouterLink to="/login" state={location.state}>
+										Entrar
+									</RouterLink>
 								</Link>
 							</Text>
 						</Text>
