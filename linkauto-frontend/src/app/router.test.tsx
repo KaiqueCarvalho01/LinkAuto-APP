@@ -10,6 +10,7 @@ import {
 	InstructorDashboardRoute,
 	LoginRoute,
 	ProtectedRoute,
+	RegisterRoute,
 } from "./router";
 import { appSystem } from "../theme/system";
 
@@ -27,6 +28,7 @@ vi.mock("../state/sessionStore", () => ({
 			session.roles = ["ALUNO"];
 			return { user: { roles: ["ALUNO"] } };
 		}),
+		signUp: vi.fn(async () => undefined),
 	}),
 }));
 
@@ -46,6 +48,7 @@ const renderAt = (entry: string | { pathname: string; state: unknown }) =>
 			<MemoryRouter initialEntries={[entry]}>
 				<Routes>
 					<Route path="/login" element={<LoginRoute />} />
+					<Route path="/register" element={<RegisterRoute />} />
 					<Route path="/search" element={<CurrentPage name="Busca" />} />
 					<Route
 						path="/my-lessons"
@@ -98,6 +101,33 @@ describe("login redirects", () => {
 		await logIn();
 
 		expect(await screen.findByText(/Busca/)).toBeInTheDocument();
+	});
+
+	it("still returns to the original page after the visitor signs up first", async () => {
+		const user = userEvent.setup();
+		renderAt("/my-lessons?status=PENDENTE");
+
+		await user.click(screen.getByRole("link", { name: "Crie uma conta" }));
+		await user.type(screen.getByLabelText(/Nome Completo/), "Camila Rocha");
+		await user.type(screen.getByLabelText("E-mail"), "camila@linkauto.app");
+		await user.type(screen.getByLabelText(/^Senha/), "SenhaForte123");
+		await user.type(screen.getByLabelText(/Confirmar Senha/), "SenhaForte123");
+		await user.click(screen.getByRole("button", { name: "Criar Conta" }));
+
+		await screen.findByRole("button", { name: "Entrar no LinkAuto" });
+		await logIn();
+
+		expect(await screen.findByText(/Minhas aulas \?status=PENDENTE/)).toBeInTheDocument();
+	});
+
+	it("keeps the original page when going from sign-up back to login", async () => {
+		const user = userEvent.setup();
+		renderAt({ pathname: "/register", state: { from: { pathname: "/my-lessons" } } });
+
+		await user.click(screen.getByRole("link", { name: "Entrar" }));
+		await logIn();
+
+		expect(await screen.findByText(/Minhas aulas/)).toBeInTheDocument();
 	});
 
 	it("sends an already signed-in visitor straight to the page they came from", async () => {

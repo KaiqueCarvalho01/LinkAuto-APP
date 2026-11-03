@@ -13,7 +13,7 @@ import {
 	Separator,
 	Field,
 } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 
 import { apiErrorMessage } from "../services/apiErrorMessage";
 
@@ -28,6 +28,7 @@ interface LoginProps {
 }
 
 export default function Login({ onAuthenticate }: LoginProps) {
+	const location = useLocation();
 	const [preferredRole, setPreferredRole] =
 		useState<PreferredRole>("student");
 	const [email, setEmail] = useState("");
@@ -288,7 +289,7 @@ export default function Login({ onAuthenticate }: LoginProps) {
 								fontWeight="bold"
 								cursor="pointer">
 								<Link asChild colorPalette="brand">
-									<RouterLink to="/register">
+									<RouterLink to="/register" state={location.state}>
 										Crie uma conta
 									</RouterLink>
 								</Link>
