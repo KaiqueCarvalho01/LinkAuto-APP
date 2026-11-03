@@ -134,6 +134,9 @@ function HomeRoute() {
 				}
 				navigate("/login");
 			}}
+			onBookInstructor={(instructor) =>
+				navigate(`/bookings/new/${instructor.slug || instructor.id}`)
+			}
 		/>
 	);
 }

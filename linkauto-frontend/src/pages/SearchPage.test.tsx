@@ -61,4 +61,26 @@ describe("SearchPage", () => {
 		).toBeInTheDocument();
 		expect(screen.queryByText("Não foi possível buscar instrutores.")).not.toBeInTheDocument();
 	});
+
+	it("explains a denied location inline instead of with an alert", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(instructorService, "searchInstructors").mockResolvedValue([]);
+		const alert = vi.spyOn(window, "alert").mockImplementation(() => undefined);
+		Object.defineProperty(navigator, "geolocation", {
+			configurable: true,
+			value: {
+				getCurrentPosition: (_ok: PositionCallback, fail: PositionErrorCallback) =>
+					fail({ code: 1, message: "denied" } as GeolocationPositionError),
+			},
+		});
+		vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+		renderSearch();
+		await user.click(screen.getByRole("button", { name: "GPS" }));
+
+		expect(screen.getByRole("status")).toHaveTextContent(
+			"Não foi possível obter sua localização. Mostrando Mogi Mirim.",
+		);
+		expect(alert).not.toHaveBeenCalled();
+	});
 });

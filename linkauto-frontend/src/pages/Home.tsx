@@ -24,6 +24,7 @@ interface HomeProps {
 	readonly isAuthenticated: boolean;
 	readonly onOpenLogin: () => void;
 	readonly onOpenSearch: () => void;
+	readonly onBookInstructor: (instructor: InstructorSummary) => void;
 }
 
 const highlights = [
@@ -63,6 +64,7 @@ export default function Home({
 	isAuthenticated,
 	onOpenLogin,
 	onOpenSearch,
+	onBookInstructor,
 }: HomeProps) {
 	const [selectedId, setSelectedId] = useState<string | undefined>();
 	const [instructors, setInstructors] = useState<InstructorSummary[]>([]);
@@ -283,10 +285,7 @@ export default function Home({
 								instructors={instructors}
 								selectedInstructorId={selectedId}
 								onSelect={(id) => setSelectedId(id)}
-								onBook={() => {
-									// In V1, this might redirect to lesson details or search
-									onOpenSearch();
-								}}
+								onBook={onBookInstructor}
 							/>
 
 							{mapNotice && (
