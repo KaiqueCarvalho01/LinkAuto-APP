@@ -240,12 +240,13 @@ export default function LessonDetails({
           {errorMessage && (
             <HStack
               p={4}
-              bg="red.50"
-              color="red.700"
+              bg="state.danger.bg"
+              color="state.danger.fg"
               borderRadius="xl"
               border="1px solid"
-              borderColor="red.200"
-              gap={2}>
+              borderColor="state.danger.border"
+              gap={2}
+              role="alert">
               <AlertTriangle size={18} />
               <Text fontSize="sm" fontWeight="600">
                 {errorMessage}

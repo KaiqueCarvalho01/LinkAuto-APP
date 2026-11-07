@@ -205,7 +205,9 @@ export default function PasswordReset() {
 			{/* Painel Informativo Lateral */}
 			<Flex
 				flex={1}
-				bgGradient="linear(to-br, #0f2f47, #1f5b86)"
+				bgGradient="to-br"
+				gradientFrom="laBlue.800"
+				gradientTo="laBlue.600"
 				align="center"
 				justify="center"
 				position="relative"

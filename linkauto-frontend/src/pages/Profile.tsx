@@ -277,7 +277,9 @@ export default function Profile({
         overflow="hidden"
         borderRadius="3xl"
         p={{ base: 6, md: 8 }}
-        bgGradient="linear(140deg, #0f2f47 0%, #1f5b86 52%, #338640 100%)"
+        bgGradient="to-br"
+        gradientFrom="laBlue.800"
+        gradientTo="laGreen.700"
         boxShadow="0 24px 56px rgba(19, 62, 93, 0.26)">
         <Box
           position="absolute"
@@ -297,20 +299,21 @@ export default function Profile({
             borderRadius="2xl"
             display="grid"
             placeItems="center"
-            bg="whiteAlpha.250"
+            bg="whiteAlpha.200"
             border="1px solid"
-            borderColor="text-foreground">
+            borderColor="whiteAlpha.400"
+            color="white">
             <UserIcon size={26} />
           </Box>
           <Stack gap={1} flex="1">
             <Text
-              color="text.primary"
+              color="white"
               fontFamily="heading"
               fontSize={{ base: "xl", md: "2xl" }}
               fontWeight="800">
               {saved.fullName || user?.email.split("@")[0] || "Usuário"}
             </Text>
-            <Text color="text.muted" fontWeight="600" fontSize="sm">
+            <Text color="whiteAlpha.800" fontWeight="600" fontSize="sm">
               {user?.email}
             </Text>
             <HStack mt={1} gap={2} align="center" flexWrap="wrap">
@@ -318,11 +321,11 @@ export default function Profile({
                 px={3}
                 py={1}
                 borderRadius="full"
-                bg="whiteAlpha.250"
+                bg="whiteAlpha.200"
                 border="1px solid"
-                borderColor="border.emphasized">
+                borderColor="whiteAlpha.400">
                 <Text
-                  color="text.muted"
+                  color="whiteAlpha.900"
                   fontSize="2xs"
                   fontWeight="800"
                   letterSpacing="0.14em"
@@ -334,9 +337,9 @@ export default function Profile({
                 <Button
                   size="xs"
                   variant="outline"
-                  borderColor="border.emphasized"
-                  bg="whiteAlpha.250"
-                  color="text.primary"
+                  borderColor="whiteAlpha.400"
+                  bg="whiteAlpha.200"
+                  color="white"
                   _hover={{ bg: "whiteAlpha.350" }}
                   onClick={() => navigate(publicProfilePath)}>
                   <ExternalLink size={12} />
@@ -350,18 +353,18 @@ export default function Profile({
         {/* Completude do Perfil */}
         <Stack mt={6} gap={2} position="relative" zIndex={1}>
           <HStack justify="space-between">
-            <Text color="text.primary" fontSize="xs" fontWeight="800">
+            <Text color="white" fontSize="xs" fontWeight="800">
               Completude do Perfil
             </Text>
-            <Text color="text.primary" fontSize="xs" fontWeight="800">
+            <Text color="white" fontSize="xs" fontWeight="800">
               {completeness}%
             </Text>
           </HStack>
           <Box w="100%" h="8px" bg="whiteAlpha.200" borderRadius="full" overflow="hidden">
-            <Box w={`${completeness}%`} h="100%" bg="laGreen.500" transition="width 0.5s ease" />
+            <Box w={`${completeness}%`} h="100%" bg="laGreen.400" transition="width 0.5s ease" />
           </Box>
           {completeness < 100 && (
-            <Text color="whiteAlpha.800" fontSize="2xs" fontWeight="600" mt={1}>
+            <Text color="whiteAlpha.900" fontSize="2xs" fontWeight="600" mt={1}>
               ⚠️ Preencha todas as informações para aumentar sua relevância na plataforma.
             </Text>
           )}
@@ -371,11 +374,11 @@ export default function Profile({
       {successMsg && (
         <HStack
           p={4}
-          bg="green.50"
-          color="green.700"
+          bg="state.success.bg"
+          color="state.success.fg"
           borderRadius="xl"
           border="1px solid"
-          borderColor="green.200"
+          borderColor="state.success.border"
           gap={2}>
           <CheckCircle size={18} />
           <Text fontSize="sm" fontWeight="600">
@@ -387,11 +390,11 @@ export default function Profile({
       {errorMsg && (
         <HStack
           p={4}
-          bg="red.50"
-          color="red.700"
+          bg="state.danger.bg"
+          color="state.danger.fg"
           borderRadius="xl"
           border="1px solid"
-          borderColor="red.200"
+          borderColor="state.danger.border"
           gap={2}>
           <AlertTriangle size={18} />
           <Text fontSize="sm" fontWeight="600">
