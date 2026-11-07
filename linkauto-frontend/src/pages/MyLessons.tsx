@@ -1,4 +1,4 @@
-import { Calendar, CircleSlash2, Plus, UserCircle2, AlertTriangle } from "lucide-react";
+import { Calendar, CircleSlash2, Plus, Clock, AlertTriangle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import {
@@ -209,7 +209,7 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
                       <HStack
                         gap={1.5}
                         color="text.secondary">
-                        <UserCircle2
+                        <Clock
                           size={14}
                           aria-hidden="true"
                         />
@@ -284,6 +284,18 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
               <Text fontWeight="700" color="text.secondary">
                 Nenhum agendamento encontrado.
               </Text>
+              <Text fontSize="sm" color="text.muted" mt={1} maxW="md" mx="auto">
+                Explore os instrutores credenciados e agende sua primeira aula prática.
+              </Text>
+              <Button
+                mt={4}
+                bg="brand.solid"
+                color="text.inverse"
+                _hover={{ bg: "brand.emphasized" }}
+                onClick={onNewBooking}>
+                <Plus size={16} />
+                Buscar Instrutores
+              </Button>
             </Box>
           ) : null}
         </Stack>

@@ -420,7 +420,60 @@
 - coverage_pct: >= 80% ✅
 - governance_validation: passed ✅
 
+### Iteracao 28: Correcao de Gradientes Chakra v3, Contraste Light/Dark e Tokens Semanticos
+- **Foco**: Resolucao de bugs visuais criticos de renderizacao de gradientes no Chakra UI v3 e contraste de texto.
+- **Entregas**:
+  - `PasswordReset.tsx`: migrado gradiente quebrado `bgGradient="linear(...)"` para `bgGradient="to-br"` com tokens `gradientFrom="laBlue.800"` e `gradientTo="laBlue.600"`, garantindo legibilidade perfeita do texto branco em Light e Dark mode.
+  - `InstructorDashboard.tsx`: corrigido Hero card para `bgGradient="to-br"` com `gradientFrom="laBlue.800"` e `gradientTo="laGreen.700"`; botao "Aprovar" padronizado para `bg="brand.solid"` e `_hover={{ bg: "brand.emphasized" }}` (eliminando transparencia acidental em Light Mode); tokens semanticos `state.danger.*` aplicados no banner de erro.
+  - `Profile.tsx`: Hero card migrado para sintaxe Chakra v3 com tokens semanticos; eliminados tokens inexistentes de borda; banners de sucesso e erro migrados para `state.success.*` e `state.danger.*`.
+  - `MyLessons.tsx` e `LessonDetails.tsx`: banners de erro atualizados para `state.danger.bg`, `state.danger.fg` e `state.danger.border` com `role="alert"`.
+- **Validacao**:
+  - `cd linkauto-frontend && npm run typecheck && npm run test` (47 arquivos de teste, 223 testes verdes).
+
+### Iteracao 29: Navegacao Mobile Completa, Suporte a Avatar e Alinhamento do Grid de Busca
+- **Foco**: Consolidacao da experiencia de navegacao mobile, funil de busca para visitantes e alinhamento do grid.
+- **Entregas**:
+  - `Navbar.tsx`:
+    - Adicionado suporte a `avatar_url` tanto na barra desktop quanto no Drawer mobile (com renderizacao de imagem e fallback gracioso para a inicial do nome).
+    - Drawer mobile agora e controlado (`isMobileDrawerOpen`), fechando automaticamente em qualquer clique de navegacao.
+    - Estruturadas todas as secoes de navegacao no Drawer mobile: menu autenticado por perfil (`/profile`, `/my-lessons`, `/search`, `/instructor/dashboard`, `/admin/instructors`), secao *"Para Alunos"*, secao *"Para Instrutores"*, secao *"Institucional"* e acoes de autenticacao/logout.
+  - `SearchPage.tsx`:
+    - Agrupado o seletor de Cidade com o botao de GPS em um `HStack` coeso, transformando os 7 elementos soltos em exatamente 6 colunas responsivas (`columns={{ base: 1, sm: 2, md: 3, lg: 6 }}`).
+    - Eliminado o problema de quebra orfa do botao "Buscar" no desktop.
+  - `router.tsx`:
+    - Desacoplada a rota `/search` de `<ProtectedRoute>`, permitindo que visitantes descubram instrutores livremente. O redirecionamento para login com preservacao de estado (`returnTo`) e acionado apenas no clique de agendamento de aula.
+  - `Navbar.test.tsx`:
+    - Novos testes unitarios cobrindo renderizacao de imagem de avatar e abertura/fechamento automatico do Drawer mobile completo.
+- **Validacao**:
+  - `cd linkauto-frontend && npm run typecheck && npm run test` (47 arquivos de teste, 225 testes verdes).
+
+### Iteracao 30: Zero Warnings Impeccable Detect, Limpeza de Inline Styles e Contexto de Produto
+- **Foco**: Eliminacao de antipadroes visuais ("design slop"), remocao de `style={{ ... }}` e formalizacao do `PRODUCT.md`.
+- **Entregas**:
+  - `Home.tsx`: cursor do typewriter refatorado de `borderRight="3px solid"` para um elemento `<Box as="span">` dedicado com piscamento via opacidade, eliminando o alerta `side-tab`.
+  - `Simulator.tsx`: transicao elástica `cubic-bezier(0.175, 0.885, 0.32, 1.275)` substituida por desaceleracao exponencial suave `cubic-bezier(0.22, 1, 0.36, 1)`.
+  - `impeccable detect`: varredura mecânica retornando `0 hits` (100% livre de antipadroes).
+  - `StudentPublicProfilePage.tsx` e `InstructorPublicProfilePage.tsx`: removidos todos os estilos inline (`style={{ width: "100%", height: "100%", objectFit: "cover" }}`, `style={{ flexShrink: 0, marginTop: 2 }}` e `style={{ textDecoration: "none" }}`) em favor de props nativas do Chakra UI v3 (`<chakra.img>`, `<Box flexShrink={0} mt="2px">`, classes Tailwind utilitarias).
+  - `RatingStars.tsx`: padronizada cor da estrela preenchida para token semantico `var(--chakra-colors-laStatus-pending)`.
+  - `PRODUCT.md`: criado arquivo de contexto de produto formal no padrao do Impeccable (`impeccable:product-schema 1`), consolidando usuarios, proposicao de valor, regras de negocio (RN01 a RN06) e diretrizes de acessibilidade.
+- **Validacao**:
+  - `impeccable detect --json linkauto-frontend/src` -> `[]` (0 erros).
+  - `cd linkauto-frontend && npm run typecheck && npm run test` (47 arquivos de teste, 225 testes verdes).
+
+### Iteracao 31: Polimento Final de UX e Cobertura de Testes em MyLessons
+- **Foco**: Ajustes de semantica visual em agendamentos, CTA no estado vazio e suite de testes.
+- **Entregas**:
+  - `MyLessons.tsx`:
+    - Substituido icone generico `UserCircle2` pelo icone contextual `Clock` no horario das aulas.
+    - Estado vazio enriquecido com descricao orientadora e botao CTA direto *"Buscar Instrutores"*, evitando becos sem saida para novos alunos.
+  - `MyLessons.test.tsx`:
+    - Adicionado teste unitario validando o acionamento de `onNewBooking` a partir do CTA do estado vazio.
+- **Validacao**:
+  - `cd linkauto-frontend && npm run typecheck && npm run test` (47 arquivos de teste, 226 testes verdes).
+
 ## Riscos e Observacoes Gerais
+
+- **Iteracao 28-31**: Frontend completamente auditado e polido com o framework Impeccable v4.8.0. Zero avisos de antipadroes de design, 100% dos componentes e paginas em conformidade com o Chakra UI v3 e o Design System (`DESIGN.md`), 226 testes unitarios e de integracao aprovados. Navegacao mobile totalmente funcional e alinhamento de filtros no desktop estabilizado.
 
 - **Iteracao 27**: Paginas institucionais agora possuem conteudo real e os links do Footer nao apontam mais para 404. Nota de rodape de todas as paginas institucionais usa Chakra UI v3 com tokens semanticos (sem cores hardcoded).
 - **Iteracao 26**: RN06 aplicada na UI (nenhum texto de plataforma de pagamento na interface). Atencao: testes do Vitest na maquina local podem estourar timeout de 5s sob alta carga — usar `--testTimeout=30000` na validacao local.

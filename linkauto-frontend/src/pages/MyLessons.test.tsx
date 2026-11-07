@@ -90,4 +90,17 @@ describe("MyLessons - Cancelamento", () => {
 		await screen.findByText(/nenhum agendamento encontrado/i);
 		expect(getSpy).toHaveBeenCalledWith("mock-token", { as: "student" });
 	});
+
+	it("permite ao aluno navegar para a busca diretamente pelo estado vazio de agendamentos", async () => {
+		const onNewBooking = vi.fn();
+		const user = userEvent.setup();
+		vi.spyOn(bookingService, "getMyBookings").mockResolvedValue([]);
+
+		renderWithProviders(<MyLessons token="mock-token" onNewBooking={onNewBooking} />);
+
+		const searchBtn = await screen.findByRole("button", { name: /buscar instrutores/i });
+		expect(searchBtn).toBeInTheDocument();
+		await user.click(searchBtn);
+		expect(onNewBooking).toHaveBeenCalledTimes(1);
+	});
 });
