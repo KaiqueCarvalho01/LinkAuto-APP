@@ -7,6 +7,7 @@ import {
   Container,
   Grid,
   Heading,
+  HStack,
   Input,
   SimpleGrid,
   Skeleton,
@@ -178,47 +179,50 @@ export default function SearchPage({
           </Stack>
 
           <Stack gap={2}>
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 6 }} gap={3} alignItems="center">
-              {/* City Dropdown */}
-              <Box>
-                <chakra.select
-                  value={selectedCity}
-                  onChange={(event) => handleCityChange(event.target.value)}
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 6 }} gap={3} alignItems="center">
+              {/* City + GPS Group */}
+              <HStack gap={2}>
+                <Box flex="1">
+                  <chakra.select
+                    value={selectedCity}
+                    onChange={(event) => handleCityChange(event.target.value)}
+                    h="46px"
+                    w="100%"
+                    borderRadius="md"
+                    border="1px solid"
+                    borderColor="border.default"
+                    bg="surface.panel"
+                    px={3}
+                    fontSize="sm"
+                    fontWeight="600"
+                    color="text.primary"
+                    aria-label="Cidade">
+                    {Object.keys(citiesCoords).map((cityOption) => (
+                      <option key={cityOption} value={cityOption}>
+                        {cityOption}
+                      </option>
+                    ))}
+                    {selectedCity === "Localização Atual" && (
+                      <option value="Localização Atual">Localização Atual</option>
+                    )}
+                  </chakra.select>
+                </Box>
+                <Button
+                  onClick={handleGetLocation}
                   h="46px"
-                  w="100%"
-                  borderRadius="md"
-                  border="1px solid"
+                  px={3}
+                  variant="outline"
                   borderColor="border.default"
                   bg="surface.panel"
-                  px={3}
-                  fontSize="sm"
-                  fontWeight="600"
                   color="text.primary"
-                  aria-label="Cidade">
-                  {Object.keys(citiesCoords).map((cityOption) => (
-                    <option key={cityOption} value={cityOption}>
-                      {cityOption}
-                    </option>
-                  ))}
-                  {selectedCity === "Localização Atual" && (
-                    <option value="Localização Atual">Localização Atual</option>
-                  )}
-                </chakra.select>
-              </Box>
-
-              {/* Geolocation Button */}
-              <Button
-                onClick={handleGetLocation}
-                h="46px"
-                variant="outline"
-                borderColor="border.default"
-                bg="surface.panel"
-                color="text.primary"
-                loading={geoStatus === "loading"}
-                _hover={{ bg: "surface.muted" }}>
-                <MapPin size={16} />
-                GPS
-              </Button>
+                  loading={geoStatus === "loading"}
+                  _hover={{ bg: "surface.muted" }}
+                  aria-label="GPS"
+                  title="Usar localização GPS">
+                  <MapPin size={16} />
+                  GPS
+                </Button>
+              </HStack>
 
               {/* Specialty Filter */}
               <chakra.select
