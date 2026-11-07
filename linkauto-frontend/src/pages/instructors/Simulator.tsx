@@ -94,12 +94,12 @@ export default function Simulator() {
 						<Stack gap={8}>
 							<Box 
 								p={10} 
-								bg="bg.canvas" 
+								bg="surface.panel" 
 								borderRadius="3xl" 
 								border="2px solid" 
 								borderColor="laGreen.500" 
 								shadow="2xl"
-								transition="all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+								transition="all 0.5s cubic-bezier(0.22, 1, 0.36, 1)"
 								_hover={{ transform: "scale(1.02)" }}
 							>
 								<Stack gap={6}>

@@ -202,7 +202,7 @@ export default function LessonDetails({
                 py={3}>
                 <RouterLink
                   to={`/instructors/${instructor.slug}`}
-                  style={{ textDecoration: "none" }}>
+                  className="no-underline">
                   <Text
                     fontWeight="700"
                     color="brand.emphasized"

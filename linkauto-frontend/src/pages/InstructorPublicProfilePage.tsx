@@ -13,6 +13,7 @@ import {
   Badge,
   Box,
   Button,
+  chakra,
   Container,
   Heading,
   HStack,
@@ -171,10 +172,12 @@ export default function InstructorPublicProfilePage() {
                 overflow="hidden"
                 flexShrink={0}>
                 {instructor.avatar_url ? (
-                  <img
+                  <chakra.img
                     src={instructor.avatar_url}
                     alt={instructor.full_name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    w="100%"
+                    h="100%"
+                    objectFit="cover"
                   />
                 ) : (
                   initialsFromName(instructor.full_name)
@@ -308,15 +311,21 @@ export default function InstructorPublicProfilePage() {
             </Heading>
             <VStack align="start" gap={3} fontSize="xs" color="text.secondary">
               <HStack align="start" gap={2}>
-                <ShieldCheck size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                <Box flexShrink={0} mt="2px">
+                  <ShieldCheck size={16} />
+                </Box>
                 <Text>Instrutor com credencial ativa e verificada no DETRAN.</Text>
               </HStack>
               <HStack align="start" gap={2}>
-                <Calendar size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                <Box flexShrink={0} mt="2px">
+                  <Calendar size={16} />
+                </Box>
                 <Text>Cancelamento gratuito com até 24 horas de antecedência.</Text>
               </HStack>
               <HStack align="start" gap={2}>
-                <MessageSquare size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                <Box flexShrink={0} mt="2px">
+                  <MessageSquare size={16} />
+                </Box>
                 <Text>Chat direto vinculado à sua reserva após o agendamento.</Text>
               </HStack>
             </VStack>
@@ -388,10 +397,13 @@ export default function InstructorPublicProfilePage() {
                         fontSize="xs"
                         fontWeight="bold">
                         {rev.reviewer.avatar_url ? (
-                          <img
+                          <chakra.img
                             src={rev.reviewer.avatar_url}
                             alt={rev.reviewer.full_name}
-                            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                            w="100%"
+                            h="100%"
+                            borderRadius="full"
+                            objectFit="cover"
                           />
                         ) : (
                           initialsFromName(rev.reviewer.full_name)
@@ -399,7 +411,7 @@ export default function InstructorPublicProfilePage() {
                       </Box>
                       <RouterLink
                         to={`/students/${rev.reviewer.slug || rev.reviewer.id}`}
-                        style={{ textDecoration: "none" }}>
+                        className="no-underline">
                         <Text
                           fontWeight="700"
                           fontSize="sm"

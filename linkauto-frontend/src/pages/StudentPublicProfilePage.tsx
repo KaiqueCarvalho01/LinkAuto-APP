@@ -12,6 +12,7 @@ import {
   Badge,
   Box,
   Button,
+  chakra,
   Container,
   Heading,
   HStack,
@@ -158,10 +159,12 @@ export default function StudentPublicProfilePage() {
               overflow="hidden"
               flexShrink={0}>
               {student.avatar_url ? (
-                <img
+                <chakra.img
                   src={student.avatar_url}
                   alt={student.full_name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  w="100%"
+                  h="100%"
+                  objectFit="cover"
                 />
               ) : (
                 initialsFromName(student.full_name)
@@ -304,10 +307,13 @@ export default function StudentPublicProfilePage() {
                         fontSize="xs"
                         fontWeight="bold">
                         {rev.reviewer.avatar_url ? (
-                          <img
+                          <chakra.img
                             src={rev.reviewer.avatar_url}
                             alt={rev.reviewer.full_name}
-                            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                            w="100%"
+                            h="100%"
+                            borderRadius="full"
+                            objectFit="cover"
                           />
                         ) : (
                           initialsFromName(rev.reviewer.full_name)
@@ -315,7 +321,7 @@ export default function StudentPublicProfilePage() {
                       </Box>
                       <RouterLink
                         to={`/instructors/${rev.reviewer.slug || rev.reviewer.id}`}
-                        style={{ textDecoration: "none" }}>
+                        className="no-underline">
                         <Text
                           fontWeight="700"
                           fontSize="sm"

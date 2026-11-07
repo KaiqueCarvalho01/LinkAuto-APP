@@ -165,7 +165,7 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
                       <Stack gap={1}>
                         <RouterLink
                           to={`/instructors/${booking.instructor.id}`}
-                          style={{ textDecoration: "none" }}>
+                          className="no-underline">
                           <Text
                             fontWeight="700"
                             color="text.primary"
