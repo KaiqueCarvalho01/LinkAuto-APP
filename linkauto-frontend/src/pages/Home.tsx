@@ -197,16 +197,21 @@ export default function Home({
 										fontWeight={isLastWord ? "900" : "800"}>
 										{currentText}
 									</Text>
-									<Text
+									<Box
 										as="span"
-										borderRight="3px solid"
-										borderColor={isLastWord ? "brand.500" : "text.secondary"}
+										display="inline-block"
+										w="3px"
+										h="1em"
+										bg={isLastWord ? "brand.500" : "text.secondary"}
+										ml={1}
+										verticalAlign="middle"
 										className="typewriter-cursor"
-										pl={0.5}
+										aria-hidden="true"
 									/>
 									<style>{`
 										@keyframes blink {
-											50% { border-color: transparent }
+											0%, 100% { opacity: 1; }
+											50% { opacity: 0; }
 										}
 										.typewriter-cursor {
 											animation: blink 0.75s step-end infinite;

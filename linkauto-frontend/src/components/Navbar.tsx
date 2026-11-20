@@ -1,5 +1,6 @@
 import {
 	Box,
+	chakra,
 	Flex,
 	HStack,
 	Button,
@@ -28,6 +29,7 @@ import { ProfileSidebar } from "./ProfileSidebar";
 export function Navbar() {
 	const [scrolled, setScrolled] = useState(false);
 	const [isProfileOpen, setIsProfileOpen] = useState(false);
+	const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 	const { isAuthenticated, session, signOut } = useSessionStore();
 
 	useEffect(() => {
@@ -42,8 +44,12 @@ export function Navbar() {
 		setIsProfileOpen(true);
 	};
 
-
 	const user = session?.user;
+	const isStudent = user?.roles?.includes("ALUNO") || user?.roles?.includes("student");
+	const isInstructor = user?.roles?.includes("INSTRUTOR") || user?.roles?.includes("instructor");
+	const isAdmin = user?.roles?.includes("ADMIN") || user?.roles?.includes("admin");
+	const avatarUrl = user?.instructor_profile?.avatar_url ?? user?.student_profile?.avatar_url;
+
 	const displayName =
 		user?.student_profile?.full_name?.split(" ")[0] ||
 		user?.instructor_profile?.full_name?.split(" ")[0] ||
@@ -254,8 +260,19 @@ export function Navbar() {
 									fontWeight="bold"
 									border="2px solid"
 									borderColor="surface.panel"
+									overflow="hidden"
 									shadow="sm">
-									{displayName.charAt(0)}
+									{avatarUrl ? (
+										<chakra.img
+											src={avatarUrl}
+											alt={displayName}
+											w="100%"
+											h="100%"
+											objectFit="cover"
+										/>
+									) : (
+										displayName.charAt(0)
+									)}
 								</Flex>
 							</Button>
 							<IconButton
@@ -290,7 +307,10 @@ export function Navbar() {
 				</HStack>
 
 				{/* Mobile Menu */}
-				<DrawerRoot placement="end">
+				<DrawerRoot
+					placement="end"
+					open={isMobileDrawerOpen}
+					onOpenChange={(e) => setIsMobileDrawerOpen(e.open)}>
 					<DrawerTrigger asChild>
 						<IconButton
 							display={{ base: "flex", lg: "none" }}
@@ -305,81 +325,168 @@ export function Navbar() {
 							<BrandLockup compact />
 						</DrawerHeader>
 						<DrawerBody p={4}>
-							<Stack gap={4}>
+							<Stack gap={1} overflowY="auto" maxH="calc(100vh - 120px)" pr={1}>
 								{isAuthenticated && (
-									<HStack
-										p={4}
-										bg="surface.muted"
-										rounded="xl"
-										gap={4}>
-										<Flex
-											w={12}
-											h={12}
-											bg="laBlue.500"
-											color="white"
-											borderRadius="full"
-											align="center"
-											justify="center"
-											fontWeight="bold"
-											fontSize="xl">
-											{displayName.charAt(0)}
-										</Flex>
-										<Box>
-											<Text fontWeight="bold">
-												{displayName}
-											</Text>
-											<Text
-												fontSize="xs"
-												color="text.muted">
-												{session?.user?.email}
-											</Text>
-										</Box>
-									</HStack>
+									<Box p={3} bg="surface.muted" rounded="xl" mb={2}>
+										<HStack gap={3}>
+											<Flex
+												w={11}
+												h={11}
+												bg="laBlue.500"
+												color="white"
+												borderRadius="full"
+												align="center"
+												justify="center"
+												fontWeight="bold"
+												fontSize="lg"
+												overflow="hidden"
+												flexShrink={0}>
+												{avatarUrl ? (
+													<chakra.img
+														src={avatarUrl}
+														alt={displayName}
+														w="100%"
+														h="100%"
+														objectFit="cover"
+													/>
+												) : (
+													displayName.charAt(0)
+												)}
+											</Flex>
+											<Box minW={0} flex="1">
+												<Text fontWeight="bold" fontSize="sm" truncate>
+													{displayName}
+												</Text>
+												<Text fontSize="xs" color="text.muted" truncate>
+													{session?.user?.email}
+												</Text>
+											</Box>
+										</HStack>
+										<Stack gap={1} mt={3} pt={2} borderTop="1px solid" borderColor="border.subtle">
+											<Button
+												asChild
+												size="sm"
+												variant="ghost"
+												justifyContent="flex-start"
+												onClick={() => setIsMobileDrawerOpen(false)}>
+												<RouterLink to="/profile">Meu Perfil</RouterLink>
+											</Button>
+											{isStudent && (
+												<>
+													<Button
+														asChild
+														size="sm"
+														variant="ghost"
+														justifyContent="flex-start"
+														onClick={() => setIsMobileDrawerOpen(false)}>
+														<RouterLink to="/my-lessons">Minhas Aulas</RouterLink>
+													</Button>
+													<Button
+														asChild
+														size="sm"
+														variant="ghost"
+														justifyContent="flex-start"
+														onClick={() => setIsMobileDrawerOpen(false)}>
+														<RouterLink to="/search">Buscar Instrutores</RouterLink>
+													</Button>
+												</>
+											)}
+											{isInstructor && (
+												<Button
+													asChild
+													size="sm"
+													variant="ghost"
+													justifyContent="flex-start"
+													onClick={() => setIsMobileDrawerOpen(false)}>
+													<RouterLink to="/instructor/dashboard">Painel do Instrutor</RouterLink>
+												</Button>
+											)}
+											{isAdmin && (
+												<Button
+													asChild
+													size="sm"
+													variant="ghost"
+													justifyContent="flex-start"
+													onClick={() => setIsMobileDrawerOpen(false)}>
+													<RouterLink to="/admin/instructors">Painel Administrativo</RouterLink>
+												</Button>
+											)}
+										</Stack>
+									</Box>
 								)}
 
-								<Button
-									asChild
-									variant="ghost"
-									justifyContent="flex-start"
-									w="full">
-									<RouterLink to="/">Explorar</RouterLink>
+								<Text fontSize="2xs" fontWeight="800" color="text.muted" textTransform="uppercase" px={2} pt={2}>
+									Para Alunos
+								</Text>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/search">Buscar Instrutores</RouterLink>
 								</Button>
-								<Button
-									asChild
-									variant="ghost"
-									justifyContent="flex-start"
-									w="full">
-									<RouterLink to="/about">Sobre</RouterLink>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/students/first-license">Primeira Habilitação</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/students/licensed">Já Habilitados</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/students/how-it-works">Como Funciona para Alunos</RouterLink>
 								</Button>
 
-								{isAuthenticated ? (
-									<>
+								<Text fontSize="2xs" fontWeight="800" color="text.muted" textTransform="uppercase" px={2} pt={3}>
+									Para Instrutores
+								</Text>
+								<Button asChild variant="ghost" justifyContent="flex-start" color="brand.solid" fontWeight="bold" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/register">Cadastre-se como Instrutor</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/instructors/how-it-works">Como Funciona para Instrutores</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/instructors/benefits">Vantagens</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/instructors/simulator">Simulador de Ganhos</RouterLink>
+								</Button>
+
+								<Text fontSize="2xs" fontWeight="800" color="text.muted" textTransform="uppercase" px={2} pt={3}>
+									Institucional
+								</Text>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/">Explorar</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/about">Sobre o LinkAuto</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/contact">Contato</RouterLink>
+								</Button>
+								<Button asChild variant="ghost" justifyContent="flex-start" onClick={() => setIsMobileDrawerOpen(false)}>
+									<RouterLink to="/help">Ajuda & FAQ</RouterLink>
+								</Button>
+
+								<Box pt={4} mt={2} borderTop="1px solid" borderColor="border.subtle">
+									{isAuthenticated ? (
 										<Button
 											variant="ghost"
 											justifyContent="flex-start"
 											w="full"
 											color="laStatus.cancelled"
-											onClick={() => void signOut()}>
+											onClick={() => {
+												setIsMobileDrawerOpen(false);
+												void signOut();
+											}}>
 											<LogOut size={20} /> Sair
 										</Button>
-									</>
-								) : (
-									<Stack gap={2} mt={4}>
-										<Button asChild bg="brand.500" w="full">
-											<RouterLink to="/register">
-												Cadastre-se
-											</RouterLink>
-										</Button>
-										<Button
-											asChild
-											variant="outline"
-											w="full">
-											<RouterLink to="/login">
-												Entrar
-											</RouterLink>
-										</Button>
-									</Stack>
-								)}
+									) : (
+										<Stack gap={2}>
+											<Button asChild bg="brand.500" w="full" onClick={() => setIsMobileDrawerOpen(false)}>
+												<RouterLink to="/register">Cadastre-se</RouterLink>
+											</Button>
+											<Button asChild variant="outline" w="full" onClick={() => setIsMobileDrawerOpen(false)}>
+												<RouterLink to="/login">Entrar</RouterLink>
+											</Button>
+										</Stack>
+									)}
+								</Box>
 							</Stack>
 						</DrawerBody>
 						<DrawerCloseTrigger />

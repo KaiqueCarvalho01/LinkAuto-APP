@@ -19,6 +19,7 @@ export function RatingStars({
 }: RatingStarsProps) {
 	const iconSize = sizeByToken[size];
 	const roundedRating = Math.round(rating);
+	const filledStarColor = "var(--chakra-colors-laStatus-pending)";
 	const emptyStarColor = "var(--chakra-colors-border-default)";
 
 	if (reviewsCount === 0) {
@@ -42,8 +43,8 @@ export function RatingStars({
 						<Star
 							key={`star-${step}`}
 							size={iconSize}
-							fill={filled ? "#F59E0B" : "none"}
-							color={filled ? "#F59E0B" : emptyStarColor}
+							fill={filled ? filledStarColor : "none"}
+							color={filled ? filledStarColor : emptyStarColor}
 							aria-hidden="true"
 						/>
 					);

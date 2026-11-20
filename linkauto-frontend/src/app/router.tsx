@@ -246,7 +246,7 @@ function ProfileRoute() {
 
 function SearchRoute() {
 	const navigate = useNavigate();
-	const { session } = useSessionStore();
+	const { session, isAuthenticated } = useSessionStore();
 
 	return (
 		<SearchPage
@@ -255,12 +255,17 @@ function SearchRoute() {
 				if (instructor) {
 					navigate(`/instructors/${instructor.slug || instructor.id}`);
 				} else {
-					navigate("/profile");
+					navigate(isAuthenticated ? "/profile" : "/login");
 				}
 			}}
-			onStartBooking={(instructor) =>
-				navigate(`/bookings/new/${instructor.slug || instructor.id}`)
-			}
+			onStartBooking={(instructor) => {
+				const bookingPath = `/bookings/new/${instructor.slug || instructor.id}`;
+				if (!isAuthenticated) {
+					navigate("/login", { state: { from: { pathname: bookingPath } } });
+					return;
+				}
+				navigate(bookingPath);
+			}}
 		/>
 	);
 }
@@ -667,14 +672,10 @@ export default function AppRouter() {
 						element={<StudentPublicProfilePage />}
 					/>
 
-					{/* Protected search */}
+					{/* Public search */}
 					<Route
 						path="/search"
-						element={
-							<ProtectedRoute>
-								<SearchRoute />
-							</ProtectedRoute>
-						}
+						element={<SearchRoute />}
 					/>
 
 					<Route

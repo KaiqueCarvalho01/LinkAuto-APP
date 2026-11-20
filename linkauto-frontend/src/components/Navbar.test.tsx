@@ -249,3 +249,69 @@ describe("Navbar profile menu (keyboard)", () => {
 		expect(await screen.findByText("test@example.com")).toBeInTheDocument();
 	});
 });
+
+describe("Navbar mobile drawer & avatar enrichment", () => {
+	it("renders an image avatar when avatar_url is present in the profile", () => {
+		vi.mocked(sessionStore.useSessionStore).mockReturnValue({
+			isAuthenticated: true,
+			session: {
+				accessToken: "mock-token",
+				tokenType: "Bearer",
+				user: {
+					id: "1",
+					email: "test@example.com",
+					roles: ["student"],
+					is_active: true,
+					student_profile: { full_name: "João Silva", avatar_url: "https://example.com/avatar.jpg" },
+					instructor_profile: null,
+					created_at: new Date().toISOString(),
+					updated_at: new Date().toISOString(),
+				},
+			},
+			roles: ["student"],
+			signIn: vi.fn(),
+			signUp: vi.fn(),
+			signOut: vi.fn(),
+			clearSession: vi.fn(),
+			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
+		});
+
+		renderWithProviders(<Navbar />);
+
+		const avatarImg = screen.getByRole("img", { name: "João", hidden: true });
+		expect(avatarImg).toHaveAttribute("src", "https://example.com/avatar.jpg");
+	});
+
+	it("renders complete student, instructor and institutional links in mobile drawer and auto-closes on link click", async () => {
+		const user = userEvent.setup();
+		vi.mocked(sessionStore.useSessionStore).mockReturnValue({
+			isAuthenticated: false,
+			session: null,
+			roles: [],
+			signIn: vi.fn(),
+			signUp: vi.fn(),
+			signOut: vi.fn(),
+			clearSession: vi.fn(),
+			refreshProfile: vi.fn(),
+			updateUser: vi.fn(),
+		});
+
+		renderWithProviders(<Navbar />);
+
+		const openBtn = screen.getByRole("button", { name: "Abrir menu" });
+		await user.click(openBtn);
+
+		expect(screen.getByRole("link", { name: "Primeira Habilitação", hidden: true })).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: "Já Habilitados", hidden: true })).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: "Vantagens", hidden: true })).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: "Simulador de Ganhos", hidden: true })).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: "Ajuda & FAQ", hidden: true })).toBeInTheDocument();
+
+		// Click on a link in the drawer to verify it closes
+		const aboutLink = screen.getByRole("link", { name: "Sobre o LinkAuto", hidden: true });
+		await user.click(aboutLink);
+
+		expect(openBtn).toHaveAttribute("aria-expanded", "false");
+	});
+});

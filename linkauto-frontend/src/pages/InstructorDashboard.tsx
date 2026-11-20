@@ -85,7 +85,9 @@ export default function InstructorDashboard({
 				position="relative"
 				overflow="hidden"
 				borderRadius="3xl"
-				bgGradient="linear(145deg, #102c40 0%, #1a567f 54%, #338640 100%)"
+				bgGradient="to-br"
+				gradientFrom="laBlue.800"
+				gradientTo="laGreen.700"
 				p={{ base: 6, md: 8 }}
 				boxShadow="0 24px 56px rgba(19, 62, 93, 0.3)">
 				<Box
@@ -101,7 +103,7 @@ export default function InstructorDashboard({
 					<HStack justify="space-between" align="start">
 						<Stack gap={1}>
 							<Text
-								color="text.muted"
+								color="whiteAlpha.800"
 								fontSize="xs"
 								fontWeight="800"
 								letterSpacing="0.14em"
@@ -109,7 +111,7 @@ export default function InstructorDashboard({
 								{dashboardTitle}
 							</Text>
 							<Text
-								color="text.secondary"
+								color="white"
 								fontFamily="heading"
 								fontSize={{ base: "2xl", md: "3xl" }}
 								fontWeight="600">
@@ -123,8 +125,8 @@ export default function InstructorDashboard({
 								bg="whiteAlpha.200"
 								borderRadius="xl"
 								border="1px solid"
-								borderColor="border.default-subtle"
-								color="text.muted">
+								borderColor="whiteAlpha.300"
+								color="white">
 								{rating.count > 0 ? (
 									<>
 										<Star size={16} fill="currentColor" aria-hidden="true" />
@@ -369,11 +371,11 @@ export default function InstructorDashboard({
 				{actionError && (
 					<HStack
 						p={4}
-						bg="red.50"
-						color="red.700"
+						bg="state.danger.bg"
+						color="state.danger.fg"
 						borderRadius="xl"
 						border="1px solid"
-						borderColor="red.200"
+						borderColor="state.danger.border"
 						gap={2}
 						role="alert">
 						<AlertTriangle size={18} aria-hidden="true" />
@@ -534,8 +536,9 @@ export default function InstructorDashboard({
 										<Button
 											flex="1"
 											h="46px"
-											bgGradient="linear(95deg, brand.700, brand.500)"
+											bg="brand.solid"
 											color="text.inverse"
+											_hover={{ bg: "brand.emphasized" }}
 											onClick={() => {
 												void handleAction(
 													onAccept,

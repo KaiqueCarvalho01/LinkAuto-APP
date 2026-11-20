@@ -1,4 +1,4 @@
-import { Calendar, CircleSlash2, Plus, UserCircle2, AlertTriangle } from "lucide-react";
+import { Calendar, CircleSlash2, Plus, Clock, AlertTriangle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import {
@@ -127,12 +127,13 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
           {errorMessage && (
             <HStack
               p={4}
-              bg="red.50"
-              color="red.700"
+              bg="state.danger.bg"
+              color="state.danger.fg"
               borderRadius="xl"
               border="1px solid"
-              borderColor="red.200"
-              gap={2}>
+              borderColor="state.danger.border"
+              gap={2}
+              role="alert">
               <AlertTriangle size={18} />
               <Text fontSize="sm" fontWeight="600">
                 {errorMessage}
@@ -164,7 +165,7 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
                       <Stack gap={1}>
                         <RouterLink
                           to={`/instructors/${booking.instructor.id}`}
-                          style={{ textDecoration: "none" }}>
+                          className="no-underline">
                           <Text
                             fontWeight="700"
                             color="text.primary"
@@ -208,7 +209,7 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
                       <HStack
                         gap={1.5}
                         color="text.secondary">
-                        <UserCircle2
+                        <Clock
                           size={14}
                           aria-hidden="true"
                         />
@@ -283,6 +284,18 @@ export default function MyLessons({ token, onNewBooking }: MyLessonsProps) {
               <Text fontWeight="700" color="text.secondary">
                 Nenhum agendamento encontrado.
               </Text>
+              <Text fontSize="sm" color="text.muted" mt={1} maxW="md" mx="auto">
+                Explore os instrutores credenciados e agende sua primeira aula prática.
+              </Text>
+              <Button
+                mt={4}
+                bg="brand.solid"
+                color="text.inverse"
+                _hover={{ bg: "brand.emphasized" }}
+                onClick={onNewBooking}>
+                <Plus size={16} />
+                Buscar Instrutores
+              </Button>
             </Box>
           ) : null}
         </Stack>
